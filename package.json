@@ -9,7 +9,7 @@
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@netlify/blobs": "11.1.2"
+    "@netlify/blobs": ">=8.1.0 <12"
   },
   "engines": { "node": ">=20" }
 }
