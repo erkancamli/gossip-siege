@@ -110,11 +110,25 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   return json({ ok: true, improved, rank: rank || null, best });
 }
 
+// The signing secret comes from RUN_SECRET when it is set. Otherwise one is generated on first use
+// and kept in the site's own blob store, which is private to the site, so no setup is needed.
+let cachedSecret = null;
+export async function resolveSecret(store, envSecret) {
+  if (envSecret && envSecret.length >= 16) return envSecret;
+  if (cachedSecret) return cachedSecret;
+  const saved = await store.get('config/secret', { type: 'json' });
+  if (saved && typeof saved.v === 'string' && saved.v.length >= 32) return (cachedSecret = saved.v);
+  const v = crypto.randomBytes(32).toString('base64url');
+  await store.setJSON('config/secret', { v, at: Date.now() });
+  const again = await store.get('config/secret', { type: 'json' }); // two cold starts racing: keep whichever landed
+  return (cachedSecret = (again && again.v) || v);
+}
+
 export default async (req, context) => {
-  const secret = (globalThis.Netlify && Netlify.env.get('RUN_SECRET')) || process.env.RUN_SECRET;
-  if (!secret || secret.length < 16) return json({ error: 'The board is not configured yet (RUN_SECRET missing).' }, 503);
   const store = getStore({ name: 'gossip-siege', consistency: 'strong' });
   try {
+    const envSecret = (globalThis.Netlify && Netlify.env.get('RUN_SECRET')) || process.env.RUN_SECRET;
+    const secret = await resolveSecret(store, envSecret);
     return await handle(req, { store, ip: context.ip, secret });
   } catch (e) {
     console.error(e);

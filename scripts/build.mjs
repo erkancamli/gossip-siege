@@ -1,9 +1,50 @@
-// Copies public/ to dist/ and fills in the site URL for the social preview tags.
-// Netlify sets URL to the site's main address at build time.
-import { cp, readFile, writeFile, rm } from 'node:fs/promises';
+// Builds dist/ from src/: inlines the game engine and the Optimum logo into one HTML page,
+// adds the head (meta, social preview tags) and copies the static files from public/.
+import { cp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
+
 const site = (process.env.URL || '').replace(/\/+$/, '');
+const [game, core, logo] = await Promise.all(['src/game.html', 'src/core.js', 'src/logo.svg'].map((f) => readFile(f, 'utf8')));
+
+const logoSvg = logo.replaceAll('#3D4047', 'currentColor');
+const paths = [...logoSvg.matchAll(/<path d="([^"]+)"/g)].map((m) => m[1]);
+const markSvg = `<svg viewBox="0 7 37 21" aria-hidden="true"><path d="${paths[0]}" fill="currentColor"/></svg>`;
+
+let body = game
+  .replace('<!--MARK-->', markSvg)
+  .replace('<!--LOGO-->', logoSvg.replace('<svg ', '<svg class="logo" aria-label="Optimum" role="img" '))
+  .replaceAll('__MARKPATH__', paths[0])
+  .replaceAll('__LOGOPATHALL__', paths.join(' '))
+  .replace('/*__CORE__*/', () => core);
+
+const cut = body.indexOf('</style>') + '</style>'.length;
+const headPart = body.slice(0, cut), bodyPart = body.slice(cut);
+const titleLine = headPart.slice(0, headPart.indexOf('\n'));
+const headRest = headPart.slice(headPart.indexOf('\n') + 1).replace('<style>', '<style>\nhtml, body { margin: 0; }');
+const abs = (p) => (site ? site + p : p);
+const meta = `<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Hire the Optimum crew, crack coded armor with independent shards and hold the validator mesh for 25 waves. A fan made tower defense game. Speed is money.">
+<meta name="theme-color" content="#0e0f12">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gossip Siege · Speed is money">
+<meta property="og:description" content="Hire the Optimum crew, crack coded armor with independent shards and hold the validator mesh for 25 waves.">
+<meta property="og:image" content="${abs('/og.png')}">
+<meta property="og:url" content="${abs('/')}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gossip Siege · Speed is money">
+<meta name="twitter:description" content="A fan made Optimum tower defense game. Crack coded armor with independent shards.">
+<meta name="twitter:image" content="${abs('/og.png')}">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+`;
+const page = `<!doctype html>\n<html lang="en">\n<head>\n${meta}${titleLine}\n${headRest}\n</head>\n<body>${bodyPart}\n</body>\n</html>\n`;
+
+// refuse to ship a page whose scripts do not parse
+for (const [, code] of page.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
+  try { new Function(code); } catch (e) { console.error('Build stopped: a page script does not parse:', e.message); process.exit(1); }
+}
+
 await rm('dist', { recursive: true, force: true });
+await mkdir('dist', { recursive: true });
 await cp('public', 'dist', { recursive: true });
-const html = await readFile('dist/index.html', 'utf8');
-await writeFile('dist/index.html', html.replaceAll('__SITE_URL__', site));
-console.log(`built dist/ for ${site || '(no URL set: preview tags use relative paths)'}`);
+await writeFile('dist/index.html', page);
+console.log(`built dist/index.html (${(page.length / 1024).toFixed(0)} KB) for ${site || 'relative URLs'}`);

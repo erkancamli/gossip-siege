@@ -2,7 +2,7 @@
 // Run: node --test test/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { handle, cleanHandle } from '../netlify/functions/leaderboard.mjs';
+import { handle, cleanHandle, resolveSecret } from '../netlify/functions/leaderboard.mjs';
 
 const memStore = () => {
   const m = new Map();
@@ -62,4 +62,12 @@ test('one ticket cannot be reused under another handle', async () => {
   const a = await ticket(env, 0);
   assert.equal((await submit(env, { handle: 'one', score: 1000, wave: 3, lives: 20, run: a }, 600_000)).status, 200);
   assert.equal((await submit(env, { handle: 'two', score: 1000, wave: 3, lives: 20, run: a }, 700_000)).status, 409);
+});
+
+test('secret is generated once and reused when RUN_SECRET is not set', async () => {
+  const store = memStore();
+  const a = await resolveSecret(store, undefined);
+  assert.ok(a.length >= 32);
+  assert.equal((await store.get('config/secret')).v, a);
+  assert.equal(await resolveSecret(store, 'env-secret-0123456789'), 'env-secret-0123456789');
 });
