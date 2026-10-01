@@ -1,7 +1,7 @@
 // Gossip Siege leaderboard API (Netlify Functions v2 + Netlify Blobs).
 //
 //   POST /api/run     -> { id, ts, sig }   signed run ticket, requested when a run starts
-//   GET  /api/scores  -> { rows: [...] }   top 50, best score per X handle
+//   GET  /api/scores?stage=n -> { rows: [...] }   top 50 of that campaign stage, best score per X handle
 //   POST /api/scores  -> { ok, improved, rank, best }
 //
 // There are no accounts, so a determined cheater can still forge a score. The checks below
@@ -10,7 +10,15 @@
 import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 
-const BOARD_KEY = 'board/v1';
+// Campaign stages: waves to clear and the score multiplier the game applies (src/stages.js).
+// Stage 1 keeps the original board key so earlier scores stay on it.
+export const STAGES = {
+  1: { key: 'board/v1', waves: 15, mult: 1.0, endless: false },
+  2: { key: 'board/s2', waves: 18, mult: 1.3, endless: false },
+  3: { key: 'board/s3', waves: 21, mult: 1.6, endless: false },
+  4: { key: 'board/s4', waves: 25, mult: 2.0, endless: true },
+};
+const stageOf = (v) => STAGES[int(v)] ? int(v) : 1;
 const KEEP = 200;            // rows kept in the board document
 const SHOW = 50;             // rows returned to the page
 const MAX_WAVE = 200;
@@ -20,7 +28,7 @@ const SUBMIT_GAP_MS = 8000;
 
 // Measured with the game engine: a strong run scores about 230 x wave^2. 650 x wave^2 leaves
 // a wide margin so no honest run is ever refused.
-const scoreCeiling = (wave) => 650 * wave * wave + 3000;
+const scoreCeiling = (wave, mult = 1) => (650 * wave * wave + 3000) * mult;
 
 const json = (body, status = 200, extra = {}) => new Response(JSON.stringify(body), {
   status,
@@ -35,8 +43,8 @@ const hashIp = (secret, ip) => crypto.createHmac('sha256', secret).update(`ip:${
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 const int = (v) => (Number.isFinite(Number(v)) ? Math.floor(Number(v)) : NaN);
 
-async function readBoard(store) {
-  const b = await store.get(BOARD_KEY, { type: 'json' });
+async function readBoard(store, key) {
+  const b = await store.get(key, { type: 'json' });
   return b && Array.isArray(b.rows) ? b : { rows: [] };
 }
 
@@ -54,8 +62,9 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   if (!path.endsWith('/api/scores')) return json({ error: 'Not found.' }, 404);
 
   if (req.method === 'GET') {
-    const b = await readBoard(store);
-    return json({ rows: b.rows.slice(0, SHOW) }, 200, { 'cache-control': 'public, max-age=10' });
+    const st = stageOf(url.searchParams.get('stage'));
+    const b = await readBoard(store, STAGES[st].key);
+    return json({ stage: st, rows: b.rows.slice(0, SHOW) }, 200, { 'cache-control': 'public, max-age=10' });
   }
   if (req.method !== 'POST') return json({ error: 'Use GET or POST.' }, 405);
 
@@ -66,7 +75,9 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   if (!handle) return json({ error: 'Type your X handle (letters, numbers, underscore).' }, 400);
   const score = int(body.score), wave = int(body.wave), lives = int(body.lives);
   const decoded = Math.max(0, int(body.decoded) || 0), kills = Math.max(0, int(body.kills) || 0);
-  if (!(score >= 0 && wave >= 1 && wave <= MAX_WAVE && lives >= 0 && lives <= 20)) return json({ error: 'That run does not look valid.' }, 400);
+  const st = stageOf(body.stage), S = STAGES[st];
+  const maxWave = S.endless ? MAX_WAVE : S.waves;
+  if (!(score >= 0 && wave >= 1 && wave <= maxWave && lives >= 0 && lives <= 20)) return json({ error: 'That run does not look valid.' }, 400);
 
   // ticket
   const run = body.run || {};
@@ -77,7 +88,7 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   const elapsed = (now - ts) / 1000;
   if (elapsed > MAX_RUN_HOURS * 3600) return json({ error: 'This run is too old to submit.' }, 400);
   if (elapsed < wave * MIN_SECONDS_PER_WAVE) return json({ error: 'That run finished faster than the game allows.' }, 400);
-  if (score > scoreCeiling(wave)) return json({ error: 'That score is higher than the game can produce.' }, 400);
+  if (score > scoreCeiling(wave, S.mult)) return json({ error: 'That score is higher than the game can produce.' }, 400);
 
   // rate limit per client
   const rlKey = `rl/${hashIp(secret, ip)}`;
@@ -92,7 +103,7 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   if (!used) await store.setJSON(runKey, { handle: handle.toLowerCase(), at: now });
 
   // best per handle
-  const b = await readBoard(store);
+  const b = await readBoard(store, S.key);
   const key = handle.toLowerCase();
   const i = b.rows.findIndex((r) => r.handle.toLowerCase() === key);
   const prev = i >= 0 ? b.rows[i] : null;
@@ -102,12 +113,12 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
     if (i >= 0) b.rows[i] = row; else b.rows.push(row);
     b.rows.sort((x, y) => y.score - x.score || y.wave - x.wave || x.at.localeCompare(y.at));
     b.rows = b.rows.slice(0, KEEP);
-    await store.setJSON(BOARD_KEY, b);
+    await store.setJSON(S.key, b);
     improved = true;
   }
   const rank = b.rows.findIndex((r) => r.handle.toLowerCase() === key) + 1;
   const best = rank ? b.rows[rank - 1].score : score;
-  return json({ ok: true, improved, rank: rank || null, best });
+  return json({ ok: true, stage: st, improved, rank: rank || null, best });
 }
 
 // The signing secret comes from RUN_SECRET when it is set. Otherwise one is generated on first use

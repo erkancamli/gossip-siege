@@ -5,18 +5,31 @@
 (function (root) {
   'use strict';
   const W = 1280, H = 720;
-  const PATH = [[-40, 170], [260, 170], [260, 500], [520, 500], [520, 250], [800, 250], [800, 560], [1060, 560], [1060, 330], [1320, 330]];
-  const PADS = [[700, 455], [170, 262], [352, 300], [170, 430], [390, 592], [390, 410], [430, 250], [640, 160], [610, 380], [930, 640], [890, 430], [970, 330], [1150, 450], [1170, 245], [710, 560], [1230, 420]];
+  const STAGES = root.TD_STAGES;
 
-  // ---------- path ----------
-  const SEG = []; let PATH_LEN = 0;
-  for (let i = 0; i < PATH.length - 1; i++) { const a = PATH[i], b = PATH[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); SEG.push({ a, b, L, d0: PATH_LEN }); PATH_LEN += L; }
-  const END_D = PATH_LEN - 90;
-  function posAt(d) {
-    d = Math.max(0, Math.min(PATH_LEN, d));
-    for (const s of SEG) if (d <= s.d0 + s.L) { const t = (d - s.d0) / s.L; return { x: s.a[0] + (s.b[0] - s.a[0]) * t, y: s.a[1] + (s.b[1] - s.a[1]) * t, dx: (s.b[0] - s.a[0]) / s.L, dy: (s.b[1] - s.a[1]) / s.L }; }
-    const s = SEG[SEG.length - 1]; return { x: s.b[0], y: s.b[1], dx: 1, dy: 0 };
+  // ---------- paths ----------
+  function compilePath(pts) {
+    const seg = []; let len = 0;
+    for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); seg.push({ a, b, L, d0: len }); len += L; }
+    return { pts, seg, len, end: len - 36 };
   }
+  function pathPos(P, d) {
+    d = Math.max(0, Math.min(P.len, d));
+    for (const s of P.seg) if (d <= s.d0 + s.L) { const t = (d - s.d0) / s.L; return { x: s.a[0] + (s.b[0] - s.a[0]) * t, y: s.a[1] + (s.b[1] - s.a[1]) * t, dx: (s.b[0] - s.a[0]) / s.L, dy: (s.b[1] - s.a[1]) / s.L }; }
+    const s = P.seg[P.seg.length - 1]; return { x: s.b[0], y: s.b[1], dx: 1, dy: 0 };
+  }
+  // lossy links (Subsea Cable): path stretches where uncoded shots can be dropped in transit.
+  // RLNC coded traffic (recoded by Cyan, fountain shards, abilities) survives loss.
+  function compileStage(st) {
+    return st.paths.map((pts) => {
+      const P = compilePath(pts); P.lossy = [];
+      for (const [a, b] of st.lossy || []) for (const sg of P.seg) if (sg.a[0] === a[0] && sg.a[1] === a[1] && sg.b[0] === b[0] && sg.b[1] === b[1]) P.lossy.push([sg.d0, sg.d0 + sg.L]);
+      return P;
+    });
+  }
+  const COMPILED = STAGES.map(compileStage);
+  const inLoss = (g, e) => { const L = g.paths[e.path || 0].lossy; return L.length > 0 && L.some(([a, b]) => e.d >= a && e.d < b); };
+  const posAt = (g, e) => pathPos(g.paths[e.path || 0], e.d);
 
   function rng32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
@@ -127,8 +140,9 @@
     [['dupe', 80, 0.08, 0], ['hog', 12, 0.8, 4, 3], ['gremlin', 30, 0.2, 8], ['phantom', 16, 0.4, 12]],
     [['hog', 8, 1.0, 0, 3], ['boss', 1, 1, 4, 4], ['boss', 1, 1, 22, 4], ['dupe', 40, 0.12, 12]],
   ];
-  const FINAL_WAVE = WAVES.length;
-  function hpMult(w) { return 1 + 0.1 * (w - 1) + 0.028 * (w - 1) * (w - 1) + (w > 14 ? 0.6 * (w - 14) * (w - 14) : 0); }
+  const FINAL_WAVE = WAVES.length; // the hardest stage plays all 25
+  function hpMultBase(w) { return 1 + 0.1 * (w - 1) + 0.028 * (w - 1) * (w - 1) + (w > 14 ? 0.6 * (w - 14) * (w - 14) : 0); }
+  const hpMult = (g, w) => hpMultBase(w) * g.stage.hp;
   function endlessWave(w, rng) {
     const types = ['lag', 'gremlin', 'dupe', 'hog', 'phantom'], g = [];
     for (let i = 0; i < 4; i++) { const t = types[Math.floor(rng() * types.length)]; const n = t === 'dupe' ? 60 : t === 'hog' ? 10 : 22; g.push([t, n, t === 'dupe' ? 0.09 : 0.35, i * 4, rng() < 0.6 ? 3 + Math.floor(rng() * 2) : 0]); }
@@ -137,10 +151,12 @@
   }
 
   // ---------- game ----------
-  function newGame(seed) {
+  function newGame(seed, stageId) {
+    const stage = STAGES.find((s) => s.id === stageId) || STAGES[0];
     const g = {
-      seed, rng: rng32(seed || 1), t: 0, coins: 220, lives: 20, maxLives: 20, wave: 0, score: 0, state: 'build',
-      towers: [], foes: [], shots: [], fx: [], events: [], zones: [], pads: PADS.map((p, i) => ({ i, x: p[0], y: p[1], tower: null })),
+      stage, paths: COMPILED[STAGES.indexOf(stage)], finalWave: stage.waves, spawnCount: 0,
+      seed, rng: rng32(seed || 1), t: 0, coins: stage.coins, lives: stage.lives, maxLives: stage.lives, wave: 0, score: 0, state: 'build',
+      towers: [], foes: [], shots: [], fx: [], events: [], zones: [], pads: stage.pads.map((p, i) => ({ i, x: p[0], y: p[1], tower: null })),
       spawnQ: [], waveActive: false, countdown: null, nextId: 1, tokenSeq: 0, leaksThisWave: 0, stats: { kills: 0, leaks: 0, early: 0, decoded: 0, bossKills: 0, spent: 0 },
       abilities: { burst: { cd: 30, left: 0 }, surge: { cd: 45, left: 0, active: 0 } }, seenFoes: {}, unlocked: {}, over: false, won: false,
     };
@@ -167,29 +183,35 @@
   function setPrio(t, p) { if (PRIOS.includes(p)) t.prio = p; }
   function sell(g, t) { if (!t) return 0; const v = Math.floor(t.invested * 0.7); g.coins += v; g.pads[t.pad].tower = null; g.towers = g.towers.filter(x => x !== t); emit(g, { type: 'sell', t, v }); return v; }
 
-  function waveGroups(g, w) { return w <= FINAL_WAVE ? WAVES[w - 1] : endlessWave(w, g.rng); }
+  function waveGroups(g, w) {
+    let gs = w <= FINAL_WAVE ? WAVES[w - 1].map((x) => x.slice()) : endlessWave(w, g.rng);
+    // every stage ends on a boss wave, and harder stages make coded shields need more shards
+    if (w === g.finalWave && !gs.some((x) => x[0] === 'boss')) gs.push(['boss', 1, 1, 6, 3]);
+    if (g.stage.codedBonus) gs = gs.map((x) => (x[4] ? [x[0], x[1], x[2], x[3], Math.min(5, x[4] + g.stage.codedBonus)] : x));
+    return gs;
+  }
   function previewWave(g, w) { const gs = waveGroups(g, w); const m = {}; gs.forEach(([t, n, , , k]) => { const key = t + (k ? '#' + k : ''); m[key] = (m[key] || 0) + n; }); return m; }
 
   function startWave(g, early) {
     if (g.waveActive && g.spawnQ.length) return false;
     let bonus = 0;
-    if (early && g.countdown != null && g.countdown > 0) { bonus = Math.ceil(g.countdown) * 2; g.coins += bonus; g.score += bonus * 5; g.stats.early += bonus; emit(g, { type: 'early', bonus }); }
+    if (early && g.countdown != null && g.countdown > 0) { bonus = Math.ceil(g.countdown) * 2 * (g.stage.earlyX || 1); g.coins += bonus; g.score += bonus * 5; g.stats.early += bonus; emit(g, { type: 'early', bonus }); }
     g.wave++; g.countdown = null; g.waveActive = true; g.leaksThisWave = 0;
     if (g.wave === 5) { g.unlocked.cyan = true; g.unlocked.sunny = true; emit(g, { type: 'unlock', kinds: ['cyan', 'sunny'] }); }
     if (g.wave === 8) { g.unlocked.nova = true; emit(g, { type: 'unlock', kinds: ['nova'] }); }
     const groups = waveGroups(g, g.wave);
-    if (g.wave > FINAL_WAVE && g.wave % 5 === 0 && !groups.some(x => x[0] === 'boss')) groups.push(['boss', 1, 1, 6, 4]);
+    if (g.wave > g.finalWave && g.wave % 5 === 0 && !groups.some(x => x[0] === 'boss')) groups.push(['boss', 1, 1, 6, 4]);
     for (const [type, n, gap, delay, k] of groups) for (let i = 0; i < n; i++) g.spawnQ.push({ at: g.t + delay + i * gap, type, k: k || 0 });
     g.spawnQ.sort((a, b) => a.at - b.at);
     emit(g, { type: 'wave', wave: g.wave });
     return true;
   }
 
-  function spawn(g, type, k, d0) {
-    const F = FOES[type], m = type === 'boss' ? (1 + 0.12 * (g.wave - 1)) * (g.wave >= 25 ? 2.2 : g.wave >= 20 ? 1.6 : 1) : hpMult(g.wave);
-    const e = { id: g.nextId++, type, hp: F.hp * m, maxhp: F.hp * m, spd: F.spd * (1 + Math.min(0.25, g.wave * 0.006)), d: d0 || 0, x: 0, y: 0, armor: (F.armor || 0) * (1 + g.wave * 0.03), r: F.r,
+  function spawn(g, type, k, d0, opt) {
+    const F = FOES[type], m = type === 'boss' ? (1 + 0.12 * (g.wave - 1)) * (g.wave >= 25 ? 2.2 : g.wave >= 20 ? 1.6 : 1) * g.stage.hp : hpMult(g, g.wave);
+    const e = { id: g.nextId++, type, hp: F.hp * m, maxhp: F.hp * m, spd: F.spd * (1 + Math.min(0.25, g.wave * 0.006)) * g.stage.speed, d: d0 || 0, path: opt && opt.path != null ? opt.path : (g.spawnCount++ % g.paths.length), x: 0, y: 0, armor: (F.armor || 0) * (1 + g.wave * 0.03), r: F.r,
       shield: k ? { k, got: new Set(), broken: false } : null, slowUntil: 0, slowF: 0, revealedUntil: 0, blinkT: F.blink ? F.blink * (0.6 + g.rng() * 0.6) : 0, hitFlash: 0, born: g.t, dotUntil: 0, dot: 0, bossNext: 0.88, knock: 0, markUntil: 0, markF: 0, stunUntil: 0 };
-    const p = posAt(e.d); e.x = p.x; e.y = p.y;
+    const p = posAt(g, e); e.x = p.x; e.y = p.y;
     g.foes.push(e);
     if (!g.seenFoes[type + (k ? '#' : '')]) { g.seenFoes[type + (k ? '#' : '')] = true; emit(g, { type: 'newFoe', foe: type, coded: !!k }); }
     return e;
@@ -204,6 +226,10 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
   function hit(g, e, dmg, src, opt = {}) {
     if (e.hp <= 0) return;
     const recoded = opt.recoded || (src && src.kind !== 'cyan' && inAura(g, src));
+    if (g.stage.loss && src && !recoded && !opt.fresh && !opt.ability && src.kind !== 'cyan' && inLoss(g, e) && g.rng() < g.stage.loss) {
+      if (!e.dropT || g.t - e.dropT > 0.3) { e.dropT = g.t; emit(g, { type: 'drop', e }); }
+      return;
+    }
     if (e.shield && !e.shield.broken) {
       const token = recoded || opt.ability || opt.fresh ? 'r' + (++g.tokenSeq) : 't' + (src ? src.id : 'x');
       const was = e.shield.got.size; e.shield.got.add(token);
@@ -218,7 +244,7 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     e.hp -= dmg; e.hitFlash = 0.08; if (FOES[e.type].invis) e.revealedUntil = Math.max(e.revealedUntil, g.t + 0.6);
     if (src) src.dmgDone += dmg;
     if (src && src.kind === 'nova' && e.hp > 0 && e.hp / e.maxhp < stat(src).exec && !FOES[e.type].boss) { e.hp = 0; emit(g, { type: 'execute', e }); }
-    if (FOES[e.type].boss) while (e.hp > 0 && e.hp / e.maxhp < e.bossNext) { e.bossNext -= 0.12; for (let i = 0; i < 5; i++) spawn(g, 'dupe', 0, Math.max(0, e.d - 10 - i * 14)); emit(g, { type: 'bossLeak', e }); }
+    if (FOES[e.type].boss) while (e.hp > 0 && e.hp / e.maxhp < e.bossNext) { e.bossNext -= 0.12; for (let i = 0; i < 5; i++) spawn(g, 'dupe', 0, Math.max(0, e.d - 10 - i * 14), { path: e.path }); emit(g, { type: 'bossLeak', e }); }
     if (e.hp <= 0) kill(g, e, src);
   }
   function kill(g, e, src) {
@@ -228,9 +254,11 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     const bounty = Math.round(F.bounty * (1 + 0.5 * fast));
     let extra = 0;
     for (const t of g.towers) if (t.kind === 'sunny' && t.spec === 'b' && Math.hypot(t.x - e.x, t.y - e.y) <= stat(t).range) extra += stat(t).bonus;
-    g.coins += bounty + extra; g.score += bounty * 10; g.stats.kills++; if (F.boss) g.stats.bossKills++;
+    g.coins += bounty + extra; g.score += Math.round(bounty * 10 * g.stage.scoreMult); g.stats.kills++; if (F.boss) g.stats.bossKills++;
     if (src) { src.kills++; src.mood = 'happy'; src.moodT = 0.7; }
     emit(g, { type: 'kill', e, bounty: bounty + extra, fast: fast > 0.5 || extra > 0 });
+    // Blob Season rule: a Bandwidth Hog bursts into Dupes when it goes down
+    if (g.stage.split && e.type === 'hog') { for (let i = 0; i < g.stage.split; i++) spawn(g, 'dupe', 0, Math.max(0, e.d - i * 12), { path: e.path }); emit(g, { type: 'split', e }); }
   }
   function findTarget(g, t, range, prio, exclude) {
     let best = null, bv = -Infinity;
@@ -276,11 +304,13 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
       if (F.blink) { e.blinkT -= dt; if (e.blinkT <= 0) { e.blinkT = F.blink * (0.7 + g.rng() * 0.6); if (g.t >= e.slowUntil) { g.fx.push({ kind: 'blink', x: e.x, y: e.y, t: 0, life: 0.35 }); e.d += 70; } } }
       if (g.t < e.dotUntil) hit(g, e, e.dot * dt, e.dotSrc || null, { pierce: true, quiet: true });
       if (e.hp <= 0) continue;
-      const p = posAt(e.d); e.x = p.x; e.y = p.y; e.dir = p;
+      const p = posAt(g, e); e.x = p.x; e.y = p.y; e.dir = p;
       e.hitFlash = Math.max(0, e.hitFlash - dt);
-      if (e.d >= END_D) {
+      if (e.d >= g.paths[e.path].end) {
         e.hp = 0; e.leaked = true; g.lives -= F.lives; g.leaksThisWave += F.lives; g.stats.leaks += F.lives;
-        emit(g, { type: 'leak', e, lives: F.lives });
+        // Mainnet rule: a leaked block is a missed opportunity, it costs coins too
+        const lost = g.stage.leakCoins ? Math.min(g.coins, g.stage.leakCoins * F.lives) : 0; g.coins -= lost;
+        emit(g, { type: 'leak', e, lives: F.lives, coins: lost });
         if (g.lives <= 0) { g.lives = 0; g.over = true; g.won = false; emit(g, { type: 'gameover' }); }
       }
     }
@@ -411,13 +441,14 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
       let income = 0; for (const t of g.towers) if (t.kind === 'sunny') { const S = stat(t); income += S.income + Math.min(t.spec === 'a' ? 120 : 60, Math.floor(g.coins * S.interest)); }
       const clear = 30 + g.wave * 5;
       g.coins += clear + income;
-      g.score += 100 * g.wave + (g.leaksThisWave ? 0 : 50 * g.wave);
+      g.score += Math.round((100 * g.wave + (g.leaksThisWave ? 0 : 50 * g.wave)) * g.stage.scoreMult);
       emit(g, { type: 'waveClear', wave: g.wave, income, clear, perfect: !g.leaksThisWave });
       for (const t of g.towers) { t.mood = 'excited'; t.moodT = 1.4; }
-      if (g.wave === FINAL_WAVE && !g.endless) { g.won = true; g.score += g.lives * 200; emit(g, { type: 'victory' }); g.countdown = null; g.state = 'victory'; }
+      if (g.wave === g.finalWave && !g.endless) { g.won = true; g.score += Math.round(g.lives * 200 * g.stage.scoreMult); emit(g, { type: 'victory' }); g.countdown = null; g.state = 'victory'; }
       else g.countdown = 18;
     }
   }
 
-  root.TD = { W, H, PATH, PADS, PATH_LEN, END_D, posAt, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
+  const starsFor = (g) => (!g.won ? 0 : g.lives >= g.maxLives * 0.9 ? 3 : g.lives >= g.maxLives * 0.5 ? 2 : 1);
+  root.TD = { starsFor, inLoss, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
 })(typeof window !== 'undefined' ? window : globalThis);

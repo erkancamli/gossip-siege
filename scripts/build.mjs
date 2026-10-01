@@ -3,7 +3,7 @@
 import { cp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
 
 const site = (process.env.URL || '').replace(/\/+$/, '');
-const [game, core, logo] = await Promise.all(['src/game.html', 'src/core.js', 'src/logo.svg'].map((f) => readFile(f, 'utf8')));
+const [game, stages, core, logo] = await Promise.all(['src/game.html', 'src/stages.js', 'src/core.js', 'src/logo.svg'].map((f) => readFile(f, 'utf8')));
 
 const logoSvg = logo.replaceAll('#3D4047', 'currentColor');
 const paths = [...logoSvg.matchAll(/<path d="([^"]+)"/g)].map((m) => m[1]);
@@ -14,7 +14,7 @@ let body = game
   .replace('<!--LOGO-->', logoSvg.replace('<svg ', '<svg class="logo" aria-label="Optimum" role="img" '))
   .replaceAll('__MARKPATH__', paths[0])
   .replaceAll('__LOGOPATHALL__', paths.join(' '))
-  .replace('/*__CORE__*/', () => core);
+  .replace('/*__CORE__*/', () => stages + '\n' + core); // stages.js defines the campaign before the engine reads it
 
 const cut = body.indexOf('</style>') + '</style>'.length;
 const headPart = body.slice(0, cut), bodyPart = body.slice(cut);
@@ -23,11 +23,11 @@ const headRest = headPart.slice(headPart.indexOf('\n') + 1).replace('<style>', '
 const abs = (p) => (site ? site + p : p);
 const meta = `<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Hire the Optimum crew, crack coded armor with independent shards and hold the validator mesh for 25 waves. A fan made tower defense game. Speed is money.">
+<meta name="description" content="Hire the Optimum crew, crack coded armor with independent shards and hold the validator mesh across four campaign stages, from Hoodi Testnet to Mainnet. A fan made tower defense game. Speed is money.">
 <meta name="theme-color" content="#0e0f12">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Gossip Siege · Speed is money">
-<meta property="og:description" content="Hire the Optimum crew, crack coded armor with independent shards and hold the validator mesh for 25 waves.">
+<meta property="og:description" content="Four stages from Hoodi Testnet to Mainnet. Hire the Optimum crew and crack coded armor with independent shards.">
 <meta property="og:image" content="${abs('/og.png')}">
 <meta property="og:url" content="${abs('/')}">
 <meta name="twitter:card" content="summary_large_image">
