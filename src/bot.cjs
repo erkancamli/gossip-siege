@@ -11,7 +11,8 @@ function play(stageId, seed, o = {}) {
   while (!g.over && g.t < 7000 && !g.won) {
     for (let guard = 0; guard < 4; guard++) {
       const maxed = g.towers.every(t => t.lvl >= (o.maxLvl ?? 3));
-      const next = (!o.cap || g.towers.length < o.cap || maxed) ? plan.find(([p, k]) => !g.pads[p].tower && g.unlocked[k]) : null;
+      const capOk = !g.stage.crewCap || g.towers.length < g.stage.crewCap;
+      const next = capOk && (!o.cap || g.towers.length < o.cap || maxed) ? plan.find(([p, k]) => !g.pads[p].tower && g.unlocked[k]) : null;
       if (next && g.coins >= T.CREW[next[1]].cost[0]) { T.build(g, next[0], next[1]); continue; }
       if (o.upgrade !== false) {
         const u = g.towers.filter(t => t.lvl < (o.maxLvl ?? 3)).sort((a, b) => a.lvl - b.lvl)[0];

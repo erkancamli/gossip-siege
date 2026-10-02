@@ -19,7 +19,7 @@
     const s = P.seg[P.seg.length - 1]; return { x: s.b[0], y: s.b[1], dx: 1, dy: 0 };
   }
   // lossy links (Subsea Cable): path stretches where uncoded shots can be dropped in transit.
-  // RLNC coded traffic (recoded by Cyan, fountain shards, abilities) survives loss.
+  // RLNC coded traffic (recoded by Muriel, fountain shards, abilities) survives loss.
   function compileStage(st) {
     return st.paths.map((pts) => {
       const P = compilePath(pts); P.lossy = [];
@@ -28,6 +28,8 @@
     });
   }
   const COMPILED = STAGES.map(compileStage);
+  // Gateway: past this share of the route traffic rides mump2p, so every hit lands as a coded shard
+  const pastGateway = (g, e) => !!g.stage.gateway && e.d >= g.paths[e.path || 0].len * g.stage.gateway;
   const inLoss = (g, e) => { const L = g.paths[e.path || 0].lossy; return L.length > 0 && L.some(([a, b]) => e.d >= a && e.d < b); };
   const posAt = (g, e) => pathPos(g.paths[e.path || 0], e.d);
 
@@ -37,8 +39,19 @@
   // Levels 1 to 3 are linear (lv[0..2]). At level 4 each crew member specializes into one of
   // two very different weapons (specs.a / specs.b), the Kingdom Rush pattern. Every level makes
   // the weapon visibly bigger and stronger; the renderer reads t.lvl and t.spec for that.
+  // The crew is named after the Optimum team (getoptimum.xyz/team) and its community.
+  // tribute: who the hero is named after, in facts from public sources. No quotes are invented.
+  const TRIBUTE = {
+    spike: 'Named after Dr. Kishori Konwar, Optimum co-founder: distributed systems and coding theory, former senior engineer and scientist at Meta, MIT postdoc in network coding.',
+    blaze: 'Named after Jeff (@blockchainjeff), who joined Optimum as community manager in 2025 after years of building Web3 communities.',
+    moss: 'Named after Prof. Nancy Lynch, Optimum advisor and former NEC Chair at MIT: the L in the FLP impossibility result and co-author of the DLS consensus algorithm.',
+    silk: 'Named after GMUM, the Optimum community greeting. Gmum stands for every member who holds the mesh.',
+    cyan: 'Named after Prof. Muriel Médard, Optimum co-founder and CEO, NEC Chair at MIT EECS and co-inventor of RLNC. Recoding is her idea in action.',
+    sunny: 'Named after Kent Lin, Optimum co-founder for business development, tokenomics and fundraising, formerly a Partner at GSRV.',
+    nova: 'Named after Prof. Sriram Viswanath, Optimum advisor working on information theory, wireless communications and network science.',
+  };
   const CREW = {
-    spike: { name: 'Spike', role: 'Encoder', unlock: 1, look: { visor: '#9b7bff', hair: 'spiky', hairColor: '#f4f6f8', jacket: '#101216' },
+    spike: { name: 'Kishori', role: 'Encoder', unlock: 1, look: { visor: '#9b7bff', hair: 'spiky', hairColor: '#f4f6f8', jacket: '#101216' },
       blurb: 'Cuts every block into coded shards and fires them fast. Cheap, reliable, the backbone of any mesh.',
       cost: [70, 95, 170],
       lv: [{ dmg: 8, rate: 2.0, range: 130, shots: 1 }, { dmg: 13, rate: 2.5, range: 140, shots: 1 }, { dmg: 17, rate: 2.8, range: 150, shots: 2 }],
@@ -46,7 +59,7 @@
         a: { name: 'Fountain Coder', cost: 330, blurb: 'A fountain code never repeats itself: every single shard counts as a fresh independent shard, so coded shields melt.', st: { dmg: 22, rate: 3.4, range: 165, shots: 3, fresh: true } },
         b: { name: 'Railshard', cost: 350, blurb: 'Compresses the whole block into one rail shot that pierces up to 6 enemies in a line and ignores armor.', st: { dmg: 70, rate: 1.5, range: 190, rail: 6 } },
       } },
-    blaze: { name: 'Blaze', role: 'Flood Breaker', unlock: 1, look: { visor: '#ff5a4e', hair: 'spiky', hairColor: '#e2453c', jacket: '#101216' },
+    blaze: { name: 'Jeff', role: 'Flood Breaker', unlock: 1, look: { visor: '#ff5a4e', hair: 'spiky', hairColor: '#e2453c', jacket: '#101216' },
       blurb: 'Slams the ground with a burst that clears whole swarms. Built for duplicate floods.',
       cost: [110, 135, 210],
       lv: [{ dmg: 16, rate: 0.85, range: 115, splash: 55 }, { dmg: 27, rate: 0.95, range: 122, splash: 63 }, { dmg: 40, rate: 1.05, range: 132, splash: 74, knock: 22 }],
@@ -54,7 +67,7 @@
         a: { name: 'Cluster Flood', cost: 390, blurb: 'Every blast splits into four bomblets that scatter along the path. Dupe swarms vanish.', st: { dmg: 46, rate: 1.1, range: 140, splash: 74, knock: 22, cluster: 4 } },
         b: { name: 'Firewall', cost: 370, blurb: 'Leaves a burning firewall on the path for 3 seconds. Nothing that walks through it comes out healthy.', st: { dmg: 42, rate: 1.0, range: 140, splash: 78, fire: { dps: 34, dur: 3, r: 62 } } },
       } },
-    moss: { name: 'Moss', role: 'Throttle', unlock: 1, look: { visor: '#7bdc6a', hair: 'curly', hairColor: '#6b4a2e', jacket: '#1d3a22' },
+    moss: { name: 'Nancy', role: 'Throttle', unlock: 1, look: { visor: '#7bdc6a', hair: 'curly', hairColor: '#6b4a2e', jacket: '#1d3a22' },
       blurb: 'Pulses a rate limit that slows everything nearby and exposes hidden attackers.',
       cost: [90, 115, 175],
       lv: [{ slow: 0.35, range: 110 }, { slow: 0.45, range: 122 }, { slow: 0.55, range: 136, dot: 12 }],
@@ -62,7 +75,7 @@
         a: { name: 'Rate Limiter', cost: 310, blurb: 'Every fourth pulse is a hard rate limit: everything in range freezes for a second.', st: { slow: 0.62, range: 152, dot: 18, stun: 0.9 } },
         b: { name: 'Peer Scoring', cost: 330, blurb: 'Marks every enemy in range as a bad peer. Marked enemies take 35% more damage from the whole crew.', st: { slow: 0.55, range: 158, dot: 14, mark: 0.35 } },
       } },
-    silk: { name: 'Silk', role: 'Long Haul', unlock: 1, look: { visor: '#ff8fd0', hair: 'long', hairColor: '#d9dde3', jacket: '#101216' },
+    silk: { name: 'Gmum', role: 'Long Haul', unlock: 1, look: { visor: '#ff8fd0', hair: 'long', hairColor: '#d9dde3', jacket: '#101216' },
       blurb: 'Sends one heavy shard across the whole map. Punches through armor from level 2.',
       cost: [120, 145, 230],
       lv: [{ dmg: 50, rate: 0.55, range: 250 }, { dmg: 82, rate: 0.62, range: 275, pierce: true }, { dmg: 122, rate: 0.7, range: 305, pierce: true, crit: 0.25 }],
@@ -70,7 +83,7 @@
         a: { name: 'Global Relay', cost: 430, blurb: 'Reaches every corner of the map. Huge shots, 40% chance to crit for triple damage.', st: { dmg: 270, rate: 0.62, range: 2000, pierce: true, crit: 0.4, critX: 3 } },
         b: { name: 'Shrapnel Lance', cost: 410, blurb: 'The lance bursts on impact into six fragments that hit everything around the target.', st: { dmg: 155, rate: 0.78, range: 315, pierce: true, crit: 0.25, shrapnel: { n: 6, dmg: 36, r: 95 } } },
       } },
-    cyan: { name: 'Cyan', role: 'Recoder', unlock: 5, look: { visor: '#4dd8ff', hair: 'bald', hairColor: '', jacket: '#0f1d2a' },
+    cyan: { name: 'Muriel', role: 'Recoder', unlock: 5, look: { visor: '#4dd8ff', hair: 'bob', hairColor: '#e9e2d6', jacket: '#0f1d2a' },
       blurb: 'Re-mixes the shards of every crew member nearby into fresh combinations, so their hits always count as new. Also speeds them up.',
       cost: [100, 125, 185],
       lv: [{ buff: 0.25, dmg: 5, rate: 1.2, range: 120 }, { buff: 0.4, dmg: 8, rate: 1.4, range: 135 }, { buff: 0.55, dmg: 12, rate: 1.6, range: 150 }],
@@ -78,7 +91,7 @@
         a: { name: 'Mesh Amplifier', cost: 350, blurb: 'A much larger recoding aura that makes nearby crew fire 85% faster.', st: { buff: 0.85, dmg: 14, rate: 1.8, range: 190 } },
         b: { name: 'Chain Recoder', cost: 330, blurb: 'Its zap jumps across five enemies, and every jump lands as a fresh independent shard.', st: { buff: 0.55, dmg: 28, rate: 1.8, range: 162, chain: 5 } },
       } },
-    sunny: { name: 'Sunny', role: 'Flexnode Bank', unlock: 5, look: { visor: '#ffd23f', hair: 'bun', hairColor: '#f2c230', jacket: '#101216' },
+    sunny: { name: 'Kent', role: 'Flexnode Bank', unlock: 5, look: { visor: '#ffd23f', hair: 'bun', hairColor: '#f2c230', jacket: '#101216' },
       blurb: 'Rents out spare bandwidth. Pays out after every wave, plus interest on your savings. Speed is money.',
       cost: [125, 150, 225],
       lv: [{ income: 25, interest: 0 }, { income: 45, interest: 0.03 }, { income: 70, interest: 0.06 }],
@@ -86,7 +99,7 @@
         a: { name: 'Validator Fund', cost: 390, blurb: 'A full staking desk: 130 coins every wave plus 8% interest on savings.', st: { income: 130, interest: 0.08 } },
         b: { name: 'MEV Hunter', cost: 370, blurb: 'Throws gold at enemies, and every kill anywhere in its range pays 3 extra coins.', st: { income: 70, interest: 0.03, range: 155, dmg: 26, rate: 1.6, bonus: 3 } },
       } },
-    nova: { name: 'Nova', role: 'Decoder', unlock: 8, look: { visor: '#4da3ff', hair: 'bald', hairColor: '', jacket: '#e9ecef' },
+    nova: { name: 'Sriram', role: 'Decoder', unlock: 8, look: { visor: '#4da3ff', hair: 'bald', hairColor: '', jacket: '#e9ecef' },
       blurb: 'A visor beam that heats up on one target. Instantly decodes anything left with a sliver of health, and hits decoded armor twice as hard.',
       cost: [150, 175, 265],
       lv: [{ dps: 26, range: 140, exec: 0.12 }, { dps: 40, range: 152, exec: 0.15 }, { dps: 62, range: 168, exec: 0.2 }],
@@ -95,6 +108,7 @@
         b: { name: 'Twin Decoder', cost: 450, blurb: 'Two beams on two targets, heating up twice as fast. Decodes anything under 30% health.', st: { dps: 72, range: 178, exec: 0.3, beams: 2, heat: 2 } },
       } },
   };
+  for (const k in TRIBUTE) CREW[k].tribute = TRIBUTE[k];
   const CREW_ORDER = ['spike', 'blaze', 'moss', 'silk', 'cyan', 'sunny', 'nova'];
   const MAX_LVL = 3; // 0..2 linear, 3 = specialized
   const stat = (t) => (t.lvl >= MAX_LVL ? CREW[t.kind].specs[t.spec].st : CREW[t.kind].lv[t.lvl]);
@@ -107,8 +121,8 @@
     lag: { name: 'Lag Slug', hp: 70, spd: 40, bounty: 6, lives: 1, r: 18, blurb: 'Latency itself. Slow, stubborn and thick. Every millisecond it survives is money lost.' },
     gremlin: { name: 'Packet Gremlin', hp: 34, spd: 86, bounty: 5, lives: 1, r: 13, blink: 3.0, blurb: 'Packet loss with legs. It vanishes and pops up further down the line. Slow it before it skips past.' },
     dupe: { name: 'Dupe', hp: 16, spd: 72, bounty: 2, lives: 1, r: 10, blurb: 'Gossipsub sends whole copies of a block to every peer, so most arrivals are duplicates. They come in swarms: splash them.' },
-    hog: { name: 'Bandwidth Hog', hp: 260, spd: 30, bounty: 20, lives: 2, r: 24, armor: 7, blurb: 'Eats bandwidth for breakfast. Armor shrugs off weak hits; bring Silk or heavy splash.' },
-    phantom: { name: 'Eclipse Phantom', hp: 80, spd: 58, bounty: 10, lives: 1, r: 15, invis: true, blurb: 'Tries to cut validators off from honest peers. Invisible until Moss exposes it or something hits it.' },
+    hog: { name: 'Bandwidth Hog', hp: 260, spd: 30, bounty: 20, lives: 2, r: 24, armor: 7, blurb: 'Eats bandwidth for breakfast. Armor shrugs off weak hits; bring Gmum or heavy splash.' },
+    phantom: { name: 'Eclipse Phantom', hp: 80, spd: 58, bounty: 10, lives: 1, r: 15, invis: true, blurb: 'Tries to cut validators off from honest peers. Invisible until Nancy exposes it or something hits it.' },
     boss: { name: 'Gossip Blob', hp: 1300, spd: 18, bounty: 250, lives: 6, r: 44, armor: 3, boss: true, blurb: 'Every redundant copy the network ever sent, fused into one. It leaks Dupes as it takes damage.' },
   };
 
@@ -156,7 +170,7 @@
     const g = {
       stage, paths: COMPILED[STAGES.indexOf(stage)], finalWave: stage.waves, spawnCount: 0,
       seed, rng: rng32(seed || 1), t: 0, coins: stage.coins, lives: stage.lives, maxLives: stage.lives, wave: 0, score: 0, state: 'build',
-      towers: [], foes: [], shots: [], fx: [], events: [], zones: [], pads: stage.pads.map((p, i) => ({ i, x: p[0], y: p[1], tower: null })),
+      towers: [], foes: [], shots: [], fx: [], events: [], zones: [], pads: stage.pads.map((p, i) => ({ i, x: p[0], y: p[1], tower: null, flex: (stage.flexPads || []).includes(i) })), quiz: { asked: 0, right: 0, streak: 0 },
       spawnQ: [], waveActive: false, countdown: null, nextId: 1, tokenSeq: 0, leaksThisWave: 0, stats: { kills: 0, leaks: 0, early: 0, decoded: 0, bossKills: 0, spent: 0 },
       abilities: { burst: { cd: 30, left: 0 }, surge: { cd: 45, left: 0, active: 0 } }, seenFoes: {}, unlocked: {}, over: false, won: false,
     };
@@ -168,9 +182,11 @@
   function buildCost(kind) { return CREW[kind].cost[0]; }
   function build(g, padIdx, kind) {
     const pad = g.pads[padIdx]; if (!pad || pad.tower || !g.unlocked[kind]) return false;
+    if (g.stage.crewCap && g.towers.length >= g.stage.crewCap) { emit(g, { type: 'meshFull' }); return false; }
     const c = CREW[kind].cost[0]; if (g.coins < c) return false;
     g.coins -= c; g.stats.spent += c;
     const t = { id: g.nextId++, kind, lvl: 0, spec: null, prio: kind === 'silk' ? 'strong' : 'first', x: pad.x, y: pad.y, pad: padIdx, cd: 0.2, angle: -Math.PI / 2, fireT: -9, beams: [], beamHeat: [0, 0], invested: c, dmgDone: 0, kills: 0, pulses: 0, mood: 'idle', moodT: 0, upT: -9 };
+    if (pad.flex) t.flex = true;
     pad.tower = t; g.towers.push(t); emit(g, { type: 'build', t }); return t;
   }
   function upgrade(g, t, spec) {
@@ -188,6 +204,12 @@
     // every stage ends on a boss wave, and harder stages make coded shields need more shards
     if (w === g.finalWave && !gs.some((x) => x[0] === 'boss')) gs.push(['boss', 1, 1, 6, 3]);
     if (g.stage.codedBonus) gs = gs.map((x) => (x[4] ? [x[0], x[1], x[2], x[3], Math.min(5, x[4] + g.stage.codedBonus)] : x));
+    // Copy storm: Gossipsub forwards whole copies, so duplicate swarms multiply
+    if (g.stage.dupeX) gs = gs.map((x) => (x[0] === 'dupe' ? [x[0], Math.round(x[1] * g.stage.dupeX), x[2] / g.stage.dupeX, x[3], x[4]] : x));
+    // Stress test: far more traffic, each message lighter
+    if (g.stage.countX) gs = gs.map((x) => (x[0] === 'boss' ? x : [x[0], Math.round(x[1] * g.stage.countX), x[2] / g.stage.countX, x[3], x[4]]));
+    // Shard threshold and Gateway: every message from wave 3 on travels coded
+    if (g.stage.allCoded && w >= (g.stage.codedFrom || 3)) gs = gs.map((x) => (x[0] === 'boss' || x[4] ? x : [x[0], x[1], x[2], x[3], g.stage.allCoded]));
     return gs;
   }
   function previewWave(g, w) { const gs = waveGroups(g, w); const m = {}; gs.forEach(([t, n, , , k]) => { const key = t + (k ? '#' + k : ''); m[key] = (m[key] || 0) + n; }); return m; }
@@ -210,22 +232,27 @@
   function spawn(g, type, k, d0, opt) {
     const F = FOES[type], m = type === 'boss' ? (1 + 0.12 * (g.wave - 1)) * (g.wave >= 25 ? 2.2 : g.wave >= 20 ? 1.6 : 1) * g.stage.hp : hpMult(g, g.wave);
     const e = { id: g.nextId++, type, hp: F.hp * m, maxhp: F.hp * m, spd: F.spd * (1 + Math.min(0.25, g.wave * 0.006)) * g.stage.speed, d: d0 || 0, path: opt && opt.path != null ? opt.path : (g.spawnCount++ % g.paths.length), x: 0, y: 0, armor: (F.armor || 0) * (1 + g.wave * 0.03), r: F.r,
-      shield: k ? { k, got: new Set(), broken: false } : null, slowUntil: 0, slowF: 0, revealedUntil: 0, blinkT: F.blink ? F.blink * (0.6 + g.rng() * 0.6) : 0, hitFlash: 0, born: g.t, dotUntil: 0, dot: 0, bossNext: 0.88, knock: 0, markUntil: 0, markF: 0, stunUntil: 0 };
+      shield: k ? { k, need: g.stage.threshold ? Math.ceil(k * g.stage.threshold) : k, got: new Set(), broken: false } : null, slowUntil: 0, slowF: 0, revealedUntil: 0, blinkT: F.blink ? F.blink * (0.6 + g.rng() * 0.6) : 0, hitFlash: 0, born: g.t, dotUntil: 0, dot: 0, bossNext: 0.88, knock: 0, markUntil: 0, markF: 0, stunUntil: 0 };
     const p = posAt(g, e); e.x = p.x; e.y = p.y;
     g.foes.push(e);
     if (!g.seenFoes[type + (k ? '#' : '')]) { g.seenFoes[type + (k ? '#' : '')] = true; emit(g, { type: 'newFoe', foe: type, coded: !!k }); }
     return e;
   }
 
-  // phantoms shimmer into view for a moment every 2.2 s, and stay visible near Moss or after a hit
+  // phantoms shimmer into view for a moment every 2.2 s, and stay visible near Nancy or after a hit
 const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t - e.born) % 2.2) < 0.55;
   function inAura(g, t) { let best = null; for (const c of g.towers) if (c.kind === 'cyan' && c !== t && Math.hypot(c.x - t.x, c.y - t.y) <= stat(c).range && (!best || stat(c).buff > stat(best).buff)) best = c; return best; }
-  function rateMult(g, t) { let m = 1; const c = inAura(g, t); if (c) m += stat(c).buff; if (g.abilities.surge.active > 0) m += 0.7; return m; }
+  function rateMult(g, t) {
+    let m = 1; const c = inAura(g, t); if (c) m += stat(c).buff; if (g.abilities.surge.active > 0) m += 0.7;
+    if (t.flex) m += 0.25; // Flexnode pad: a data accelerator under the crew member
+    if (g.stage.meshTarget && g.towers.length >= g.stage.meshTarget) m += g.stage.meshBonus || 0; // healthy mesh
+    return m;
+  }
 
   // damage: shields block 85% until k independent shards land; armor reduces flat
   function hit(g, e, dmg, src, opt = {}) {
     if (e.hp <= 0) return;
-    const recoded = opt.recoded || (src && src.kind !== 'cyan' && inAura(g, src));
+    const recoded = opt.recoded || (src && src.kind !== 'cyan' && (src.flex || inAura(g, src))) || pastGateway(g, e);
     if (g.stage.loss && src && !recoded && !opt.fresh && !opt.ability && src.kind !== 'cyan' && inLoss(g, e) && g.rng() < g.stage.loss) {
       if (!e.dropT || g.t - e.dropT > 0.3) { e.dropT = g.t; emit(g, { type: 'drop', e }); }
       return;
@@ -233,9 +260,9 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     if (e.shield && !e.shield.broken) {
       const token = recoded || opt.ability || opt.fresh ? 'r' + (++g.tokenSeq) : 't' + (src ? src.id : 'x');
       const was = e.shield.got.size; e.shield.got.add(token);
-      if (e.shield.got.size > was) emit(g, { type: 'shard', e, n: e.shield.got.size, k: e.shield.k, recoded: !!recoded });
+      if (e.shield.got.size > was) emit(g, { type: 'shard', e, n: e.shield.got.size, k: e.shield.need, recoded: !!recoded });
       else if (!opt.quiet) emit(g, { type: 'redundant', e });
-      if (e.shield.got.size >= e.shield.k) { e.shield.broken = true; g.stats.decoded++; g.score += 25; emit(g, { type: 'decoded', e }); }
+      if (e.shield.got.size >= e.shield.need) { e.shield.broken = true; g.stats.decoded++; g.score += 25; emit(g, { type: 'decoded', e }); }
       else dmg *= 0.15;
     }
     if (src && src.kind === 'nova' && e.shield && e.shield.broken) dmg *= 2;
@@ -251,7 +278,7 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     const F = FOES[e.type];
     // speed is money: kills made soon after the enemy appears pay a little extra
     const fast = Math.max(0, 1 - (g.t - e.born) / 14);
-    const bounty = Math.round(F.bounty * (1 + 0.5 * fast));
+    const bounty = Math.max(1, Math.round(F.bounty * (1 + 0.5 * fast) * (g.stage.bountyX || 1)));
     let extra = 0;
     for (const t of g.towers) if (t.kind === 'sunny' && t.spec === 'b' && Math.hypot(t.x - e.x, t.y - e.y) <= stat(t).range) extra += stat(t).bonus;
     g.coins += bounty + extra; g.score += Math.round(bounty * 10 * g.stage.scoreMult); g.stats.kills++; if (F.boss) g.stats.bossKills++;
@@ -277,6 +304,21 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     g.fx.push({ kind: 'burst', x, y, t: 0, life: 0.7 });
     g.pendingBurst = { x, y, at: g.t + 0.45 };
     emit(g, { type: 'burst', x, y }); return true;
+  }
+  // Optimum quiz: a right answer pays one reward. speed in 0..1 (how fast the answer came) scales coins and score.
+  const QUIZ_REWARDS = ['coins', 'surge', 'burst', 'lives'];
+  function quizReward(g, kind, speed) {
+    const q = g.quiz; q.asked++;
+    if (!kind) { q.streak = 0; emit(g, { type: 'quizWrong' }); return null; }
+    q.right++; q.streak++;
+    const mult = 0.5 + 0.5 * Math.max(0, Math.min(1, speed)), streakX = q.streak >= 3 ? 2 : 1;
+    let got = {};
+    if (kind === 'coins') { const c = Math.round((40 + 12 * g.wave) * mult * streakX); g.coins += c; got.coins = c; }
+    else if (kind === 'surge') { g.abilities.surge.left = 0; g.abilities.surge.active = 6 * streakX; got.surge = 6 * streakX; }
+    else if (kind === 'burst') { g.abilities.burst.left = 0; const c = Math.round(20 * mult * streakX); g.coins += c; got.burst = true; got.coins = c; }
+    else if (kind === 'lives') { const l = Math.min(g.maxLives - g.lives, streakX * 2); g.lives += l; got.lives = l; if (!l) { const c = Math.round((30 + 8 * g.wave) * mult); g.coins += c; got.coins = c; } }
+    const pts = Math.round(150 * mult * streakX * g.stage.scoreMult); g.score += pts; got.score = pts; got.streak = q.streak;
+    emit(g, { type: 'quizRight', got }); return got;
   }
   function useSurge(g) { const a = g.abilities.surge; if (a.left > 0 || g.over) return false; a.left = a.cd; a.active = 6; emit(g, { type: 'surge' }); return true; }
 
@@ -450,5 +492,5 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
   }
 
   const starsFor = (g) => (!g.won ? 0 : g.lives >= g.maxLives * 0.9 ? 3 : g.lives >= g.maxLives * 0.5 ? 2 : 1);
-  root.TD = { starsFor, inLoss, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
+  root.TD = { starsFor, inLoss, pastGateway, quizReward, QUIZ_REWARDS, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
 })(typeof window !== 'undefined' ? window : globalThis);

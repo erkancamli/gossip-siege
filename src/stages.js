@@ -2,35 +2,69 @@
 // Every path ends at the validator vault. A stage with two paths sends enemies down both.
 (function (root) {
   'use strict';
+  // Stress Test runs on the Optimum mark: enter at the left tip of an infinity loop, ride it once round
+  // (crossing the center twice) and leave upward to the vault.
+  function infinityRoute() {
+    const cx = 700, cy = 380, A = 450, pts = [[-40, cy]];
+    for (let i = 0; i <= 48; i++) { const t = Math.PI - (i / 48) * 2 * Math.PI, d = 1 + Math.sin(t) ** 2; pts.push([Math.round(cx + A * Math.cos(t) / d), Math.round(cy + A * Math.sin(t) * Math.cos(t) / d)]); }
+    pts.push([cx - A, 150]);
+    return pts;
+  }
+  // Ten stages, each tied to one documented Optimum idea. Sources: getoptimum.xyz, docs.getoptimum.xyz,
+  // github.com/getoptimum/optimum-gateway and the OptimumP2P testnet announcement.
   const STAGES = [
     {
-      id: 1, key: 'hoodi', name: 'Hoodi Testnet', sub: 'Where every validator starts',
-      blurb: 'The private testnet. One long pipe, friendly traffic, room to learn the crew.',
-      waves: 15, hp: 1.0, speed: 1.0, coins: 220, lives: 20, scoreMult: 1.0, codedBonus: 0,
-      theme: 'hoodi', tier: 'Beginner',
+      id: 1, key: 'hoodi', name: 'Hoodi Testnet', sub: 'Where every validator starts', tier: 'Beginner', theme: 'hoodi',
+      blurb: 'One long pipe, friendly traffic, room to learn the crew.',
+      waves: 12, hp: 1.0, speed: 1.0, coins: 220, lives: 20, scoreMult: 1.0, codedBonus: 0,
       rule: null,
-      optimum: "Optimum picked Ethereum's Hoodi testnet to roll out OptimumP2P with validator teams. Every crew starts here.",
+      optimum: "Optimum picked Ethereum's Hoodi testnet to roll out its network with validator teams, and says blocks there arrive in about 150 ms on average.",
       paths: [[[-40, 170], [260, 170], [260, 500], [520, 500], [520, 250], [800, 250], [800, 560], [1060, 560], [1060, 330], [1215, 330]]],
       pads: [[700, 455], [170, 262], [352, 300], [170, 430], [390, 592], [390, 410], [430, 250], [640, 160], [610, 380], [930, 640], [890, 430], [970, 330], [1150, 450], [1170, 245], [710, 560], [1230, 420]],
     },
     {
-      id: 2, key: 'blob', name: 'Blob Season', sub: 'Big blocks, bigger floods',
-      blurb: 'Blob traffic floods a tight zigzag. More Dupes, thicker armor, coded shields need one extra shard.',
-      waves: 18, hp: 1.42, speed: 1.04, coins: 240, lives: 20, scoreMult: 1.3, codedBonus: 1,
-      theme: 'blob', tier: 'Intermediate', split: 3,
-      optimum: 'mump2p carries blocks, blobs and transactions. In Optimum\'s early A/B tests Gossipsub choked on 4 MB messages under load while mump2p carried 10 MB.',
-      rule: { name: 'Blob burst', text: 'Blobs are big. Gossiped the old way, a Bandwidth Hog bursts into 3 duplicate copies when it goes down, and coded shields need one extra shard. Keep splash right behind your Silk.' },
+      id: 2, key: 'flood', name: 'Copy Storm', sub: 'Why Gossipsub wastes bandwidth', tier: 'Beginner', theme: 'flood',
+      blurb: 'A vortex of duplicate copies spirals into the vault.',
+      waves: 14, hp: 1.1, speed: 1.02, coins: 230, lives: 20, scoreMult: 1.1, codedBonus: 0, dupeX: 2.5,
+      rule: { name: 'Copy storm', text: 'Dupe swarms are two and a half times larger. Every Dupe is a redundant full copy, so splash crews like Jeff pay off.' },
+      optimum: 'Gossipsub forwards whole messages, so peers receive the same block again and again. mump2p sends coded shards instead, and Optimum claims about 90 to 95% less bandwidth than gossipsub.',
+      paths: [[[-40, 360], [160, 360], [160, 110], [1100, 110], [1100, 500], [360, 500], [360, 260], [860, 260], [860, 380], [620, 380]]],
+      pads: null,
+    },
+    {
+      id: 3, key: 'shard', name: 'Shard Threshold', sub: 'You never need every shard', tier: 'Intermediate', theme: 'shard',
+      blurb: 'A valley route where every message from wave 3 on is coded.',
+      waves: 15, hp: 1.08, speed: 1.02, coins: 240, lives: 20, scoreMult: 1.2, codedBonus: 0, allCoded: 4, threshold: 0.75,
+      rule: { name: 'Shard threshold', text: 'From wave 3 every enemy is coded into 4 shards, but a shield opens at 75%: 3 different crew members are enough.' },
+      optimum: 'In mump2p a message is split into shards (default shard factor 4) and a node can forward or decode once it holds the threshold share, 75% by default.',
+      paths: [[[-40, 120], [260, 120], [260, 300], [520, 300], [520, 480], [780, 480], [780, 260], [1040, 260], [1040, 140], [1200, 140]]],
+      pads: null,
+    },
+    {
+      id: 4, key: 'blob', name: 'Blob Season', sub: 'Big blocks, bigger floods', tier: 'Intermediate', theme: 'blob',
+      blurb: 'Blob traffic floods a tight zigzag.',
+      waves: 16, hp: 1.4, speed: 1.04, coins: 240, lives: 20, scoreMult: 1.3, codedBonus: 1, split: 3,
+      rule: { name: 'Blob burst', text: 'Blobs are big. Gossiped the old way, a Bandwidth Hog bursts into 3 duplicate copies when it goes down, and coded shields need one extra shard.' },
+      optimum: "mump2p carries blocks, blobs and transactions. In Optimum's early A/B tests Gossipsub choked on 4 MB messages under load while mump2p carried 10 MB.",
       paths: [[[-40, 130], [860, 130], [860, 330], [300, 330], [300, 510], [1180, 510]]],
       pads: null,
     },
     {
-      id: 3, key: 'subsea', name: 'Subsea Cable', sub: 'Two routes, one vault',
-      blurb: 'Traffic arrives from two continents and merges under the sea. Split your crew or lose a flank.',
-      waves: 21, hp: 1.0, speed: 1.06, coins: 270, lives: 20, scoreMult: 1.6, codedBonus: 1,
-      theme: 'subsea', tier: 'Advanced',
+      id: 5, key: 'mesh', name: 'Mesh Limits', sub: 'Six peers is the sweet spot', tier: 'Intermediate', theme: 'mesh',
+      blurb: 'A column route through a peer graph. Your crew is the mesh.',
+      waves: 17, hp: 1.25, speed: 1.04, coins: 250, lives: 20, scoreMult: 1.4, codedBonus: 0, crewCap: 12, meshTarget: 6, meshBonus: 0.15,
+      rule: { name: 'Mesh degree', text: 'At most 12 crew members (the mesh maximum). Once 6 are hired (the mesh target) the whole crew fires 15% faster. Upgrade, do not spam.' },
+      optimum: 'mump2p keeps a peer mesh like Gossipsub: target 6 peers, add more below 4, prune above 12.',
+      paths: [[[-40, 550], [240, 550], [240, 120], [520, 120], [520, 560], [800, 560], [800, 120], [1080, 120], [1080, 400], [1200, 400]]],
+      pads: null,
+    },
+    {
+      id: 6, key: 'subsea', name: 'Subsea Cable', sub: 'Two routes, one vault', tier: 'Advanced', theme: 'subsea',
+      blurb: 'Traffic arrives from two continents and merges under the sea.',
+      waves: 18, hp: 1.0, speed: 1.06, coins: 270, lives: 20, scoreMult: 1.5, codedBonus: 1,
       lossy: [[[420, 360], [700, 360]], [[700, 190], [1000, 190]]], loss: 0.3,
-      optimum: 'RLNC is built for lossy links: any k coded shards rebuild the message, so a dropped shard costs nothing. Flexnodes keep coded buffers for loss recovery.',
-      rule: { name: 'Lossy cable', text: 'The undersea stretch drops 30% of plain shots. Coded shots never get lost: anything recoded by Cyan, Fountain Coder shards and your abilities. RLNC is built for lossy links.' },
+      rule: { name: 'Lossy cable', text: 'The undersea stretch drops 30% of plain shots. Coded shots never get lost: anything recoded by Muriel, Fountain Coder shards and your abilities.' },
+      optimum: 'RLNC is built for lossy links: any k independent coded shards rebuild the message, so a dropped shard costs nothing. Flexnodes keep coded buffers for loss recovery.',
       paths: [
         [[-40, 140], [420, 140], [420, 360], [700, 360], [700, 190], [1000, 190], [1000, 430], [1190, 430]],
         [[-40, 560], [420, 560], [420, 360], [700, 360], [700, 190], [1000, 190], [1000, 430], [1190, 430]],
@@ -38,12 +72,38 @@
       pads: null,
     },
     {
-      id: 4, key: 'mainnet', name: 'Mainnet', sub: 'Speed is money',
-      blurb: 'The real thing. Two entries feed one long trunk, and the last wave brings twin Gossip Blobs. Survive all 25 waves, then go endless.',
-      waves: 25, hp: 0.72, speed: 1.08, coins: 300, lives: 20, scoreMult: 2.0, codedBonus: 1, endless: true,
-      theme: 'mainnet', tier: 'Expert', leakCoins: 15, earlyX: 2,
-      optimum: 'Optimum\'s slogan is the rule: validators, builders and traders pay for every millisecond a block arrives late.',
+      id: 7, key: 'flex', name: 'Flexnode Grid', sub: 'A global network of data accelerators', tier: 'Advanced', theme: 'flex',
+      blurb: 'Some pads are Flexnodes. Build on them.',
+      waves: 19, hp: 1.0, speed: 1.06, coins: 270, lives: 20, scoreMult: 1.6, codedBonus: 1, flexPick: 5,
+      rule: { name: 'Flexnode pads', text: 'Five glowing pads are Flexnodes. Crew built there fire 25% faster and every shot is a coded shard, so it always counts as new on a shield.' },
+      optimum: 'Flexnodes are permissionless nodes that encode, decode and recode RLNC frames. Operators earn rewards for contributing bandwidth.',
+      paths: [[[-40, 250], [200, 250], [200, 560], [560, 560], [560, 130], [900, 130], [900, 460], [1180, 460]]],
+      pads: null,
+    },
+    {
+      id: 8, key: 'gateway', name: 'The Gateway', sub: 'Plug in, no client changes', tier: 'Expert', theme: 'gateway',
+      blurb: 'The left half is plain libp2p. The right half is mump2p.',
+      waves: 20, hp: 0.66, speed: 1.08, coins: 280, lives: 20, scoreMult: 1.7, codedBonus: 0, allCoded: 3, codedFrom: 6, gateway: 0.45,
+      rule: { name: 'Gateway', text: 'From wave 6 every enemy is coded. Past the Gateway, a bit before halfway, every hit from any crew member lands as a coded shard. Hold the second half.' },
+      optimum: 'Optimum Gateway lets Prysm, Lighthouse, Nimbus, Teku and Lodestar use mump2p with no client changes: it takes their gossip, carries it over RLNC and hands it back.',
+      paths: [[[-40, 380], [280, 380], [280, 130], [640, 130], [640, 590], [900, 590], [900, 300], [1190, 300]]],
+      pads: null,
+    },
+    {
+      id: 9, key: 'stress', name: 'Stress Test', sub: 'High traffic, no excuses', tier: 'Expert', theme: 'stress',
+      blurb: 'The route is the Optimum mark itself: one full infinity loop, crossing the center twice.',
+      waves: 22, hp: 1.05, speed: 1.08, coins: 290, lives: 20, scoreMult: 1.85, codedBonus: 1, countX: 2, bountyX: 0.5,
+      rule: { name: 'Stress test', text: 'Every wave sends twice as many enemies, each with less health. Splash and chains beat single shots.' },
+      optimum: 'In early A/B tests Optimum reported about 10x lower latency than Gossipsub under high traffic and no lost messages in stress scenarios.',
+      paths: [infinityRoute()],
+      pads: null,
+    },
+    {
+      id: 10, key: 'mainnet', name: 'Mainnet', sub: 'Speed is money', tier: 'Master', theme: 'mainnet',
+      blurb: 'Two entries feed one long trunk, and the last wave brings twin Gossip Blobs. Then go endless.',
+      waves: 25, hp: 0.72, speed: 1.08, coins: 300, lives: 20, scoreMult: 2.0, codedBonus: 1, endless: true, leakCoins: 15, earlyX: 2,
       rule: { name: 'Speed is money', text: 'Every leaked life also costs 15 coins, and calling a wave early pays double. Fast and clean wins.' },
+      optimum: 'Optimum says faster propagation means more attestation rewards, better MEV opportunities and fewer missed proposals for validators.',
       paths: [
         [[-40, 110], [300, 110], [300, 330], [520, 330], [520, 120], [760, 120], [760, 480], [960, 480], [960, 200], [1150, 200], [1150, 420], [1210, 420]],
         [[-40, 560], [300, 560], [300, 330], [520, 330], [520, 120], [760, 120], [760, 480], [960, 480], [960, 200], [1150, 200], [1150, 420], [1210, 420]],
@@ -78,6 +138,8 @@
     return out.map(([x, y]) => [x, y]);
   }
   for (const s of STAGES) if (!s.pads) s.pads = autoPads(s);
+  // Flexnode stage: the pads that cover the most route become Flexnodes (spread out, not adjacent)
+  for (const s of STAGES) if (s.flexPick) { const ranked = s.pads.map((p, i) => [i, p]).filter(([, p]) => true); const pick = []; for (const [i, p] of ranked) { if (pick.length >= s.flexPick) break; if (pick.every((j) => Math.hypot(s.pads[j][0] - p[0], s.pads[j][1] - p[1]) > 220)) pick.push(i); } s.flexPads = pick; }
 
   root.TD_STAGES = STAGES; root.TD_autoPads = autoPads;
 })(typeof window !== 'undefined' ? window : globalThis);

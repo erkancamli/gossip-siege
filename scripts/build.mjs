@@ -3,7 +3,7 @@
 import { cp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
 
 const site = (process.env.URL || '').replace(/\/+$/, '');
-const [game, stages, core, logo] = await Promise.all(['src/game.html', 'src/stages.js', 'src/core.js', 'src/logo.svg'].map((f) => readFile(f, 'utf8')));
+const [game, stages, quiz, core, logo] = await Promise.all(['src/game.html', 'src/stages.js', 'src/quiz.js', 'src/core.js', 'src/logo.svg'].map((f) => readFile(f, 'utf8')));
 
 const logoSvg = logo.replaceAll('#3D4047', 'currentColor');
 const paths = [...logoSvg.matchAll(/<path d="([^"]+)"/g)].map((m) => m[1]);
@@ -14,7 +14,7 @@ let body = game
   .replace('<!--LOGO-->', logoSvg.replace('<svg ', '<svg class="logo" aria-label="Optimum" role="img" '))
   .replaceAll('__MARKPATH__', paths[0])
   .replaceAll('__LOGOPATHALL__', paths.join(' '))
-  .replace('/*__CORE__*/', () => stages + '\n' + core); // stages.js defines the campaign before the engine reads it
+  .replace('/*__CORE__*/', () => stages + '\n' + quiz + '\n' + core); // stages.js defines the campaign before the engine reads it
 
 const cut = body.indexOf('</style>') + '</style>'.length;
 const headPart = body.slice(0, cut), bodyPart = body.slice(cut);
@@ -22,12 +22,16 @@ const titleLine = headPart.slice(0, headPart.indexOf('\n'));
 const headRest = headPart.slice(headPart.indexOf('\n') + 1).replace('<style>', '<style>\nhtml, body { margin: 0; }');
 const abs = (p) => (site ? site + p : p);
 const meta = `<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Hire the Optimum crew, crack coded armor with independent shards and hold the validator mesh across four campaign stages, from Hoodi Testnet to Mainnet. A fan made tower defense game. Speed is money.">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="description" content="Hire the Optimum crew, crack coded armor with independent shards and hold the validator mesh across ten campaign stages, from Hoodi Testnet to Mainnet, answering Optimum quiz questions for boosts. A fan made tower defense game. Speed is money.">
 <meta name="theme-color" content="#0e0f12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gossip Siege">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Gossip Siege · Speed is money">
-<meta property="og:description" content="Four stages from Hoodi Testnet to Mainnet. Hire the Optimum crew and crack coded armor with independent shards.">
+<meta property="og:description" content="Ten stages from Hoodi Testnet to Mainnet, each built on one Optimum idea. Hire the Optimum crew and crack coded armor with independent shards.">
 <meta property="og:image" content="${abs('/og.png')}">
 <meta property="og:url" content="${abs('/')}">
 <meta name="twitter:card" content="summary_large_image">

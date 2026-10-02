@@ -11,12 +11,19 @@ import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
 
 // Campaign stages: waves to clear and the score multiplier the game applies (src/stages.js).
-// Stage 1 keeps the original board key so earlier scores stay on it.
+// Hoodi, Blob Season, Subsea Cable and Mainnet keep their earlier board keys so scores stay.
+// The ceiling also leaves room for quiz points (at most about 300 x multiplier per question).
 export const STAGES = {
-  1: { key: 'board/v1', waves: 15, mult: 1.0, endless: false },
-  2: { key: 'board/s2', waves: 18, mult: 1.3, endless: false },
-  3: { key: 'board/s3', waves: 21, mult: 1.6, endless: false },
-  4: { key: 'board/s4', waves: 25, mult: 2.0, endless: true },
+  1: { key: 'board/v1', waves: 12, mult: 1.0, endless: false },   // Hoodi Testnet
+  2: { key: 'board/flood', waves: 14, mult: 1.1, endless: false },  // Copy Storm
+  3: { key: 'board/shard', waves: 15, mult: 1.2, endless: false },  // Shard Threshold
+  4: { key: 'board/s2', waves: 16, mult: 1.3, endless: false },     // Blob Season (kept from the 4 stage campaign)
+  5: { key: 'board/mesh', waves: 17, mult: 1.4, endless: false },   // Mesh Limits
+  6: { key: 'board/s3', waves: 18, mult: 1.5, endless: false },     // Subsea Cable (kept)
+  7: { key: 'board/flex', waves: 19, mult: 1.6, endless: false },   // Flexnode Grid
+  8: { key: 'board/gateway', waves: 20, mult: 1.7, endless: false }, // The Gateway
+  9: { key: 'board/stress', waves: 22, mult: 1.85, endless: false }, // Stress Test
+  10: { key: 'board/s4', waves: 25, mult: 2.0, endless: true },     // Mainnet (kept)
 };
 const stageOf = (v) => STAGES[int(v)] ? int(v) : 1;
 const KEEP = 200;            // rows kept in the board document
@@ -28,7 +35,7 @@ const SUBMIT_GAP_MS = 8000;
 
 // Measured with the game engine: a strong run scores about 230 x wave^2. 650 x wave^2 leaves
 // a wide margin so no honest run is ever refused.
-const scoreCeiling = (wave, mult = 1) => (650 * wave * wave + 3000) * mult;
+const scoreCeiling = (wave, mult = 1) => (650 * wave * wave + 3000 + 300 * Math.ceil(wave / 2)) * mult;
 
 const json = (body, status = 200, extra = {}) => new Response(JSON.stringify(body), {
   status,

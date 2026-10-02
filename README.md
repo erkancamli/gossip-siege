@@ -1,25 +1,49 @@
 # Gossip Siege
 
-A fan made tower defense game for the [Optimum](https://www.getoptimum.xyz) community. Hire the Optimum crew, crack coded armor with independent shards and take the validator mesh from Hoodi Testnet to Mainnet across four campaign stages. Speed is money.
+A fan made tower defense game for the [Optimum](https://www.getoptimum.xyz) community. Hire the Optimum crew, crack coded armor with independent shards and take the validator mesh from Hoodi Testnet to Mainnet across ten campaign stages, learning how Optimum works along the way. Speed is money.
 
 Not an official Optimum product.
 
 ## How the RLNC idea shows up in play
 
-Coded enemies wear a shield with k segments. It only breaks after hits from k different crew members, the same way a block coded with Random Linear Network Coding only decodes once k independent shards arrive. Repeat hits from one tower are redundant copies. Cyan, the Recoder, remixes the shots of nearby crew so every hit counts as new, like an RLNC relay recoding shards without decoding them.
+Coded enemies wear a shield with k segments. It only breaks after hits from k different crew members, the same way a block coded with Random Linear Network Coding only decodes once k independent shards arrive. Repeat hits from one tower are redundant copies. Muriel, the Recoder, remixes the shots of nearby crew so every hit counts as new, like an RLNC relay recoding shards without decoding them.
 
 ## Campaign
 
-Clearing a stage unlocks the next one. Each stage has its own map, look and difficulty, and adds one rule taken from how Optimum works. Stars depend on validators left: 18 or more for three, 10 or more for two.
+Ten stages. Clearing one unlocks the next. Each stage has its own map and look and adds one rule taken from a documented Optimum idea. Stars depend on validators left: 18 or more for three, 10 or more for two.
 
-| Stage | Tier | Waves | New rule | Where it comes from |
+| # | Stage | Waves | Rule | Optimum idea |
 | --- | --- | --- | --- | --- |
-| Hoodi Testnet | Beginner | 15 | none, learn the crew | Optimum picked Ethereum's Hoodi testnet to roll out OptimumP2P |
-| Blob Season | Intermediate | 18 | Bandwidth Hogs burst into 3 Dupes, coded shields need one more shard | mump2p carries blocks, blobs and transactions; in Optimum's A/B tests Gossipsub choked on 4 MB messages under load while mump2p carried 10 MB |
-| Subsea Cable | Advanced | 21 | Two entries; the lossy cable drops 30% of plain shots, coded shots (Cyan aura, Fountain Coder, abilities) never drop | RLNC tolerates loss: any k coded shards rebuild a message, and Flexnodes keep coded buffers for loss recovery |
-| Mainnet | Expert | 25, then endless | Two entries; every leaked life also costs 15 coins, calling waves early pays double | Speed is money |
+| 1 | Hoodi Testnet | 12 | none, learn the crew | rollout on Ethereum's Hoodi testnet, about 150 ms average block propagation |
+| 2 | Copy Storm | 14 | Dupe swarms 2.5x larger | Gossipsub forwards full copies; mump2p claims 90 to 95% less bandwidth |
+| 3 | Shard Threshold | 15 | every enemy coded into 4 shards, shield opens at 75% | shard factor 4, threshold 0.75 |
+| 4 | Blob Season | 16 | Hogs burst into 3 Dupes, shields need one more shard | blobs; Gossipsub failed at 4 MB in A/B tests, mump2p carried 10 MB |
+| 5 | Mesh Limits | 17 | at most 12 crew, +15% fire rate from 6 crew | mesh target 6, min 4, max 12 |
+| 6 | Subsea Cable | 18 | lossy stretch drops 30% of plain shots, coded shots survive | RLNC loss tolerance, Flexnode coded buffers |
+| 7 | Flexnode Grid | 19 | Flexnode pads: +25% fire rate, every shot coded | Flexnodes encode, decode and recode RLNC frames |
+| 8 | The Gateway | 20 | all enemies coded from wave 6, every hit past the Gateway is coded | Optimum Gateway bridges Prysm, Lighthouse, Nimbus, Teku and Lodestar with no client changes |
+| 9 | Stress Test | 22 | the route is the Optimum infinity mark; twice the enemies, lighter, half bounty | about 10x lower latency under high traffic and zero loss in A/B tests |
+| 10 | Mainnet | 25, then endless | leaks cost coins, early waves pay double | speed is money |
 
-Each stage has its own leaderboard. Difficulty is tuned with a bot that plays the real engine on every stage (`node src/bot.cjs [stage]`): Hoodi is won with almost no losses, Blob Season and Subsea Cable cost lives, and Mainnet is only won with level 4 specializations.
+## The crew
+
+The seven heroes are named after the Optimum team and community (getoptimum.xyz/team). The game only states public facts about them and invents no quotes.
+
+| Hero | Role | Named after |
+| --- | --- | --- |
+| Kishori | Encoder | Dr. Kishori Konwar, co-founder |
+| Jeff | Flood Breaker | Jeff (@blockchainjeff), community manager |
+| Nancy | Throttle | Prof. Nancy Lynch, advisor |
+| Gmum | Long Haul | GMUM, the community greeting |
+| Muriel | Recoder | Prof. Muriel Médard, co-founder and CEO, co-inventor of RLNC |
+| Kent | Flexnode Bank | Kent Lin, co-founder |
+| Sriram | Decoder | Prof. Sriram Viswanath, advisor |
+
+## Optimum quiz
+
+Before each stage a three question briefing on that stage's topic pays starting coins. During play, every second wave a question appears while the battle slows down. Answer within 15 seconds for a reward that rotates between coins, a free Flexnode Surge, a recharged Publish Burst and extra validators; faster answers pay more and three right in a row doubles it. Every answer shows a short explanation and its source. Questions use spaced repetition (the Leitner method behind apps like Duolingo): a missed question comes back two questions later, a known one waits longer each time, so runs keep changing. The Optimum knowledge screen shows every learned answer and mastery per topic. The question bank lives in `src/quiz.js`, and every question cites one of: getoptimum.xyz, the Optimum docs, the optimum-gateway README, the OptimumP2P testnet announcement or ethereum.org, and carries the date it was last checked. Claims that can change (numbers, roles, product status) are flagged `vol: true` and re-checked first by a weekly refresh task.
+
+Each stage has its own leaderboard. Difficulty is tuned with a bot that plays the real engine on every stage without the quiz (`node src/bot.cjs [stage]`).
 
 ## Crew upgrades
 
@@ -27,13 +51,13 @@ Every crew member has four levels, the Kingdom Rush pattern. Levels 1 to 3 raise
 
 | Crew | Level 4 A | Level 4 B |
 | --- | --- | --- |
-| Spike, Encoder | Fountain Coder: every shard counts as independent | Railshard: pierces 6 enemies, ignores armor |
-| Blaze, Flood Breaker | Cluster Flood: blasts split into 4 bomblets | Firewall: leaves a burning zone on the path |
-| Moss, Throttle | Rate Limiter: every 4th pulse freezes | Peer Scoring: marked enemies take +35% damage |
-| Silk, Long Haul | Global Relay: map wide, 40% triple crits | Shrapnel Lance: bursts into 6 fragments |
-| Cyan, Recoder | Mesh Amplifier: bigger aura, +85% crew speed | Chain Recoder: zap chains across 5 enemies |
-| Sunny, Flexnode Bank | Validator Fund: 130 per wave, 8% interest | MEV Hunter: throws gold, +3 coins per kill nearby |
-| Nova, Decoder | Decode Ray: the beam burns through a line | Twin Decoder: two beams, decodes below 30% |
+| Kishori, Encoder | Fountain Coder: every shard counts as independent | Railshard: pierces 6 enemies, ignores armor |
+| Jeff, Flood Breaker | Cluster Flood: blasts split into 4 bomblets | Firewall: leaves a burning zone on the path |
+| Nancy, Throttle | Rate Limiter: every 4th pulse freezes | Peer Scoring: marked enemies take +35% damage |
+| Gmum, Long Haul | Global Relay: map wide, 40% triple crits | Shrapnel Lance: bursts into 6 fragments |
+| Muriel, Recoder | Mesh Amplifier: bigger aura, +85% crew speed | Chain Recoder: zap chains across 5 enemies |
+| Kent, Flexnode Bank | Validator Fund: 130 per wave, 8% interest | MEV Hunter: throws gold, +3 coins per kill nearby |
+| Sriram, Decoder | Decode Ray: the beam burns through a line | Twin Decoder: two beams, decodes below 30% |
 
 Upgrade buttons show every stat as "now → next" before you buy, and each damage dealing crew member has a target priority (First, Last, Strong, Close).
 
@@ -41,6 +65,7 @@ Upgrade buttons show every stat as "now → next" before you buy, and each damag
 
 ```
 src/stages.js                 campaign stages: routes, pads, rules, difficulty
+src/quiz.js                   Optimum question bank with sources
 src/core.js                   game rules, waves and combat (no DOM, deterministic)
 src/game.html                 rendering, UI, audio, leaderboard client
 src/bot.cjs                   balance bot: node src/bot.cjs
@@ -55,7 +80,7 @@ test/                         API tests and a local dev server
 | Route | Method | Purpose |
 | --- | --- | --- |
 | `/api/run` | POST | Signed run ticket, requested when a run starts |
-| `/api/scores?stage=n` | GET | Top 50 of a stage, best score per X handle |
+| `/api/scores?stage=n` | GET | Top 50 of a stage (1 to 10), best score per X handle |
 | `/api/scores` | POST | Submit a finished run (with its stage) |
 
 Players have no accounts, so a determined cheater can still forge a score. The API stops the easy ways: a server signed ticket per run, a minimum real play time per wave, a score ceiling derived from the game's own scoring, one ticket per handle, and a short rate limit per client.
@@ -74,3 +99,7 @@ npm test                     # API tests
 npm run build
 node test/devserver.mjs      # serves dist/ and the API on http://localhost:8787
 ```
+
+## Day, night and mobile
+
+A day and night switch sits in the HUD and on the title screen; the first visit follows the system setting. On phones in landscape the HUD, quiz and menus grow so they stay readable and tappable; portrait shows a rotate prompt. Android and tablets get a full screen button, and iOS can add the game to the home screen.
