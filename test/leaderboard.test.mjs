@@ -2,7 +2,8 @@
 // Run: node --test test/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { handle, cleanHandle, resolveSecret } from '../netlify/functions/leaderboard.mjs';
+import { handle, cleanHandle, resolveSecret, privyFromEnv } from '../netlify/functions/leaderboard.mjs';
+import * as jose from 'jose';
 
 const memStore = () => {
   const m = new Map();
@@ -12,10 +13,13 @@ const memStore = () => {
   };
 };
 const SECRET = 'test-secret-0123456789abcdef';
-const req = (method, path, body) => new Request('https://x.test' + path, { method, headers: { 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+// stand in for Privy: the bearer token is "did:<handle>", the X lookup returns that handle (null for "did:nox")
+const fakePrivy = { appId: 'app', clientId: 'client', async verify(t) { if (!t.startsWith('did:')) throw new Error('bad'); return t; }, async xHandle(did) { const h = did.slice(4); return h === 'nox' ? null : h; } };
+const req = (method, path, body, token) => new Request('https://x.test' + path, { method, headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: body ? JSON.stringify(body) : undefined });
 
 async function ticket(env, now) { const r = await handle(req('POST', '/api/run'), { ...env, now }); return r.json(); }
-async function submit(env, body, now) { const r = await handle(req('POST', '/api/scores', body), { ...env, now }); return { status: r.status, body: await r.json() }; }
+// submit as the X user named in body.handle (the stub turns it into a token); privy defaults to the stub
+async function submit(env, body, now) { const { handle: h, ...rest } = body; const r = await handle(req('POST', '/api/scores', rest, 'did:' + cleanHandle(h)), { privy: fakePrivy, ...env, now }); return { status: r.status, body: await r.json() }; }
 
 test('handle cleaning', () => {
   assert.equal(cleanHandle('@ekinoks_26'), 'ekinoks_26');
@@ -84,4 +88,32 @@ test('each campaign stage has its own board and wave cap', async () => {
   assert.equal(s1.length, 0); assert.deepEqual(s2.map((r) => r.handle), ['mult', 'blob']);
   const legacy = (await (await handle(req('GET', '/api/scores'), env)).json());
   assert.equal(legacy.stage, 1);
+});
+
+test('scores need an X sign in through Privy', async () => {
+  const env = { store: memStore(), ip: '1.1.1.7', secret: SECRET };
+  const run = await ticket(env, 0);
+  const noAuth = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }), { ...env, privy: fakePrivy, now: 600_000 });
+  assert.equal(noAuth.status, 401);
+  const badTok = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }, 'garbage'), { ...env, privy: fakePrivy, now: 600_000 });
+  assert.equal(badTok.status, 401);
+  const noX = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }, 'did:nox'), { ...env, privy: fakePrivy, now: 600_000 });
+  assert.equal(noX.status, 403);
+  const notSetUp = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }, 'did:ok'), { ...env, privy: null, now: 600_000 });
+  assert.equal(notSetUp.status, 503);
+  const ok = await submit(env, { handle: 'ekinoks_26', stage: 1, score: 100, wave: 2, lives: 20, run }, 700_000);
+  assert.equal(ok.status, 200); assert.equal(ok.body.handle, 'ekinoks_26');
+  const cfg = await (await handle(req('GET', '/api/privy'), { ...env, privy: fakePrivy })).json();
+  assert.deepEqual(cfg, { appId: 'app', clientId: 'client' });
+});
+
+test('real Privy style tokens verify with the ES256 key and reject the wrong app', async () => {
+  const { publicKey, privateKey } = await jose.generateKeyPair('ES256');
+  const spki = await jose.exportSPKI(publicKey);
+  const calls = [];
+  const privy = privyFromEnv({ PRIVY_APP_ID: 'app123', PRIVY_APP_SECRET: 'sec', PRIVY_VERIFICATION_KEY: spki, PRIVY_CLIENT_ID: 'c1' });
+  const mint = (aud) => new jose.SignJWT({ sid: 's' }).setProtectedHeader({ alg: 'ES256' }).setIssuer('privy.io').setAudience(aud).setSubject('did:privy:abc').setIssuedAt().setExpirationTime('1h').sign(privateKey);
+  assert.equal(await privy.verify(await mint('app123')), 'did:privy:abc');
+  await assert.rejects(privy.verify(await mint('other-app')));
+  assert.equal(privyFromEnv({}), null);
 });

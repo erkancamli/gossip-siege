@@ -93,7 +93,7 @@
         b: { name: 'Chain Recoder', cost: 330, blurb: 'Its zap jumps across five enemies, and every jump lands as a fresh independent shard.', st: { buff: 0.55, dmg: 28, rate: 1.8, range: 162, chain: 5 } },
       } },
     sunny: { name: 'Kent', role: 'Flexnode Bank', unlock: 5, look: { visor: '#ffd23f', hair: 'short', hairColor: '#2a211b', jacket: '#101216' },
-      blurb: 'Rents out spare bandwidth. Pays out after every wave, plus interest on your savings. Speed is money.',
+      blurb: 'Does not fight. Kent is your economy: he pays coins after every wave you clear, plus interest on the coins you keep. Hire him early so the rent compounds, then spend it on upgrades. Speed is money.',
       cost: [125, 130, 190],
       lv: [{ income: 25, interest: 0 }, { income: 45, interest: 0.03 }, { income: 70, interest: 0.06 }],
       specs: {
@@ -122,7 +122,7 @@
     lag: { name: 'Lag Slug', hp: 70, spd: 40, bounty: 6, lives: 1, r: 18, blurb: 'Latency itself. Slow, stubborn and thick. Every millisecond it survives is money lost.' },
     gremlin: { name: 'Packet Gremlin', hp: 34, spd: 86, bounty: 5, lives: 1, r: 13, blink: 3.0, blurb: 'Packet loss with legs. It vanishes and pops up further down the line. Slow it before it skips past.' },
     dupe: { name: 'Dupe', hp: 16, spd: 72, bounty: 2, lives: 1, r: 10, blurb: 'Gossipsub sends whole copies of a block to every peer, so most arrivals are duplicates. They come in swarms: splash them.' },
-    hog: { name: 'Bandwidth Hog', hp: 260, spd: 30, bounty: 20, lives: 2, r: 24, armor: 7, blurb: 'Eats bandwidth for breakfast. Armor shrugs off weak hits; bring Gmum or heavy splash.' },
+    hog: { name: 'Bandwidth Hog', hp: 260, spd: 30, bounty: 20, lives: 2, r: 24, armor: 7, blurb: 'Eats bandwidth for breakfast. Armor shrugs off weak hits; bring Swarna or heavy splash.' },
     phantom: { name: 'Eclipse Phantom', hp: 80, spd: 58, bounty: 10, lives: 1, r: 15, invis: true, blurb: 'Tries to cut validators off from honest peers. Invisible until Nancy exposes it or something hits it.' },
     boss: { name: 'Gossip Blob', hp: 1300, spd: 18, bounty: 250, lives: 6, r: 44, armor: 3, boss: true, blurb: 'Every redundant copy the network ever sent, fused into one. It leaks Dupes as it takes damage.' },
   };

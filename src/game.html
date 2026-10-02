@@ -200,6 +200,12 @@ body.small .face { width: 52px; height: 52px; }
 .handle input { flex: 1; min-width: 0; height: 40px; border-radius: 10px; border: 1px solid var(--line2); background: rgba(255,255,255,0.04); color: var(--paper); padding: 0 12px; font: 15px var(--body); }
 .msg { font-size: 12.5px; color: var(--dim); min-height: 18px; }
 .msg.ok { color: var(--green); }
+.xauth { display: grid; gap: 8px; }
+.xbtn { background: var(--paper); color: var(--ink); border-color: var(--paper); font-weight: 700; }
+.xbtn:hover { background: var(--paper); opacity: 0.9; }
+.xwho { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.xwho .xh { font-family: var(--mono); font-size: 13px; color: var(--paper); }
+.xwho .xout { font-family: var(--mono); font-size: 11px; color: var(--dim); text-decoration: underline; }
 /* portrait: 720x1280 frame. Info on top, actions in the bottom thumb zone, menus as bottom sheets. */
 body.portrait .hud { flex-wrap: wrap; gap: 6px; }
 body.portrait .hud .chips { flex-wrap: wrap; gap: 6px; }
@@ -358,15 +364,16 @@ body.small .coach { font-size: 20px; }
         <div class="chip brandchip"><!--MARK--><b>GOSSIP SIEGE</b></div>
         <div class="chip gold" title="Coins"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#ffd23f"/><circle cx="10" cy="10" r="5.4" fill="none" stroke="#b8901a" stroke-width="1.6"/></svg><span class="v num" id="coins">0</span></div>
         <div class="chip lives" id="livesChip" title="Validators still attesting"><svg viewBox="0 0 20 20"><path d="M10 2 L17 6 L17 13 L10 18 L3 13 L3 6 Z" fill="#e5e7eb"/><path d="M6.2 10 a2 1.6 0 1 0 3.8 0 a2 1.6 0 1 0 3.8 0 a2 1.6 0 1 0 -3.8 0 a2 1.6 0 1 0 -3.8 0" fill="none" stroke="#0e0f12" stroke-width="1.4"/></svg><span class="v num" id="lives">20</span></div>
-        <div class="chip" title="Score"><span class="label">Score</span><span class="v num" id="score">0</span></div>
+        <div class="chip" title="Score"><span class="label" data-t="hudScore">Score</span><span class="v num" id="score">0</span></div>
         <div class="chip stagechip" title="Campaign stage"><span class="v" id="stageChip"></span></div>
-        <div class="chip" id="meshChip" title="Crew in your mesh" hidden><span class="label">Mesh</span><span class="v num" id="meshV"></span></div>
+        <div class="chip" id="meshChip" title="Crew in your mesh" hidden><span class="label" data-t="hudMesh">Mesh</span><span class="v num" id="meshV"></span></div>
       </div>
       <div class="ctrl">
         <button class="ib" id="speedBtn" title="Game speed">1×</button>
         <button class="ib" id="pauseBtn" title="Pause">II</button>
         <button class="ib" id="muteBtn" title="Sound">♪</button>
         <button class="ib" id="modeBtn" title="Day or night mode">☀</button>
+        <button class="ib" id="langBtn2" title="Language">TR</button>
         <button class="ib" id="fsBtn" title="Full screen" hidden>⛶</button>
       </div>
     </div>
@@ -385,14 +392,14 @@ body.small .coach { font-size: 20px; }
     <div class="ring" id="ring" hidden></div>
     <div class="tip" id="tip" hidden></div>
     <div class="quiz" id="quiz" hidden role="dialog" aria-label="Optimum quiz">
-      <div class="qhead"><canvas class="face" data-portrait="pegasus" data-mood="focus" width="84" height="84"></canvas><span class="qtag" id="qTag">OPTIMUM QUIZ</span><span class="qhost">asked by Pegasus</span><span class="qstreak" id="qStreak"></span><span class="qreward" id="qReward"></span></div>
+      <div class="qhead"><canvas class="face" data-portrait="pegasus" data-mood="focus" width="84" height="84"></canvas><span class="qtag" id="qTag">OPTIMUM QUIZ</span><span class="qhost" data-t="qhost">asked by Pegasus</span><span class="qstreak" id="qStreak"></span><span class="qreward" id="qReward"></span></div>
       <div class="qtimer"><i id="qBar"></i></div>
       <h4 id="qText"></h4>
       <div class="qopts" id="qOpts"></div>
       <div class="qwhy" id="qWhy" hidden></div>
-      <div class="qfoot"><span class="hint" id="qHint">Keys 1 to 4. The battle runs in slow motion while you think. Faster answers pay more.</span><span class="row"><button class="btn" id="qSkip" hidden>Skip briefing</button><button class="btn" id="qClose" hidden>Back to the battle</button></span></div>
+      <div class="qfoot"><span class="hint" id="qHint" data-t="qHint">Keys 1 to 4. The battle runs in slow motion while you think. Faster answers pay more.</span><span class="row"><button class="btn" id="qSkip" data-t="qSkip" hidden>Skip briefing</button><button class="btn" id="qClose" hidden>Back to the battle</button></span></div>
     </div>
-    <div class="coach" id="coach" hidden><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><span class="who">Pegasus</span><span id="coachText"></span><button id="coachSkip">skip</button></div>
+    <div class="coach" id="coach" hidden><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><span class="who">Pegasus</span><span id="coachText"></span><button id="coachSkip" data-t="coachSkip">skip</button></div>
 
     <div class="modal" id="modal" hidden>
       <div class="card">
@@ -402,7 +409,7 @@ body.small .coach { font-size: 20px; }
           <h3 id="mTitle"></h3>
           <p id="mText"></p>
           <div class="why" id="mWhy"></div>
-          <button class="chrome" id="mOk">Got it</button>
+          <button class="chrome" id="mOk" data-t="mOk">Got it</button>
         </div>
       </div>
     </div>
@@ -413,20 +420,21 @@ body.small .coach { font-size: 20px; }
           <!--LOGO-->
           <span class="slogan">SPEED IS MONEY</span>
           <h1 class="big">Gossip<br>Siege</h1>
-          <p class="lede">The Gossip Blob and its swarm of duplicates are marching on your validators. Hire the <b>Optimum crew</b>, crack coded armor with <b>independent shards</b>, and take the mesh from <b>Hoodi Testnet to Mainnet</b> across ten stages. Every second wave asks an <b>Optimum question</b>: learn the tech, earn boosts.</p>
+          <p class="lede" data-t="lede">The Gossip Blob and its swarm of duplicates are marching on your validators. Hire the <b>Optimum crew</b>, crack coded armor with <b>independent shards</b>, and take the mesh from <b>Hoodi Testnet to Mainnet</b> across ten stages. Every second wave asks an <b>Optimum question</b>: learn the tech, earn boosts.</p>
+          <div class="tcta"><button class="chrome" id="playBtn" data-t="playBtn">Defend the mesh</button><button class="ghost" id="howBtn" data-t="howBtn">How it plays</button><button class="ghost" id="modeBtn2" title="Day or night mode">☀ Day</button><button class="ghost" id="langBtn" title="Language">TR</button><button class="ghost" id="fsBtn2" data-t="fsBtn" hidden>Full screen</button></div>
           <canvas id="crewcv" width="1400" height="360" aria-label="The Optimum crew"></canvas>
-          <div class="community"><span class="label">Community</span>
-            <div class="cm"><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><div><b>Pegasus</b><span>Mumbassador. Your coach, asks the questions.</span></div></div>
-            <div class="cm"><canvas class="face" data-portrait="flash" data-mood="excited" width="84" height="84"></canvas><div><b>Flash</b><span>Hands out the roles: Newbie to Chronicler.</span></div></div>
+          <div class="community"><span class="label" data-t="community">Community</span>
+            <div class="cm"><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><div><b>Pegasus</b><span data-t="cmPegasus">Mumbassador. Your coach, asks the questions.</span></div></div>
+            <div class="cm"><canvas class="face" data-portrait="flash" data-mood="excited" width="84" height="84"></canvas><div><b>Flash</b><span data-t="cmFlash">Hands out the roles: Newbie to Chronicler.</span></div></div>
           </div>
-          <div class="tcta"><button class="chrome" id="playBtn">Defend the mesh</button><button class="ghost" id="howBtn">How it plays</button><button class="ghost" id="modeBtn2" title="Day or night mode">☀ Day</button><button class="ghost" id="fsBtn2" hidden>Full screen</button></div>
-          <p class="fine">Fan made for the Optimum community by @ekinoks_26, not an official Optimum product. Crew designed after the community's Optimum mascot. Game numbers are for fun; the RLNC rule inside is real: a coded block only opens with enough independent shards. <a href="https://www.getoptimum.xyz" target="_blank" rel="noopener">getoptimum.xyz</a></p>
+          <p class="fine" data-t="fine">Fan made for the Optimum community by @ekinoks_26, not an official Optimum product. Crew designed after the community's Optimum mascot. Game numbers are for fun; the RLNC rule inside is real: a coded block only opens with enough independent shards. <a href="https://www.getoptimum.xyz" target="_blank" rel="noopener">getoptimum.xyz</a></p>
         </div>
         <aside class="board">
-          <h3>Mesh leaderboard</h3>
+          <h3 data-t="boardH3">Mesh leaderboard</h3>
           <div class="tabs"></div>
           <div class="lb" id="lbTitle"></div>
           <div class="lbnote" id="lbNoteTitle"></div>
+          <div class="xauth" id="xauthTitle"><button class="btn xbtn" data-x="in" data-t="xin">Sign in with X</button><div class="xwho" hidden><span class="xh"></span><button class="xout" data-x="out" data-t="xout">sign out</button></div><div class="msg" id="xMsgTitle"></div></div>
         </aside>
       </div>
     </section>
@@ -434,16 +442,16 @@ body.small .coach { font-size: 20px; }
     <section class="screen" id="stagesScr" hidden>
       <div class="stagesel">
         <div class="sshead">
-          <div><span class="slogan">CAMPAIGN</span><h2>From testnet to mainnet</h2><p class="lede">Ten stages, each built on one idea from how Optimum works. Clear a stage to unlock the next, lose fewer validators for more stars.</p></div>
-          <div class="right"><span class="tot" id="ssStars"></span><button class="ghost" id="learnBtn">Optimum knowledge</button><button class="ghost" id="ssBack">Back</button></div>
+          <div><span class="slogan" data-t="campSlogan">CAMPAIGN</span><h2 data-t="campH2">From testnet to mainnet</h2><p class="lede" data-t="campLede">Ten stages, each built on one idea from how Optimum works. Clear a stage to unlock the next, lose fewer validators for more stars.</p></div>
+          <div class="right"><span class="tot" id="ssStars"></span><button class="ghost" id="learnBtn">Optimum knowledge</button><button class="ghost" id="ssBack" data-t="back">Back</button></div>
         </div>
-        <div class="sbody"><div><div class="sgrid" id="sgrid"></div><p class="shint">Pick a stage to see its rule. Every second wave asks an Optimum question: answer right and fast for coins, boosts or validators.</p></div><aside class="sdetail" id="sdetail"></aside></div>
+        <div class="sbody"><div><div class="sgrid" id="sgrid"></div><p class="shint" data-t="shint">Pick a stage to see its rule. Every second wave asks an Optimum question: answer right and fast for coins, boosts or validators.</p></div><aside class="sdetail" id="sdetail"></aside></div>
       </div>
     </section>
 
     <section class="screen" id="learnScr" hidden>
       <div class="learn">
-        <div class="sshead"><div><span class="slogan">OPTIMUM KNOWLEDGE</span><h2 id="learnTitle">What you have learned</h2><p class="lede">Every question you answer right in a run is kept here with its explanation and source.</p></div><div class="right"><button class="ghost" id="learnBack">Back</button></div></div>
+        <div class="sshead"><div><span class="slogan" data-t="learnSlogan">OPTIMUM KNOWLEDGE</span><h2 id="learnTitle">What you have learned</h2><p class="lede" data-t="learnLede">Every question you answer right in a run is kept here with its explanation and source.</p></div><div class="right"><button class="ghost" id="learnBack" data-t="back">Back</button></div></div>
         <div class="lmastery" id="lmastery"></div>
         <p class="shint" id="lverified"></p>
         <div class="lgrid" id="lgrid"></div>
@@ -456,23 +464,24 @@ body.small .coach { font-size: 20px; }
         <div class="endl">
           <span class="label full" id="eTag">The mesh held</span>
           <div class="full estars" id="eStars" hidden></div>
-          <div class="full role" id="roleBox" hidden><canvas class="face big" data-portrait="flash" data-mood="excited" width="160" height="160"></canvas><div><span class="rt">Flash assigned your role</span><h4 id="roleName"></h4><p id="roleWhy"></p><span class="next" id="roleNext"></span></div></div>
+          <div class="full role" id="roleBox" hidden><canvas class="face big" data-portrait="flash" data-mood="excited" width="160" height="160"></canvas><div><span class="rt" data-t="roleRt">Flash assigned your role</span><h4 id="roleName"></h4><p id="roleWhy"></p><span class="next" id="roleNext"></span></div></div>
           <h2 class="full" id="eTitle"></h2>
           <canvas id="cardcv" width="1200" height="675" aria-label="Your score card"></canvas>
           <div class="stats" id="eStats"></div>
           <div class="row full">
-            <a class="btn" id="shareX" href="#" target="_blank" rel="noopener">Post on X</a>
-            <button class="btn" id="copyImg">Copy image</button>
-            <button class="btn" id="saveImg" hidden>Save image</button>
-            <button class="btn" id="copyTxt">Copy text</button>
+            <a class="btn" id="shareX" href="#" target="_blank" rel="noopener" data-t="shareX">Post on X</a>
+            <button class="btn" id="copyImg" data-t="copyImg">Copy image</button>
+            <button class="btn" id="saveImg" data-t="saveImg" hidden>Save image</button>
+            <button class="btn" id="copyTxt" data-t="copyTxt">Copy text</button>
             <span class="msg" id="shareMsg"></span>
           </div>
-          <div class="row full"><button class="chrome" id="nextBtn" hidden>Next stage</button><button class="ghost" id="againBtn">Play again</button><button class="ghost" id="endlessBtn" hidden>Keep going: endless</button><button class="ghost" id="homeBtn">All stages</button></div>
+          <div class="row full"><button class="chrome" id="nextBtn" hidden>Next stage</button><button class="ghost" id="againBtn">Play again</button><button class="ghost" id="endlessBtn" data-t="endlessBtn" hidden>Keep going: endless</button><button class="ghost" id="homeBtn" data-t="homeBtn">All stages</button></div>
         </div>
         <aside class="board">
-          <h3>Mesh leaderboard</h3>
+          <h3 data-t="boardH3">Mesh leaderboard</h3>
           <div class="tabs"></div>
-          <div class="handle"><input id="handleIn" maxlength="24" placeholder="Your X handle" aria-label="Your X handle"><button class="btn" id="submitBtn">Submit</button></div>
+          <div class="handle" id="handleRow" hidden><input id="handleIn" maxlength="24" placeholder="Your handle" aria-label="Your handle"><button class="btn" id="submitBtn" data-t="submitBtn">Submit</button></div>
+          <div class="xauth" id="xauthEnd"><button class="btn xbtn" data-x="in" data-t="xinEnd">Sign in with X to post your score</button><div class="xwho" hidden><span class="xh"></span><button class="btn" data-x="submit" data-t="xsubmit">Post score</button><button class="xout" data-x="out" data-t="xout">sign out</button></div></div>
           <div class="msg" id="lbMsg"></div>
           <div class="lb" id="lbEnd"></div>
         </aside>
@@ -489,6 +498,159 @@ body.small .coach { font-size: 20px; }
 (function () {
 'use strict';
 const T = window.TD, $ = (id) => document.getElementById(id);
+// ---------- language: English or Turkish ----------
+// UI strings are keyed by their English text; stage, crew, enemy and quiz text comes from TD_CONTENT_TR and TD_QUIZ_TR.
+// Share text, the score card and X posts stay English so the community reads one language on X.
+let LANG = 'en';
+try { const saved = localStorage.getItem('gs_lang'); LANG = saved === 'tr' || saved === 'en' ? saved : (navigator.language || '').toLowerCase().startsWith('tr') ? 'tr' : 'en'; } catch (e) {}
+const UI_TR = {
+  // title screen
+  lede: "Gossip Blob ve kopya sürüsü validator'larına yürüyor. <b>Optimum ekibini</b> işe al, kodlu zırhı <b>bağımsız shard'larla</b> kır ve mesh'i on bölüm boyunca <b>Hoodi Testnet'ten Mainnet'e</b> taşı. Her ikinci dalga bir <b>Optimum sorusu</b> sorar: teknolojiyi öğren, boost kazan.",
+  community: 'Topluluk',
+  cmPegasus: 'Mumbassador. Koçun, soruları o sorar.',
+  cmFlash: "Rolleri dağıtır: Newbie'den Chronicler'a.",
+  playBtn: "Mesh'i savun",
+  howBtn: 'Nasıl oynanır',
+  fsBtn: 'Tam ekran',
+  fine: "Optimum topluluğu için @ekinoks_26 tarafından yapılmış hayran işi, resmi bir Optimum ürünü değildir. Ekip, topluluğun Optimum maskotundan esinlenerek tasarlandı. Oyundaki sayılar eğlence içindir; içindeki RLNC kuralı gerçek: kodlu bir blok ancak yeterli sayıda bağımsız shard ile açılır. <a href=\"https://www.getoptimum.xyz\" target=\"_blank\" rel=\"noopener\">getoptimum.xyz</a>",
+  boardH3: 'Mesh sıralaması',
+  xin: 'X ile giriş yap',
+  xout: 'çıkış',
+  xinEnd: 'Skorunu göndermek için X ile giriş yap',
+  xsubmit: 'Skoru gönder',
+  // campaign and knowledge screens
+  campSlogan: 'KAMPANYA',
+  campH2: "Testnet'ten mainnet'e",
+  campLede: "On bölüm, her biri Optimum'un çalışma şeklinden tek bir fikir üzerine kurulu. Bir bölümü temizle, sonrakini aç; daha az validator kaybet, daha çok yıldız al.",
+  back: 'Geri',
+  shint: 'Kuralını görmek için bir bölüm seç. Her ikinci dalga bir Optimum sorusu sorar: coin, boost ya da validator için doğru ve hızlı cevapla.',
+  learnSlogan: 'OPTIMUM BİLGİSİ',
+  learnH2: 'Öğrendiklerin',
+  learnLede: 'Bir koşuda doğru cevapladığın her soru, açıklaması ve kaynağıyla burada saklanır.',
+  // end screen
+  roleRt: 'Flash rolünü belirledi',
+  shareX: "X'te paylaş",
+  copyImg: 'Görseli kopyala',
+  saveImg: 'Görseli kaydet',
+  copyTxt: 'Metni kopyala',
+  endlessBtn: 'Devam et: sonsuz',
+  homeBtn: 'Tüm bölümler',
+  submitBtn: 'Gönder',
+  // hud, quiz, coach, modal
+  hudScore: 'Skor',
+  hudMesh: 'Mesh',
+  qhost: 'soran: Pegasus',
+  qHint: "Tuşlar 1'den 4'e. Sen düşünürken savaş ağır çekimde sürer. Hızlı cevap daha çok kazandırır.",
+  qSkip: 'Brifingi atla',
+  coachSkip: 'atla',
+  mOk: 'Anladım',
+  // titles and placeholders
+  'Coins': 'Coin', 'Validators still attesting': "Hâlâ attest eden validator'lar", 'Score': 'Skor', 'Campaign stage': 'Kampanya bölümü', 'Crew in your mesh': "Mesh'indeki ekip",
+  'Game speed': 'Oyun hızı', 'Pause': 'Duraklat', 'Sound': 'Ses', 'Day or night mode': 'Gündüz ya da gece modu', 'Full screen': 'Tam ekran', 'Language': 'Dil', 'Your handle': 'Kullanıcı adın',
+  'Publish Burst: rain coded shards on an area (counts as an independent shard on every coded shield)': "Publish Burst: bir alana kodlu shard yağdırır (her kodlu kalkanda bağımsız bir shard sayılır)",
+  'Flexnode Surge: every crew member fires 70% faster for 6 s': 'Flexnode Surge: her ekip üyesi 6 saniye boyunca %70 daha hızlı ateş eder',
+  'Night': 'Gece', 'Day': 'Gündüz',
+  // floaters and canvas labels
+  '-{n} validator': '-{n} validator', '-{n} validators': '-{n} validator', '-{n} coins · late block': '-{n} coin · geç blok',
+  'DECODED': 'ÇÖZÜLDÜ', ' recoded': ' yeniden kodlandı', 'redundant': 'gereksiz', 'decoded early': 'erken çözüldü', '+{n} rent': '+{n} kira',
+  'Wave {w} clear · every block on time': '{w}. dalga temiz · her blok zamanında', 'Wave {w} clear': '{w}. dalga temiz', 'Flexnode rent +{n}': 'Flexnode kirası +{n}',
+  'Level {n}': 'Seviye {n}', 'CRIT {n}': 'KRİTİK {n}', 'Mesh full: {n} crew is the maximum. Upgrade instead.': 'Mesh dolu: en fazla {n} ekip üyesi. Bunun yerine geliştir.',
+  'Optimum quiz: right': 'Optimum sorusu: doğru', ' · streak {n}': ' · seri {n}', 'blob burst ×{n}': 'blob patlaması ×{n}', 'lost': 'kayıp',
+  'VALIDATORS': 'VALIDATORLAR', 'Paused': 'Duraklatıldı', 'LOSSY LINK · {p}% DROP': 'KAYIPLI HAT · %{p} DÜŞME',
+  // codex cards
+  'STAGE {id} · {tier} · NEW RULE': 'BÖLÜM {id} · {tier} · YENİ KURAL', '{name} · {n} waves': '{name} · {n} dalga',
+  ' Your guide here is {name}, {note}.': ' Buradaki rehberin {name}: {note}.',
+  'Beginner': 'Başlangıç', 'Intermediate': 'Orta', 'Advanced': 'İleri', 'Expert': 'Uzman', 'Master': 'Usta',
+  'LEVEL 4 UNLOCKED': '4. SEVİYE AÇILDI', 'Specialize your crew': 'Ekibini uzmanlaştır', 'One choice per crew member, for good': 'Her ekip üyesi için tek ve kalıcı bir seçim',
+  'At level 4 every crew member picks one of two specializations with a completely different weapon. Hover each card to compare the numbers before you buy. Late waves are built for level 4 crews.': "4. seviyede her ekip üyesi, bambaşka bir silahı olan iki uzmanlıktan birini seçer. Satın almadan önce sayıları karşılaştırmak için her kartın üzerine gel. Geç dalgalar 4. seviye ekipler için tasarlandı.",
+  'Kishori can become a Fountain Coder, whose every shard counts as independent, or a Railshard that pierces six enemies. Pick for the threats in the wave preview.': "Kishori, her shard'ı bağımsız sayılan bir Fountain Coder ya da altı düşmanı delen bir Railshard olabilir. Dalga önizlemesindeki tehditlere göre seç.",
+  'NEW CREW MEMBER': 'YENİ EKİP ÜYESİ', 'CODED ARMOR': 'KODLU ZIRH', 'NEW THREAT': 'YENİ TEHDİT', 'Coded {name}': 'Kodlu {name}', 'Coded ': 'Kodlu ',
+  'Needs independent shards to crack': 'Kırmak için bağımsız shard gerekir', 'Enemy': 'Düşman',
+  'This one wears a coded shield with k segments. Damage barely gets through until k DIFFERENT crew members have hit it. Then it decodes and drops its guard.': "Bu düşman k parçalı kodlu bir kalkan taşıyor. k FARKLI ekip üyesi vurana kadar hasar neredeyse geçmez. Sonra çözülür ve savunmasını bırakır.",
+  // hud and wave box
+  '{n} on the line': 'hatta {n} düşman', 'Wave in progress': 'Dalga sürüyor', 'Mesh secured': 'Mesh güvende', 'auto in {n} s': '{n} sn sonra otomatik', 'ready': 'hazır',
+  'Start wave 1': '1. dalgayı başlat', 'Send wave {n}': '{n}. dalgayı gönder', '+{n} speed bonus': '+{n} hız bonusu', 'Wave {n}': '{n}. dalga', ' · endless': ' · sonsuz',
+  // crew ring and tooltips
+  'Max': 'Maks', 'Sell': 'Sat', 'Target priority': 'Hedef önceliği', 'Info': 'Bilgi', 'wave {n}': '{n}. dalga', 'Lv {n}': 'Sv {n}', 'Target': 'Hedef',
+  'First': 'İlk', 'Last': 'Son', 'Strong': 'Güçlü', 'Close': 'Yakın', ' upgrade': ' geliştirme', 'global': 'küresel', '% hp': '% can', 'New: ': 'Yeni: ',
+  'Damage': 'Hasar', 'Beam dps': 'Işın dps', 'Shards per volley': 'Salvo başına shard', 'Shots per second': 'Saniyede atış', 'Range': 'Menzil', 'Blast radius': 'Patlama yarıçapı',
+  'Slow': 'Yavaşlatma', 'Burn per second': 'Saniyede yanma', 'Crew speed aura': 'Ekip hız aurası', 'Instant decode below': 'Anında çözme eşiği', 'Crit chance': 'Kritik şansı', 'Rent per wave': 'Dalga başına kira', 'Interest': 'Faiz',
+  'Every shard is independent': 'Her shard bağımsız', 'Pierces up to 6, ignores armor': '6 düşmana kadar deler, zırhı yok sayar', 'Splits into 4 bomblets': '4 küçük bombaya ayrılır', 'Leaves a firewall': 'Ateş duvarı bırakır',
+  'Every 4th pulse freezes': 'Her 4. darbe dondurur', 'Marked foes take +35%': 'İşaretli düşmanlar +%35 hasar alır', 'Ignores armor': 'Zırhı yok sayar', 'Bursts into 6 fragments': '6 parçaya dağılır', 'Chains to 5 foes': '5 düşmana zıplar',
+  '+3 coins per kill in range': 'Menzildeki her öldürme +3 coin', 'Burns through a line': 'Bir çizgi boyunca yakar', 'Two beams': 'İki ışın', 'Knocks enemies back': 'Düşmanları geri iter',
+  'Reveals Eclipse Phantoms': 'Eclipse Hayaletlerini açığa çıkarır', 'Aura: hits from nearby crew count as independent shards': 'Aura: yakındaki ekibin vuruşları bağımsız shard sayılır',
+  'No weapon. Pays +{n} coins after every wave{int}. Level 4 MEV Hunter also attacks.': 'Silahı yok. Her dalgadan sonra +{n} coin öder{int}. 4. seviye MEV Hunter saldırır da.', ' and {p}% interest on your savings': ' ve birikimine %{p} faiz',
+  'damage dealt': 'verilen hasar', 'kills': 'öldürme', 'Joins the crew at wave {n}': 'Ekibe {n}. dalgada katılır',
+  // roles
+  'Everyone starts here. Clear a stage with stars and learn a few answers, and Flash moves you up.': 'Herkes buradan başlar. Bir bölümü yıldızla temizle, birkaç cevap öğren; Flash seni yukarı taşır.',
+  'You are watching the mesh from the inside now. Every stage and every right answer counts toward Refined.': "Artık mesh'i içeriden izliyorsun. Her bölüm ve her doğru cevap Refined için sayılır.",
+  'Three stages starred and the first ten Optimum answers learned. Flash sees you.': 'Üç bölüm yıldızlandı, ilk on Optimum cevabı öğrenildi. Flash seni görüyor.',
+  'Seven stages starred. You play fast and clean, so Flash put you with the Optimized.': "Yedi bölüm yıldızlandı. Hızlı ve temiz oynuyorsun, Flash seni Optimized'ların arasına koydu.",
+  'Seven stages starred and the knowledge bank is your thing. Flash put you with the Chroniclers.': "Yedi bölüm yıldızlandı ve bilgi bankası senin işin. Flash seni Chronicler'ların arasına koydu.",
+  'Next role Observer: {s} / 3 stars, {k} / 3 answers learned': 'Sonraki rol Observer: {s} / 3 yıldız, {k} / 3 cevap öğrenildi',
+  'Next role Refined: {s} / 9 stars, {k} / 10 answers learned': 'Sonraki rol Refined: {s} / 9 yıldız, {k} / 10 cevap öğrenildi',
+  'Next: Optimized or Chronicler at 21 stars and 25 answers ({s} stars, {k} answers). Stars lean Optimized, knowledge leans Chronicler.': "Sırada: 21 yıldız ve 25 cevapta Optimized ya da Chronicler ({s} yıldız, {k} cevap). Yıldızlar Optimized'a, bilgi Chronicler'a götürür.",
+  '{s} / 30 stars, {k} / 100 answers learned': '{s} / 30 yıldız, {k} / 100 cevap öğrenildi',
+  // end screen
+  'Next stage: {name}': 'Sonraki bölüm: {name}', 'Replay for stars': 'Yıldız için tekrar oyna', 'Try again': 'Tekrar dene', 'Stage {id} · {name}': 'Bölüm {id} · {name}',
+  ' · the mesh held': ' · mesh dayandı', ' · the mesh fell': ' · mesh düştü', 'Endless on {name}: wave {w}': '{name} üzerinde sonsuz: {w}. dalga',
+  '{name} cleared, {l} of 20 validators standing': "{name} temizlendi, 20 validator'dan {l} tanesi ayakta", '. {name} unlocked': '. {name} açıldı', '. Campaign complete': '. Kampanya tamamlandı',
+  'Overrun on wave {w} of {f}': '{f} dalgadan {w}. dalgada aşıldı', 'Score · new best': 'Skor · yeni rekor', 'Wave': 'Dalga', 'Validators': 'Validator', 'Grade': 'Not', 'Kills': 'Öldürme',
+  'Shields decoded': 'Çözülen kalkan', 'Speed bonus': 'Hız bonusu', 'Optimum quiz': 'Optimum sorusu', '{r} / {a} right': '{r} / {a} doğru',
+  'Image copied. Paste it into your post.': 'Görsel kopyalandı. Gönderine yapıştır.', 'Copying images is blocked here. Use Save image, or screenshot the card.': "Görsel kopyalama burada engelli. Görseli kaydet'i kullan ya da kartın ekran görüntüsünü al.",
+  'Text copied.': 'Metin kopyalandı.', 'Copy blocked in this view.': 'Bu görünümde kopyalama engelli.', 'Saved.': 'Kaydedildi.', 'Saving is not available in this view.': 'Bu görünümde kaydetme yok.', 'Save cancelled.': 'Kaydetme iptal edildi.',
+  // leaderboard and X
+  'Stage {id} board': '{id}. bölüm tablosu', 'No scores on this stage yet. Be the first to hold the mesh.': "Bu bölümde henüz skor yok. Mesh'i tutan ilk kişi ol.",
+  'The shared leaderboard is not reachable right now. Your best runs are kept on this device.': 'Ortak sıralamaya şu anda ulaşılamıyor. En iyi koşuların bu cihazda saklanıyor.',
+  'Your best on this device: {s}': 'Bu cihazdaki en iyin: {s}', 'Connect X to post scores': 'Skor göndermek için X bağla', 'Opening X...': 'X açılıyor...',
+  'Sign in with X is being set up. Your best run stays on this device.': 'X ile giriş hazırlanıyor. En iyi koşun bu cihazda kalıyor.', 'Could not open X sign in. Try again in a moment.': 'X girişi açılamadı. Birazdan tekrar dene.',
+  'X sign in did not complete. Try again.': 'X girişi tamamlanmadı. Tekrar dene.', 'Your {name} run ({s}) is on the board at #{r}.': '{name} koşun ({s}) tabloda #{r} sırada.',
+  'This run was not registered with the board (offline at start). Play another run to post.': 'Bu koşu tabloya kaydedilmedi (başlangıçta çevrimdışıydı). Göndermek için yeni bir koşu oyna.',
+  'Sign in with X to post your score.': 'Skorunu göndermek için X ile giriş yap.', 'The board refused this run.': 'Tablo bu koşuyu reddetti.', 'Could not reach the board. Try again in a moment.': 'Tabloya ulaşılamadı. Birazdan tekrar dene.',
+  'Posting...': 'Gönderiliyor...', 'On the {name} board at #{r} as @{h}.': '{name} tablosunda @{h} olarak #{r} sırada.', 'Your best ({s}) is already on the board, #{r}.': 'En iyin ({s}) zaten tabloda, #{r}.',
+  'Type a handle first.': 'Önce bir kullanıcı adı yaz.', 'Your best ({s}) is already on the board.': 'En iyin ({s}) zaten tabloda.', 'On the board.': 'Tabloda.',
+  'Submitting needs a signed in view with access to this page. Your best is saved on this device.': 'Göndermek için bu sayfaya erişimi olan, giriş yapılmış bir görünüm gerekir. En iyin bu cihazda kayıtlı.',
+  'You can view this board but not post to it from this view. Ask the owner for contributor access.': 'Bu tabloyu görebiliyorsun ama bu görünümden gönderemiyorsun. Sahibinden katkıcı erişimi iste.',
+  // quiz
+  'briefing · right answer: up to +{n} starting coins': "brifing · doğru cevap: +{n} başlangıç coin'ine kadar", 'up to +{n} coins': "+{n} coin'e kadar", 'free Flexnode Surge': 'bedava Flexnode Surge', ' ×2 long': ' ×2 uzun',
+  'Publish Burst recharged': 'Publish Burst yenilendi', '+{n} validators': '+{n} validator', 'streak ×2 · ': 'seri ×2 · ', 'right answer: ': 'doğru cevap: ',
+  'STAGE BRIEFING {i} / {n} · {name}': 'BÖLÜM BRİFİNGİ {i} / {n} · {name}', ' · WITH {g}': ' · {g} İLE', 'OPTIMUM QUIZ': 'OPTIMUM SORUSU', 'Next question': 'Sonraki soru', 'Start the stage': 'Bölümü başlat',
+  'Back to the battle': 'Savaşa dön', 'streak {n}': 'seri {n}', '+{n} coins': '+{n} coin', 'Surge {n}s': 'Surge {n} sn', 'Burst ready': 'Burst hazır', 'Right! {p} · +{s} score': 'Doğru! {p} · +{s} skor',
+  'Time is up. The answer:': 'Süre doldu. Cevap:', 'Not quite. The answer:': 'Olmadı. Cevap:', 'Source: ': 'Kaynak: ',
+  // knowledge
+  'What you have learned · {n} of {t}': 'Öğrendiklerin · {t} sorudan {n}', 'Answer it right in a run to unlock the explanation.': 'Açıklamayı açmak için bir koşuda doğru cevapla.',
+  'Question bank checked against its sources on {d}. Questions you miss come back sooner; ones you know come back later.': 'Soru havuzu kaynaklarıyla en son {d} tarihinde doğrulandı. Kaçırdığın sorular daha erken, bildiklerin daha geç geri gelir.',
+  'Crew, named after the Optimum team:': 'Optimum ekibinin adını taşıyan kadro:', '. Hover a crew member to see who.': '. Kimin adını taşıdığını görmek için bir ekip üyesinin üzerine gel.', 'Stage guides:': 'Bölüm rehberleri:', 'Community:': 'Topluluk:',
+  'Pegasus, the Discord mumbassador, is your coach and asks the questions. Flash, who hands out roles in the Discord, grades your campaign and assigns your role: Optimum Newbie, Observer, Refined, then Optimized or Chronicler.': "Discord mumbassador'u Pegasus koçun, soruları o sorar. Discord'da rolleri dağıtan Flash kampanyanı notlar ve rolünü verir: Optimum Newbie, Observer, Refined, sonra Optimized ya da Chronicler.",
+  'Also in Optimum\'s public research and code:': "Optimum'un herkese açık araştırma ve kodunda ayrıca:", 'Sources:': 'Kaynaklar:',
+  'getoptimum.xyz/team, getoptimum.xyz/blog, the OptimumP2P paper (arXiv 2508.04833) and the public getoptimum GitHub repos. Fan made, not an official Optimum product.': "getoptimum.xyz/team, getoptimum.xyz/blog, OptimumP2P makalesi (arXiv 2508.04833) ve herkese açık getoptimum GitHub repoları. Hayran işi, resmi bir Optimum ürünü değildir.",
+  // stage select
+  'Optimum knowledge {n} / {t}': 'Optimum bilgisi {n} / {t}', 'Stage {id} · {tier} · {w} waves': 'Bölüm {id} · {tier} · {w} dalga', ' · {n} entries': ' · {n} giriş', ' · then endless': ' · sonra sonsuz',
+  'Training ground. ': 'Antrenman sahası. ', 'Stage guide: {name}': 'Bölüm rehberi: {name}', 'Best {s}': 'En iyi {s}', 'Not played yet': 'Henüz oynanmadı', 'Clear {name} to unlock': 'Açmak için {name} bölümünü temizle', 'Play stage': 'Bölümü oyna',
+};
+function tr(s, v) { let out = LANG === 'tr' && Object.prototype.hasOwnProperty.call(UI_TR, s) ? UI_TR[s] : s; if (v) for (const k in v) out = out.split('{' + k + '}').join(v[k]); return out; }
+const CT = () => (LANG === 'tr' && window.TD_CONTENT_TR) || null;
+function stT(st) { const c = CT(), t = c && c.stages[st.key]; return t ? { blurb: t.blurb, optimum: t.optimum, rule: t.rule || st.rule, guideNote: t.guide || (st.guide && st.guide.note) } : { blurb: st.blurb, optimum: st.optimum, rule: st.rule, guideNote: st.guide && st.guide.note }; }
+function crewT(k) { const C = T.CREW[k], c = CT(), t = c && c.crew[k]; if (!t) return C; return { ...C, role: t.role, blurb: t.blurb, tribute: t.tribute, short: t.short, specs: { a: { ...C.specs.a, ...t.specs.a }, b: { ...C.specs.b, ...t.specs.b } } }; }
+function foeT(k) { const F = T.FOES[k], c = CT(), t = c && c.foes[k]; return t ? { ...F, name: t.name, blurb: t.blurb } : F; }
+function whyT(k) { const c = CT(); return (c && c.why[k]) || WHY[k]; }
+function coachT() { const c = CT(); return (c && c.coach) || COACH; }
+function qT(q) { const t = LANG === 'tr' && window.TD_QUIZ_TR && window.TD_QUIZ_TR[q.id]; return t ? { ...q, q: t.q, a: t.a, why: t.why } : q; }
+function applyLang() {
+  document.documentElement.lang = LANG;
+  for (const el of document.querySelectorAll('[data-t]')) { if (el.dataset.en == null) el.dataset.en = el.innerHTML; el.innerHTML = LANG === 'tr' ? (UI_TR[el.dataset.t] ?? el.dataset.en) : el.dataset.en; }
+  for (const el of document.querySelectorAll('[title]')) { if (el.dataset.ent == null) el.dataset.ent = el.title; el.title = tr(el.dataset.ent); }
+  for (const el of document.querySelectorAll('[placeholder]')) { if (el.dataset.enp == null) el.dataset.enp = el.placeholder; el.placeholder = tr(el.dataset.enp); }
+  for (const id of ['langBtn', 'langBtn2']) { const b = $(id); if (b) b.textContent = LANG === 'tr' ? 'EN' : 'TR'; }
+  applyMode();
+}
+function setLang(l) {
+  LANG = l; try { localStorage.setItem('gs_lang', l); } catch (e) {}
+  applyLang(); renderCredits(); renderCoach(); renderBoards();
+  if (G) { $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`; renderWave(); updateHud(true); if (quiz) renderQuizText(); if (!$('endScr').hidden) renderEnd(); }
+  if (!$('stagesScr').hidden) renderStages();
+  if (!$('learnScr').hidden) showLearn();
+}
 const MARK = new Path2D('__MARKPATH__'); // official Optimum mark, box 36.5 x 20 starting at y 7.4
 const cv = $('cv'), ctx = cv.getContext('2d');
 let DPR = 1, SCALE = 1, PORTRAIT = false, FW = 1280, FH = 720;
@@ -832,7 +994,7 @@ function themeOf(st) {
 const INK = (a) => (DAY ? `rgba(21,23,28,${a})` : `rgba(229,231,235,${a})`);
 function applyMode() {
   document.documentElement.dataset.mode = DAY ? 'day' : 'night';
-  for (const id of ['modeBtn', 'modeBtn2']) { const b = $(id); if (b) b.textContent = id === 'modeBtn' ? (DAY ? '☾' : '☀') : (DAY ? '☾ Night' : '☀ Day'); }
+  for (const id of ['modeBtn', 'modeBtn2']) { const b = $(id); if (b) b.textContent = id === 'modeBtn' ? (DAY ? '☾' : '☀') : (DAY ? '☾ ' + tr('Night') : '☀ ' + tr('Day')); }
   bgCache = null; if (!$('stagesScr').hidden) renderStages();
 }
 function toggleMode() { DAY = !DAY; try { localStorage.setItem('gs_mode', DAY ? 'day' : 'night'); } catch (e) {} applyMode(); }
@@ -924,7 +1086,7 @@ function buildBg() {
     g.setLineDash([]);
     const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
     g.fillStyle = 'rgba(14,15,18,0.8)'; rr(g, mx - 76, my - 11, 152, 22, 6); g.fill();
-    g.fillStyle = '#ff9a6a'; g.font = '600 11px IBM Plex Mono, monospace'; g.textAlign = 'center'; upright(g, mx, my + 4, (x, y) => g.fillText(`LOSSY LINK · ${Math.round(st.loss * 100)}% DROP`, x, y));
+    g.fillStyle = '#ff9a6a'; g.font = '600 11px IBM Plex Mono, monospace'; g.textAlign = 'center'; upright(g, mx, my + 4, (x, y) => g.fillText(tr('LOSSY LINK · {p}% DROP', { p: Math.round(st.loss * 100) }), x, y));
   }
   // pads
   st.pads.forEach((p, pi) => {
@@ -961,7 +1123,7 @@ function buildBg() {
   const blob = (x, y, r) => { const bgd = g.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r); bgd.addColorStop(0, '#ffffff'); bgd.addColorStop(0.45, '#c9ced4'); bgd.addColorStop(0.75, '#5d636b'); bgd.addColorStop(1, '#2a2d33'); g.fillStyle = bgd; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); };
   blob(-6, 8, 34); blob(30, -26, 20); blob(36, 30, 16); blob(-34, -34, 14);
   markAt(g, -6, 8, 34, 'rgba(14,15,18,0.85)');
-  g.fillStyle = DAY ? '#15171c' : '#e5e7eb'; g.font = '600 11px IBM Plex Mono, monospace'; g.textAlign = 'center'; upright(g, 0, 70, (x, y) => g.fillText('VALIDATORS', x, y));
+  g.fillStyle = DAY ? '#15171c' : '#e5e7eb'; g.font = '600 11px IBM Plex Mono, monospace'; g.textAlign = 'center'; upright(g, 0, 70, (x, y) => g.fillText(tr('VALIDATORS'), x, y));
   g.restore();
   return c;
 }
@@ -1032,31 +1194,31 @@ function handleEvents() {
   for (const e of G.events) {
     switch (e.type) {
       case 'kill': floater(e.e.x, e.e.y - 18, '+' + e.bounty, e.fast ? '#ffd23f' : '#e5c86a', e.fast ? 15 : 13); sfx('coin', { gap: 0.03 }); if (e.e.type === 'boss') { shake = 1; sfx('boom'); } break;
-      case 'leak': { const v = vaultPos(); shake = Math.max(shake, 0.6); vaultHit = 0.5; sfx('leak'); floater(v[0] - 30, v[1] - 40, `-${e.lives} validator${e.lives > 1 ? 's' : ''}`, '#ff5a4e', 16, 1.3); if (e.coins) floater(v[0] - 30, v[1] - 16, `-${e.coins} coins · late block`, '#ffd23f', 14, 1.3); } $('livesChip').classList.remove('hurt'); void $('livesChip').offsetWidth; $('livesChip').classList.add('hurt'); break;
-      case 'decoded': floater(e.e.x, e.e.y - 30, 'DECODED', '#4da3ff', 16, 1.0); sfx('decoded'); break;
-      case 'shard': floater(e.e.x + 14, e.e.y - 24, `${e.n}/${e.k}${e.recoded ? ' recoded' : ''}`, '#9cc9ff', 11, 0.6); break;
-      case 'redundant': if (Math.random() < 0.18) { floater(e.e.x - 10, e.e.y - 22, 'redundant', '#8a9099', 10, 0.5); sfx('redundant', { gap: 0.2 }); } break;
-      case 'execute': floater(e.e.x, e.e.y - 22, 'decoded early', '#ffffff', 12, 0.7); break;
+      case 'leak': { const v = vaultPos(); shake = Math.max(shake, 0.6); vaultHit = 0.5; sfx('leak'); floater(v[0] - 30, v[1] - 40, tr(e.lives > 1 ? '-{n} validators' : '-{n} validator', { n: e.lives }), '#ff5a4e', 16, 1.3); if (e.coins) floater(v[0] - 30, v[1] - 16, tr('-{n} coins · late block', { n: e.coins }), '#ffd23f', 14, 1.3); } $('livesChip').classList.remove('hurt'); void $('livesChip').offsetWidth; $('livesChip').classList.add('hurt'); break;
+      case 'decoded': floater(e.e.x, e.e.y - 30, tr('DECODED'), '#4da3ff', 16, 1.0); sfx('decoded'); break;
+      case 'shard': floater(e.e.x + 14, e.e.y - 24, `${e.n}/${e.k}${e.recoded ? tr(' recoded') : ''}`, '#9cc9ff', 11, 0.6); break;
+      case 'redundant': if (Math.random() < 0.18) { floater(e.e.x - 10, e.e.y - 22, tr('redundant'), '#8a9099', 10, 0.5); sfx('redundant', { gap: 0.2 }); } break;
+      case 'execute': floater(e.e.x, e.e.y - 22, tr('decoded early'), '#ffffff', 12, 0.7); break;
       case 'early': floater(1100, 600, `Speed is money +${e.bonus}`, '#ffd23f', 18, 1.6); sfx('coin'); break;
       case 'wave': if (G.wave >= 2 && G.wave % 2 === 0) G.quizAt = G.t + 4 + Math.random() * 5; sfx('wave'); renderWave(); if (G.wave === 10 || G.wave === 20 || G.wave === G.finalWave) setTimeout(() => sfx('boss'), 400); break;
-      case 'waveClear': floater(640, 120, e.perfect ? `Wave ${e.wave} clear · every block on time` : `Wave ${e.wave} clear`, '#e5e7eb', 22, 2.0); if (e.income) floater(640, 150, `Flexnode rent +${e.income}`, '#ffd23f', 16, 2.0); sfx('clear'); renderWave(); if (coach && coach.step === 3) { coach.step = 4; renderCoach(); } break;
+      case 'waveClear': for (const t of G.towers) if (t.kind === 'sunny') { const S = T.stat(t); floater(t.x, t.y - 70, tr('+{n} rent', { n: S.income }), '#ffd23f', 16, 1.6); t.mood = 'happy'; t.moodT = 1.2; } floater(640, 120, tr(e.perfect ? 'Wave {w} clear · every block on time' : 'Wave {w} clear', { w: e.wave }), '#e5e7eb', 22, 2.0); if (e.income) floater(640, 150, tr('Flexnode rent +{n}', { n: e.income }), '#ffd23f', 16, 2.0); sfx('clear'); renderWave(); if (coach && coach.step === 3) { coach.step = 4; renderCoach(); } break;
       case 'newFoe': queueCodex('foe', e.foe, e.coded); break;
       case 'unlock': e.kinds.forEach(k => queueCodex('crew', k)); break;
       case 'burst': sfx('boom'); break;
       case 'surge': sfx('wave'); floater(640, 160, 'Flexnode Surge', '#4da3ff', 22, 1.2); break;
       case 'build': sfx('build'); break;
-      case 'upgrade': if (e.t.lvl === 2) queueCodex('tip', 'spec'); sfx(e.t.lvl >= 3 ? 'win' : 'build'); floater(e.t.x, e.t.y - 76, e.t.lvl >= 3 ? T.CREW[e.t.kind].specs[e.t.spec].name : 'Level ' + (e.t.lvl + 1), e.t.lvl >= 3 ? T.CREW[e.t.kind].look.visor : '#ffd23f', e.t.lvl >= 3 ? 17 : 14, 1.3); break;
-      case 'crit': floater(e.e.x, e.e.y - 34, 'CRIT ' + Math.round(e.dmg), '#ffd23f', 15, 0.8); break;
+      case 'upgrade': if (e.t.lvl === 2) queueCodex('tip', 'spec'); sfx(e.t.lvl >= 3 ? 'win' : 'build'); floater(e.t.x, e.t.y - 76, e.t.lvl >= 3 ? T.CREW[e.t.kind].specs[e.t.spec].name : tr('Level {n}', { n: e.t.lvl + 1 }), e.t.lvl >= 3 ? T.CREW[e.t.kind].look.visor : '#ffd23f', e.t.lvl >= 3 ? 17 : 14, 1.3); break;
+      case 'crit': floater(e.e.x, e.e.y - 34, tr('CRIT {n}', { n: Math.round(e.dmg) }), '#ffd23f', 15, 0.8); break;
       case 'boom': if (e.lvl >= 2) shake = Math.max(shake, 0.12 + (e.lvl - 2) * 0.1); break;
       case 'stun': sfx('pulse'); break;
       case 'sell': sfx('coin'); floater(e.t.x, e.t.y - 50, '+' + e.v, '#ffd23f', 14); break;
       case 'victory': sfx('win'); setTimeout(() => finish(true), 1400); break;
       case 'gameover': sfx('leak'); setTimeout(() => finish(false), 1200); break;
       case 'bossLeak': sfx('boom', { gap: 0.3 }); break;
-      case 'meshFull': floater(640, 120, `Mesh full: ${G.stage.crewCap} crew is the maximum. Upgrade instead.`, '#7bdc6a', 16, 1.6); break;
-      case 'quizRight': floater(640, 150, `Optimum quiz: right${e.got.streak >= 3 ? ' · streak ' + e.got.streak : ''}`, '#7bdc6a', 18, 1.6); if (e.got.surge) sfx('wave'); break;
-      case 'split': floater(e.e.x, e.e.y - 26, 'blob burst ×' + G.stage.split, '#c4b5fd', 13, 0.8); sfx('redundant', { gap: 0.15 }); break;
-      case 'drop': if (Math.random() < 0.5) floater(e.e.x + 12, e.e.y - 20, 'lost', '#ff9a6a', 11, 0.5); break;
+      case 'meshFull': floater(640, 120, tr('Mesh full: {n} crew is the maximum. Upgrade instead.', { n: G.stage.crewCap }), '#7bdc6a', 16, 1.6); break;
+      case 'quizRight': floater(640, 150, tr('Optimum quiz: right') + (e.got.streak >= 3 ? tr(' · streak {n}', { n: e.got.streak }) : ''), '#7bdc6a', 18, 1.6); if (e.got.surge) sfx('wave'); break;
+      case 'split': floater(e.e.x, e.e.y - 26, tr('blob burst ×{n}', { n: G.stage.split }), '#c4b5fd', 13, 0.8); sfx('redundant', { gap: 0.15 }); break;
+      case 'drop': if (Math.random() < 0.5) floater(e.e.x + 12, e.e.y - 20, tr('lost'), '#ff9a6a', 11, 0.5); break;
     }
   }
   // tower fire sounds from fresh shots
@@ -1093,33 +1255,33 @@ function nextCodex() {
   modalOpen = true; $('modal').hidden = false;
   const pc = $('cardPortrait'), pctx = pc.getContext('2d'); pctx.clearRect(0, 0, 300, 300);
   if (m.kind === 'stage') {
-    const st = T.STAGES.find(x => x.id === m.id);
-    $('mTag').textContent = `STAGE ${st.id} · ${st.tier.toUpperCase()} · NEW RULE`; $('mTag').className = 'tag';
-    $('mTitle').innerHTML = ''; $('mTitle').append(st.rule.name); const sp = document.createElement('span'); sp.textContent = `${st.name} · ${st.waves} waves`; $('mTitle').append(sp);
-    $('mText').textContent = st.rule.text; $('mWhy').textContent = 'Optimum: ' + st.optimum + (st.guide ? ` Your guide here is ${st.guide.name}, ${st.guide.note}.` : '');
+    const st = T.STAGES.find(x => x.id === m.id), sx = stT(st);
+    $('mTag').textContent = tr('STAGE {id} · {tier} · NEW RULE', { id: st.id, tier: tr(st.tier).toUpperCase() }); $('mTag').className = 'tag';
+    $('mTitle').innerHTML = ''; $('mTitle').append(sx.rule.name); const sp = document.createElement('span'); sp.textContent = tr('{name} · {n} waves', { name: st.name, n: st.waves }); $('mTitle').append(sp);
+    $('mText').textContent = sx.rule.text; $('mWhy').textContent = 'Optimum: ' + sx.optimum + (st.guide ? tr(' Your guide here is {name}, {note}.', { name: st.guide.name, note: sx.guideNote }) : '');
     drawMini(pctx, st, 300);
     $('mOk').focus(); return;
   }
   if (m.kind === 'tip') {
-    $('mTag').textContent = 'LEVEL 4 UNLOCKED'; $('mTag').className = 'tag';
-    $('mTitle').innerHTML = ''; $('mTitle').append('Specialize your crew'); const sp = document.createElement('span'); sp.textContent = 'One choice per crew member, for good'; $('mTitle').append(sp);
-    $('mText').textContent = 'At level 4 every crew member picks one of two specializations with a completely different weapon. Hover each card to compare the numbers before you buy. Late waves are built for level 4 crews.';
-    $('mWhy').textContent = 'Kishori can become a Fountain Coder, whose every shard counts as independent, or a Railshard that pierces six enemies. Pick for the threats in the wave preview.';
+    $('mTag').textContent = tr('LEVEL 4 UNLOCKED'); $('mTag').className = 'tag';
+    $('mTitle').innerHTML = ''; $('mTitle').append(tr('Specialize your crew')); const sp = document.createElement('span'); sp.textContent = tr('One choice per crew member, for good'); $('mTitle').append(sp);
+    $('mText').textContent = tr('At level 4 every crew member picks one of two specializations with a completely different weapon. Hover each card to compare the numbers before you buy. Late waves are built for level 4 crews.');
+    $('mWhy').textContent = tr('Kishori can become a Fountain Coder, whose every shard counts as independent, or a Railshard that pierces six enemies. Pick for the threats in the wave preview.');
     portrait(pctx, 'spike', 300, 'excited');
     $('mOk').focus(); return;
   }
   if (m.kind === 'crew') {
-    const C = T.CREW[m.id];
-    $('mTag').textContent = 'NEW CREW MEMBER'; $('mTag').className = 'tag';
+    const C = crewT(m.id);
+    $('mTag').textContent = tr('NEW CREW MEMBER'); $('mTag').className = 'tag';
     $('mTitle').innerHTML = ''; $('mTitle').append(C.name); const sp = document.createElement('span'); sp.textContent = C.role; $('mTitle').append(sp);
-    $('mText').textContent = C.blurb + ' ' + WHY[m.id]; $('mWhy').textContent = C.tribute;
+    $('mText').textContent = C.blurb + ' ' + whyT(m.id); $('mWhy').textContent = C.tribute;
     portrait(pctx, m.id, 300, 'excited');
   } else {
-    const F = T.FOES[m.id];
-    $('mTag').textContent = m.coded ? 'CODED ARMOR' : 'NEW THREAT'; $('mTag').className = 'tag' + (m.coded ? '' : ' threat');
-    $('mTitle').innerHTML = ''; $('mTitle').append(m.coded ? 'Coded ' + F.name : F.name); const sp = document.createElement('span'); sp.textContent = m.coded ? 'Needs independent shards to crack' : 'Enemy'; $('mTitle').append(sp);
-    $('mText').textContent = m.coded ? 'This one wears a coded shield with k segments. Damage barely gets through until k DIFFERENT crew members have hit it. Then it decodes and drops its guard.' : F.blurb;
-    $('mWhy').textContent = m.coded ? WHY.coded : WHY[m.id];
+    const F = foeT(m.id);
+    $('mTag').textContent = tr(m.coded ? 'CODED ARMOR' : 'NEW THREAT'); $('mTag').className = 'tag' + (m.coded ? '' : ' threat');
+    $('mTitle').innerHTML = ''; $('mTitle').append(m.coded ? tr('Coded {name}', { name: F.name }) : F.name); const sp = document.createElement('span'); sp.textContent = tr(m.coded ? 'Needs independent shards to crack' : 'Enemy'); $('mTitle').append(sp);
+    $('mText').textContent = m.coded ? tr('This one wears a coded shield with k segments. Damage barely gets through until k DIFFERENT crew members have hit it. Then it decodes and drops its guard.') : F.blurb;
+    $('mWhy').textContent = m.coded ? whyT('coded') : whyT(m.id);
     const fake = { type: m.id, x: 150, y: 165, r: T.FOES[m.id].r, id: 3, hp: 1, maxhp: 1, shield: m.coded ? { k: 3, got: new Set(['a']), broken: false } : null };
     pctx.save(); const sc = 60 / Math.max(14, fake.r); pctx.translate(150, 160); pctx.scale(sc * 0.9, sc * 0.9); pctx.translate(-150, -160); drawFoe(pctx, fake, 1, 1, false); pctx.restore();
   }
@@ -1265,7 +1427,7 @@ function render(now) {
   // floaters
   for (const f of floaters) { const k = f.t / f.life; ctx.globalAlpha = 1 - k * k; ctx.font = `700 ${f.size}px "Familjen Grotesk", sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,11,13,0.85)'; upright(ctx, f.x, f.y, (x, y) => { ctx.strokeText(f.text, x, y - k * 28); ctx.fillStyle = f.color; ctx.fillText(f.text, x, y - k * 28); }); ctx.globalAlpha = 1; }
   if (G.abilities.surge.active > 0) { ctx.fillStyle = `rgba(77,163,255,${0.05 + 0.03 * Math.sin(now * 8)})`; ctx.fillRect(0, 0, 1280, 720); }
-  if (paused && !modalOpen) { ctx.fillStyle = 'rgba(10,11,13,0.55)'; ctx.fillRect(0, 0, 1280, 720); ctx.fillStyle = '#e5e7eb'; ctx.font = '700 48px "Familjen Grotesk", sans-serif'; ctx.textAlign = 'center'; upright(ctx, 640, 370, (x, y) => ctx.fillText('Paused', x, y)); }
+  if (paused && !modalOpen) { ctx.fillStyle = 'rgba(10,11,13,0.55)'; ctx.fillRect(0, 0, 1280, 720); ctx.fillStyle = '#e5e7eb'; ctx.font = '700 48px "Familjen Grotesk", sans-serif'; ctx.textAlign = 'center'; upright(ctx, 640, 370, (x, y) => ctx.fillText(tr('Paused'), x, y)); }
   ctx.restore();
 }
 function drawRange(kind, lvl, spec, x, y, next) {
@@ -1303,21 +1465,21 @@ function updateHud(force) {
   const sb = $('sendBtn');
   if (G.waveActive) {
     const left = G.foes.length + G.spawnQ.length;
-    $('wstate').textContent = `${left} on the line`; sb.disabled = true; sb.classList.remove('go'); sb.innerHTML = 'Wave in progress';
-  } else if (G.state === 'victory') { sb.disabled = true; sb.innerHTML = 'Mesh secured'; }
+    $('wstate').textContent = tr('{n} on the line', { n: left }); sb.disabled = true; sb.classList.remove('go'); sb.textContent = tr('Wave in progress');
+  } else if (G.state === 'victory') { sb.disabled = true; sb.textContent = tr('Mesh secured'); }
   else {
     sb.disabled = false; sb.classList.toggle('go', G.wave === 0 || (coach && coach.step === 2));
     const bonus = G.countdown != null ? Math.ceil(G.countdown) * 2 * (G.stage.earlyX || 1) : 0;
-    $('wstate').textContent = G.countdown != null ? `auto in ${Math.ceil(G.countdown)} s` : 'ready';
-    sb.innerHTML = G.wave === 0 ? 'Start wave 1' : `Send wave ${G.wave + 1} <span class="bonus">+${bonus} speed bonus</span>`;
+    $('wstate').textContent = G.countdown != null ? tr('auto in {n} s', { n: Math.ceil(G.countdown) }) : tr('ready');
+    sb.innerHTML = G.wave === 0 ? tr('Start wave 1') : tr('Send wave {n}', { n: G.wave + 1 }) + ` <span class="bonus">${tr('+{n} speed bonus', { n: bonus })}</span>`;
   }
   if (sel) refreshRing();
 }
 function renderWave() {
   const next = G.waveActive ? G.wave : G.wave + 1;
-  $('wname').innerHTML = `Wave ${Math.max(1, next)} <em>/ ${G.finalWave}${next > G.finalWave ? ' · endless' : ''}</em>`;
+  $('wname').innerHTML = `${tr('Wave {n}', { n: Math.max(1, next) })} <em>/ ${G.finalWave}${next > G.finalWave ? tr(' · endless') : ''}</em>`;
   const pv = T.previewWave(G, next), el = $('preview'); el.innerHTML = '';
-  for (const key in pv) { const [type, k] = key.split('#'); const d = document.createElement('div'); d.className = 'pv' + (k ? ' coded' : ''); if (k) d.dataset.k = 'k' + k; d.title = (k ? 'Coded ' : '') + T.FOES[type].name; d.appendChild(foeIcon(type)); d.append('×' + pv[key]); el.appendChild(d); }
+  for (const key in pv) { const [type, k] = key.split('#'); const d = document.createElement('div'); d.className = 'pv' + (k ? ' coded' : ''); if (k) d.dataset.k = 'k' + k; d.title = (k ? tr('Coded ') : '') + foeT(type).name; d.appendChild(foeIcon(type)); d.append('×' + pv[key]); el.appendChild(d); }
 }
 function drawAbilityCds() {
   const a = G.abilities;
@@ -1382,20 +1544,20 @@ function openRing(padIdx) {
         const b = mk('up spec', x, -104, ''); b.dataset.spec = spec; b.onclick = buy(spec);
         b.onmouseenter = () => { sel.nextPreview = { lvl: T.MAX_LVL, spec }; showTip(t.kind, T.MAX_LVL, spec, b, t); }; b.onmouseleave = () => { sel.nextPreview = null; hideTip(); };
       }
-    } else { const mx = mk('', 0, -96, 'Max'); mx.disabled = true; }
-    const sl = mk('sell', -84, 40, 'Sell<span class="cost" id="rSell"></span>'); sl.onclick = (ev) => { ev.stopPropagation(); T.sell(G, t); closeRing(); updateHud(true); };
+    } else { const mx = mk('', 0, -96, tr('Max')); mx.disabled = true; }
+    const sl = mk('sell', -84, 40, tr('Sell') + '<span class="cost" id="rSell"></span>'); sl.onclick = (ev) => { ev.stopPropagation(); T.sell(G, t); closeRing(); updateHud(true); };
     if (t.kind !== 'moss' && !(t.kind === 'sunny' && t.spec !== 'b') && t.kind !== 'cyan') {
-      const pr = mk('prio', 84, 40, ''); pr.id = 'rPrio'; pr.title = 'Target priority';
+      const pr = mk('prio', 84, 40, ''); pr.id = 'rPrio'; pr.title = tr('Target priority');
       pr.onclick = (ev) => { ev.stopPropagation(); const i = T.PRIOS.indexOf(t.prio); T.setPrio(t, T.PRIOS[(i + 1) % T.PRIOS.length]); refreshRing(); };
     }
-    const inf = mk('', 0, 92, 'Info'); inf.onmouseenter = () => showTip(t.kind, t.lvl, t.spec, inf, t, true); inf.onmouseleave = hideTip; inf.onclick = (ev) => { ev.stopPropagation(); showTip(t.kind, t.lvl, t.spec, inf, t, true); };
+    const inf = mk('', 0, 92, tr('Info')); inf.onmouseenter = () => showTip(t.kind, t.lvl, t.spec, inf, t, true); inf.onmouseleave = hideTip; inf.onclick = (ev) => { ev.stopPropagation(); showTip(t.kind, t.lvl, t.spec, inf, t, true); };
   } else {
     const kinds = T.CREW_ORDER, n = kinds.length;
     kinds.forEach((k, i) => {
       const b = document.createElement('button'); b.className = 'rbtn'; b.dataset.k = k; b.style.left = ((i - (n - 1) / 2) * 80) + 'px'; b.style.top = '0px'; b.style.animationDelay = (i * 0.025) + 's';
       b.appendChild(portraitURL(k));
       const cost = document.createElement('span'); cost.className = 'cost'; cost.textContent = T.CREW[k].cost[0]; b.appendChild(cost);
-      if (!G.unlocked[k]) { const l = document.createElement('span'); l.className = 'lock'; l.textContent = 'wave ' + T.CREW[k].unlock; b.appendChild(l); }
+      if (!G.unlocked[k]) { const l = document.createElement('span'); l.className = 'lock'; l.textContent = tr('wave {n}', { n: T.CREW[k].unlock }); b.appendChild(l); }
       b.onclick = (ev) => { ev.stopPropagation(); if (!G.unlocked[k]) return; if (T.build(G, padIdx, k)) { hideTip(); closeRing(); updateHud(true); if (coach && coach.step <= 1) { coach.step = 2; renderCoach(); } } };
       b.onmouseenter = () => { if (sel) sel.preview = k; showTip(k, 0, null, b); }; b.onmouseleave = () => { if (sel) sel.preview = null; hideTip(); };
       b.onfocus = b.onmouseenter; b.onblur = b.onmouseleave;
@@ -1413,31 +1575,31 @@ function refreshRing() {
   if (pad.tower !== sel.tower) { closeRing(); return; }
   if (pad.tower) {
     const t = pad.tower, up = $('rUp');
-    if (up) { const c = T.nextCost(t); up.innerHTML = `Lv ${t.lvl + 2}<span class="cost">${c}</span>`; up.classList.toggle('poor', G.coins < c); }
+    if (up) { const c = T.nextCost(t); up.innerHTML = `${tr('Lv {n}', { n: t.lvl + 2 })}<span class="cost">${c}</span>`; up.classList.toggle('poor', G.coins < c); }
     document.querySelectorAll('#ring .rbtn.spec').forEach(b => { const S = T.CREW[t.kind].specs[b.dataset.spec]; b.innerHTML = `<span class="sn">${S.name}</span><span class="cost">${S.cost}</span>`; b.classList.toggle('poor', G.coins < S.cost); });
-    const pr = $('rPrio'); if (pr) pr.innerHTML = `<span class="sn">Target</span><b>${PRIO_LABEL[t.prio]}</b>`;
+    const pr = $('rPrio'); if (pr) pr.innerHTML = `<span class="sn">${tr('Target')}</span><b>${tr(PRIO_LABEL[t.prio])}</b>`;
     const s = $('rSell'); if (s) s.textContent = '+' + Math.floor(t.invested * 0.7);
   } else document.querySelectorAll('#ring .rbtn[data-k]').forEach(b => b.classList.toggle('poor', G.coins < T.CREW[b.dataset.k].cost[0]));
 }
 function closeRing() { sel = null; $('ring').hidden = true; $('ring').innerHTML = ''; hideTip(); }
 // One line per stat. With a tower and a target level, shows "now -> next" so every upgrade's gain is visible before buying.
 const STAT_ROWS = [
-  ['dmg', 'Damage', v => v], ['dps', 'Beam dps', v => v], ['shots', 'Shards per volley', v => v], ['rate', 'Shots per second', v => v.toFixed(1)], ['range', 'Range', v => v >= 2000 ? 'global' : v],
+  ['dmg', 'Damage', v => v], ['dps', 'Beam dps', v => v], ['shots', 'Shards per volley', v => v], ['rate', 'Shots per second', v => v.toFixed(1)], ['range', 'Range', v => v >= 2000 ? tr('global') : v],
   ['splash', 'Blast radius', v => v], ['slow', 'Slow', v => Math.round(v * 100) + '%'], ['dot', 'Burn per second', v => v], ['buff', 'Crew speed aura', v => '+' + Math.round(v * 100) + '%'],
-  ['exec', 'Instant decode below', v => Math.round(v * 100) + '% hp'], ['crit', 'Crit chance', v => Math.round(v * 100) + '%'], ['income', 'Rent per wave', v => '+' + v], ['interest', 'Interest', v => Math.round(v * 100) + '%'],
+  ['exec', 'Instant decode below', v => Math.round(v * 100) + tr('% hp')], ['crit', 'Crit chance', v => Math.round(v * 100) + '%'], ['income', 'Rent per wave', v => '+' + v], ['interest', 'Interest', v => Math.round(v * 100) + '%'],
 ];
 const FLAGS = { fresh: 'Every shard is independent', rail: 'Pierces up to 6, ignores armor', cluster: 'Splits into 4 bomblets', fire: 'Leaves a firewall', stun: 'Every 4th pulse freezes', mark: 'Marked foes take +35%', pierce: 'Ignores armor', shrapnel: 'Bursts into 6 fragments', chain: 'Chains to 5 foes', bonus: '+3 coins per kill in range', line: 'Burns through a line', beams: 'Two beams', knock: 'Knocks enemies back' };
 function showTip(kind, lvl, spec, anchor, t, info) {
-  const C = T.CREW[kind], tip = $('tip'); tip.innerHTML = '';
+  const C = crewT(kind), tip = $('tip'); tip.innerHTML = '';
   const isSpec = lvl >= T.MAX_LVL, specDef = isSpec ? C.specs[spec] : null;
   const cur = t ? T.stat(t) : null, nxt = T.statAt(kind, lvl, spec);
   const h = document.createElement('h4'); h.textContent = specDef ? specDef.name : C.name;
-  const sp = document.createElement('span'); sp.textContent = (specDef ? C.name + ' · ' : C.role + ' · ') + `Lv ${Math.min(lvl, 3) + 1}${info ? '' : t ? ' upgrade' : ''}`; h.appendChild(sp); tip.appendChild(h);
+  const sp = document.createElement('span'); sp.textContent = (specDef ? C.name + ' · ' : C.role + ' · ') + tr('Lv {n}', { n: Math.min(lvl, 3) + 1 }) + (info ? '' : t ? tr(' upgrade') : ''); h.appendChild(sp); tip.appendChild(h);
   const p = document.createElement('p'); p.textContent = specDef ? specDef.blurb : C.blurb; tip.appendChild(p);
   const tb = document.createElement('div'); tb.className = 'deltas';
   for (const [key, label, f] of STAT_ROWS) {
     if (nxt[key] == null && !(cur && cur[key] != null)) continue;
-    const row = document.createElement('div'); const l = document.createElement('span'); l.textContent = label; row.appendChild(l);
+    const row = document.createElement('div'); const l = document.createElement('span'); l.textContent = tr(label); row.appendChild(l);
     const v = document.createElement('span'); v.className = 'v';
     const nv = nxt[key] ?? 0;
     if (t && !info && cur && cur[key] !== nv) { const o = document.createElement('i'); o.textContent = cur[key] == null ? '·' : f(cur[key]); v.append(o, ' → '); const b = document.createElement('b'); b.textContent = f(nv); v.appendChild(b); row.classList.add(nv >= (cur[key] ?? 0) ? 'up' : 'down'); }
@@ -1446,12 +1608,13 @@ function showTip(kind, lvl, spec, anchor, t, info) {
   }
   tip.appendChild(tb);
   const flags = Object.keys(FLAGS).filter(k => nxt[k] && !(t && !info && cur && cur[k]));
-  if (flags.length) { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = (t && !info ? 'New: ' : '') + flags.map(k => FLAGS[k]).join(' · '); tip.appendChild(pk); }
-  if (kind === 'moss') { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = 'Reveals Eclipse Phantoms'; tip.appendChild(pk); }
-  if (kind === 'cyan') { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = 'Aura: hits from nearby crew count as independent shards'; tip.appendChild(pk); }
-  if (t && info) { const ex = document.createElement('div'); ex.className = 'st'; ex.innerHTML = ''; [['damage dealt', Math.round(t.dmgDone)], ['kills', t.kills]].forEach(([k, v]) => { const s = document.createElement('span'); s.append(k + ' '); const b = document.createElement('b'); b.textContent = v; s.appendChild(b); ex.appendChild(s); }); tip.appendChild(ex); }
-  if (!G.unlocked[kind]) { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = 'Joins the crew at wave ' + C.unlock; tip.appendChild(pk); }
-  if (C.tribute && (info || !t)) { const tr = document.createElement('div'); tr.className = 'st'; tr.textContent = info ? C.tribute : C.tribute.split(/[,:]/)[0] + '.'; tip.appendChild(tr); }
+  if (flags.length) { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = (t && !info ? tr('New: ') : '') + flags.map(k => tr(FLAGS[k])).join(' · '); tip.appendChild(pk); }
+  if (kind === 'moss') { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = tr('Reveals Eclipse Phantoms'); tip.appendChild(pk); }
+  if (kind === 'cyan') { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = tr('Aura: hits from nearby crew count as independent shards'); tip.appendChild(pk); }
+  if (kind === 'sunny' && !(spec === 'b' && lvl >= T.MAX_LVL)) { const pk = document.createElement('div'); pk.className = 'perk'; pk.style.color = 'var(--gold)'; pk.textContent = tr('No weapon. Pays +{n} coins after every wave{int}. Level 4 MEV Hunter also attacks.', { n: nxt.income, int: nxt.interest ? tr(' and {p}% interest on your savings', { p: Math.round(nxt.interest * 100) }) : '' }); tip.appendChild(pk); }
+  if (t && info) { const ex = document.createElement('div'); ex.className = 'st'; ex.innerHTML = ''; [['damage dealt', Math.round(t.dmgDone)], ['kills', t.kills]].forEach(([k, v]) => { const s = document.createElement('span'); s.append(tr(k) + ' '); const b = document.createElement('b'); b.textContent = v; s.appendChild(b); ex.appendChild(s); }); tip.appendChild(ex); }
+  if (!G.unlocked[kind]) { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = tr('Joins the crew at wave {n}', { n: C.unlock }); tip.appendChild(pk); }
+  if (C.tribute && (info || !t)) { const trb = document.createElement('div'); trb.className = 'st'; trb.textContent = info ? C.tribute : C.short || C.tribute.split(/[,:]/)[0] + '.'; tip.appendChild(trb); }
   tip.hidden = false;
   // keep the card clear of the ring: beside the whole menu, on the side with more room
   const ringEl = $('ring'), rx = parseFloat(ringEl.style.left) || 640, ry = parseFloat(ringEl.style.top) || 360;
@@ -1475,6 +1638,7 @@ function togglePause() { paused = !paused; $('pauseBtn').textContent = paused ? 
 $('pauseBtn').onclick = togglePause;
 $('muteBtn').onclick = () => { muted = !muted; $('muteBtn').style.opacity = muted ? 0.4 : 1; };
 $('modeBtn').onclick = toggleMode; $('modeBtn2').onclick = toggleMode;
+$('langBtn').onclick = () => setLang(LANG === 'tr' ? 'en' : 'tr'); $('langBtn2').onclick = $('langBtn').onclick;
 // full screen where the browser allows it (Android, tablets, desktop); iPhones use Add to Home Screen instead
 const canFs = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
 function goFull() { const el = document.documentElement; const r = el.requestFullscreen ? el.requestFullscreen() : el.webkitRequestFullscreen && el.webkitRequestFullscreen(); Promise.resolve(r).then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {}); }
@@ -1486,7 +1650,7 @@ $('fsBtn').onclick = goFull; $('fsBtn2').onclick = goFull;
 const COACH = ['Welcome to the mesh. Tap the glowing Flexnode pad.', 'Hire <b>Kishori</b>, your Encoder. Hover a face to compare the crew.', 'Press <b>Start wave 1</b>. Calling waves early pays a speed bonus.', 'Coins come from kills. Build more crew between waves. Ask me in Discord if you get stuck.', ''];
 function renderCoach() {
   const el = $('coach'); if (!coach || coach.step >= 4) { el.hidden = true; if (coach) { coach = null; try { localStorage.setItem('gs_tut', '1'); } catch (e) {} } return; }
-  el.hidden = false; $('coachText').innerHTML = COACH[coach.step];
+  el.hidden = false; $('coachText').innerHTML = coachT()[coach.step];
 }
 $('coachSkip').onclick = () => { coach = { step: 4 }; renderCoach(); };
 
@@ -1536,27 +1700,35 @@ function finish(won) {
   const prog = loadProg(), next = T.STAGES.find(x => x.id === S.id + 1);
   if (stars) { prog.stars[S.key] = Math.max(prog.stars[S.key] || 0, stars); prog.cleared[S.key] = true; }
   const newBest = !prog.best[S.key] || G.score > prog.best[S.key]; if (newBest) prog.best[S.key] = G.score; saveProg(prog);
-  G.stars = stars;
+  G.stars = stars; G.end = { won, endless, newBest, next };
+  { const { r } = roleFor(); G.role = r.name; }
   $('endScr').hidden = false; $('endlessBtn').hidden = !(won && S.endless && !endless);
-  $('nextBtn').hidden = !(won && next); if (next) $('nextBtn').textContent = `Next stage: ${next.name}`;
-  $('againBtn').textContent = won ? 'Replay for stars' : 'Try again';
+  $('nextBtn').hidden = !(won && next);
   $('againBtn').className = won && next ? 'ghost' : 'chrome';
-  $('eTag').textContent = `Stage ${S.id} · ${S.name}` + (won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell');
   $('eStars').textContent = won && !endless ? starStr(stars) : ''; $('eStars').hidden = !(won && !endless);
-  { const { r, next, top, p } = roleFor(); $('roleBox').hidden = false; $('roleName').textContent = r.name; $('roleWhy').textContent = r.text; G.role = r.name;
-    $('roleNext').textContent = next ? (next.name === 'Observer' ? `Next role Observer: ${p.stars} / 3 stars, ${p.known} / 3 answers learned` : `Next role Refined: ${p.stars} / 9 stars, ${p.known} / 10 answers learned`) : top ? `Next: Optimized or Chronicler at 21 stars and 25 answers (${p.stars} stars, ${p.known} answers). Stars lean Optimized, knowledge leans Chronicler.` : `${p.stars} / 30 stars, ${p.known} / 100 answers learned`; }
-  $('eTitle').textContent = endless ? `Endless on ${S.name}: wave ${G.wave}` : won ? `${S.name} cleared, ${G.lives} of 20 validators standing` + (next ? `. ${next.name} unlocked` : '. Campaign complete') : `Overrun on wave ${G.wave} of ${G.finalWave}`;
-  const st = [[newBest ? 'Score · new best' : 'Score', G.score.toLocaleString('en-US')], ['Wave', G.wave + ' / ' + G.finalWave], ['Validators', G.lives + '/20'], ['Grade', grade()], ['Kills', G.stats.kills], ['Shields decoded', G.stats.decoded], ['Speed bonus', '+' + G.stats.early], ['Optimum quiz', `${G.quiz.right} / ${G.quiz.asked} right`]];
-  $('eStats').innerHTML = ''; st.forEach(([k, v]) => { const d = document.createElement('div'); const l = document.createElement('span'); l.className = 'label'; l.textContent = k; const b = document.createElement('span'); b.className = 'v'; b.textContent = v; d.append(l, b); $('eStats').appendChild(d); });
+  renderEnd();
   drawCard();
   const text = won && !endless
     ? `gMum. I cleared ${S.name} in Gossip Siege ${starStr(stars)}: ${G.lives}/20 validators on time, ${G.stats.decoded} coded shields cracked, ${G.quiz.right}/${G.quiz.asked} Optimum questions right. Score ${G.score.toLocaleString('en-US')}. Flash says I am a ${G.role}. Speed is money. @get_optimum`
     : `gMum. Gossip Siege, ${S.name}: wave ${G.wave}, ${G.stats.decoded} coded shields cracked with independent shards. Score ${G.score.toLocaleString('en-US')}, grade ${grade()}. Speed is money. @get_optimum`;
   $('shareX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text); $('shareX').dataset.text = text;
   let h = ''; try { h = localStorage.getItem('gs_handle') || ''; } catch (e) {} $('handleIn').value = h;
-  $('submitBtn').disabled = false;
+  $('submitBtn').disabled = false; renderXAuth();
   $('lbMsg').textContent = ''; $('lbMsg').className = 'msg';
   lbStage = S.id; loadBoard();
+}
+// the end screen text in the current language; rerun when the language changes
+function renderEnd() {
+  const S = G.stage, { won, endless, newBest, next } = G.end;
+  if (next) $('nextBtn').textContent = tr('Next stage: {name}', { name: next.name });
+  $('againBtn').textContent = tr(won ? 'Replay for stars' : 'Try again');
+  $('eTag').textContent = tr('Stage {id} · {name}', { id: S.id, name: S.name }) + tr(won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell');
+  { const { r, next, top, p } = roleFor(); $('roleBox').hidden = false; $('roleName').textContent = r.name; $('roleWhy').textContent = tr(r.text);
+    const v = { s: p.stars, k: p.known };
+    $('roleNext').textContent = next ? tr(next.name === 'Observer' ? 'Next role Observer: {s} / 3 stars, {k} / 3 answers learned' : 'Next role Refined: {s} / 9 stars, {k} / 10 answers learned', v) : top ? tr('Next: Optimized or Chronicler at 21 stars and 25 answers ({s} stars, {k} answers). Stars lean Optimized, knowledge leans Chronicler.', v) : tr('{s} / 30 stars, {k} / 100 answers learned', v); }
+  $('eTitle').textContent = endless ? tr('Endless on {name}: wave {w}', { name: S.name, w: G.wave }) : won ? tr('{name} cleared, {l} of 20 validators standing', { name: S.name, l: G.lives }) + (next ? tr('. {name} unlocked', { name: next.name }) : tr('. Campaign complete')) : tr('Overrun on wave {w} of {f}', { w: G.wave, f: G.finalWave });
+  const st = [[tr(newBest ? 'Score · new best' : 'Score'), G.score.toLocaleString('en-US')], [tr('Wave'), G.wave + ' / ' + G.finalWave], [tr('Validators'), G.lives + '/20'], [tr('Grade'), grade()], [tr('Kills'), G.stats.kills], [tr('Shields decoded'), G.stats.decoded], [tr('Speed bonus'), '+' + G.stats.early], [tr('Optimum quiz'), tr('{r} / {a} right', { r: G.quiz.right, a: G.quiz.asked })]];
+  $('eStats').innerHTML = ''; st.forEach(([k, v]) => { const d = document.createElement('div'); const l = document.createElement('span'); l.className = 'label'; l.textContent = k; const b = document.createElement('span'); b.className = 'v'; b.textContent = v; d.append(l, b); $('eStats').appendChild(d); });
 }
 function drawCard() {
   const c = $('cardcv'), x = c.getContext('2d'), W = 1200, H = 675;
@@ -1584,17 +1756,17 @@ function drawCard() {
 }
 async function cardBlob() { return await new Promise(r => $('cardcv').toBlob(r, 'image/png')); }
 $('copyImg').onclick = async () => {
-  try { const b = await cardBlob(); await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]); msg('Image copied. Paste it into your post.', true); }
-  catch (e) { msg('Copying images is blocked here. Use Save image, or screenshot the card.'); }
+  try { const b = await cardBlob(); await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]); msg(tr('Image copied. Paste it into your post.'), true); }
+  catch (e) { msg(tr('Copying images is blocked here. Use Save image, or screenshot the card.')); }
 };
-$('copyTxt').onclick = () => { const t = $('shareX').dataset.text; try { navigator.clipboard.writeText(t).then(() => msg('Text copied.', true), () => msg('Copy blocked in this view.')); } catch (e) { msg('Copy blocked in this view.'); } };
+$('copyTxt').onclick = () => { const t = $('shareX').dataset.text; try { navigator.clipboard.writeText(t).then(() => msg(tr('Text copied.'), true), () => msg(tr('Copy blocked in this view.'))); } catch (e) { msg(tr('Copy blocked in this view.')); } };
 $('saveImg').onclick = async () => {
   try {
     const b = await cardBlob(), name = `gossip-siege-${G.score}.png`;
-    if (API) { const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); msg('Saved.', true); return; }
-    const d = window.claude && await window.claude.use('downloads'); if (!d) { msg('Saving is not available in this view.'); return; }
-    await d.save({ filename: name, data: b }); msg('Saved.', true);
-  } catch (e) { msg('Save cancelled.'); }
+    if (API) { const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); msg(tr('Saved.'), true); return; }
+    const d = window.claude && await window.claude.use('downloads'); if (!d) { msg(tr('Saving is not available in this view.')); return; }
+    await d.save({ filename: name, data: b }); msg(tr('Saved.'), true);
+  } catch (e) { msg(tr('Save cancelled.')); }
 };
 function msg(t, ok) { $('shareMsg').textContent = t; $('shareMsg').className = 'msg' + (ok ? ' ok' : ''); }
 $('againBtn').onclick = () => newRun(G ? G.stage.id : viewStage);
@@ -1607,6 +1779,8 @@ $('endlessBtn').onclick = () => { G.endless = true; G.state = 'build'; G.won = f
 //  on the open web (Netlify): /api/scores?stage=n, keyed by X handle, runs signed by /api/run
 const API = (window.claude && window.claude.use) ? null : '/api';
 let DB = null, USER = null, myId = null, lbRows = [], boardOn = false, runTok = null, lbStage = 1, dbUnsub = null, lbSeq = 0;
+let PRIVY = null, privyCfg = null, xUser = null, privyLoading = null;
+const PENDING_KEY = 'gs_pending';
 const cleanHandle = (v) => String(v || '').trim().replace(/^@+/, '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 15);
 const dbCol = (n) => ({ 1: 'scores', 4: 'scores_s2', 6: 'scores_s3', 10: 'scores_s4' })[n] || 'scores_' + (T.STAGES.find(x => x.id === n) || {}).key; // legacy names kept for the four stage campaign
 async function apiStartRun() {
@@ -1629,12 +1803,16 @@ async function loadBoard() {
   if (API) {
     $('saveImg').hidden = false;
     try { const h = cleanHandle(localStorage.getItem('gs_handle')); if (h) myId = 'h:' + h.toLowerCase(); } catch (e) {}
-    loadBoard(); setInterval(() => { if (!document.hidden && (!$('titleScr').hidden || !$('endScr').hidden || !$('stagesScr').hidden)) loadBoard(); }, 30000);
+    loadBoard();
+    renderXAuth();
+    let had = false; try { had = localStorage.getItem('gs_x') === '1'; } catch (e) {}
+    if (location.search.includes('privy_oauth_code')) xHandleReturn(); else if (had) xRefresh(); setInterval(() => { if (!document.hidden && (!$('titleScr').hidden || !$('endScr').hidden || !$('stagesScr').hidden)) loadBoard(); }, 30000);
     return;
   }
   try {
     const [db, user, dl] = await Promise.all([window.claude.use('db'), window.claude.use('user'), window.claude.use('downloads')]);
     DB = db; USER = user; if (dl) $('saveImg').hidden = false;
+    $('handleRow').hidden = false; for (const el of document.querySelectorAll('.xauth')) el.hidden = true;
     if (USER) myId = await USER.id();
     if (DB) boardOn = true;
   } catch (e) { DB = null; }
@@ -1643,13 +1821,13 @@ async function loadBoard() {
 function renderTabs() {
   for (const el of document.querySelectorAll('.tabs')) {
     el.innerHTML = '';
-    for (const st of T.STAGES) { const b = document.createElement('button'); b.className = 'tab' + (st.id === lbStage ? ' on' : ''); b.textContent = st.name; b.title = `Stage ${st.id} board`; b.onclick = () => { if (lbStage !== st.id) { lbStage = st.id; loadBoard(); } }; el.appendChild(b); }
+    for (const st of T.STAGES) { const b = document.createElement('button'); b.className = 'tab' + (st.id === lbStage ? ' on' : ''); b.textContent = st.name; b.title = tr('Stage {id} board', { id: st.id }); b.onclick = () => { if (lbStage !== st.id) { lbStage = st.id; loadBoard(); } }; el.appendChild(b); }
   }
 }
 function renderBoards() {
   for (const id of ['lbTitle', 'lbEnd', 'lbStages']) {
     const el = $(id); if (!el) continue; el.innerHTML = '';
-    if (!lbRows.length) { const p = document.createElement('div'); p.className = 'lbnote'; p.textContent = boardOn ? 'No scores on this stage yet. Be the first to hold the mesh.' : 'The shared leaderboard is not reachable right now. Your best runs are kept on this device.'; el.appendChild(p); }
+    if (!lbRows.length) { const p = document.createElement('div'); p.className = 'lbnote'; p.textContent = tr(boardOn ? 'No scores on this stage yet. Be the first to hold the mesh.' : 'The shared leaderboard is not reachable right now. Your best runs are kept on this device.'); el.appendChild(p); }
     lbRows.slice(0, id === 'lbEnd' ? 12 : 10).forEach((r, i) => {
       const row = document.createElement('div'); row.className = 'lbr' + (r.id === myId ? ' me' : '');
       const rk = document.createElement('span'); rk.className = 'rk'; rk.textContent = i + 1;
@@ -1660,36 +1838,106 @@ function renderBoards() {
     });
   }
   const lk = (T.STAGES.find(x => x.id === lbStage) || T.STAGES[0]).key, pr = loadProg(), b = pr.best[lk], stars = pr.stars[lk] || 0;
-  $('lbNoteTitle').textContent = b ? `Your best on this device: ${b.toLocaleString('en-US')}${stars ? '  ' + starStr(stars) : ''}` : '';
+  $('lbNoteTitle').textContent = b ? tr('Your best on this device: {s}', { s: b.toLocaleString('en-US') }) + (stars ? '  ' + starStr(stars) : '') : '';
+}
+// ---------- sign in with X (Privy) ----------
+// On the open web the board only accepts scores from a signed in X account. The Privy SDK (dist/privy.js, 800 KB)
+// is loaded only when needed: when the player taps sign in, comes back from X, or had a session on this device.
+function xHandleOf(user) { const accts = (user && (user.linked_accounts || user.linkedAccounts)) || []; const tw = accts.find(a => a.type === 'twitter_oauth' || a.type === 'twitter'); return tw ? (tw.username || tw.name || '') : ''; }
+async function privyConfig() { if (privyCfg) return privyCfg; try { const r = await fetch(API + '/privy', { cache: 'no-store' }); privyCfg = r.ok ? await r.json() : {}; } catch (e) { privyCfg = {}; } return privyCfg; }
+async function loadPrivy() {
+  if (PRIVY) return PRIVY;
+  if (privyLoading) return privyLoading;
+  privyLoading = (async () => {
+    const cfg = await privyConfig(); if (!cfg.appId) throw new Error('not configured');
+    if (!window.PrivyCore) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = '/privy.js'; sc.onload = res; sc.onerror = () => rej(new Error('privy.js failed to load')); document.head.appendChild(sc); });
+    const { Privy, LocalStorage } = window.PrivyCore;
+    PRIVY = new Privy({ appId: cfg.appId, ...(cfg.clientId ? { clientId: cfg.clientId } : {}), storage: new LocalStorage() });
+    await PRIVY.initialize();
+    return PRIVY;
+  })();
+  try { return await privyLoading; } finally { privyLoading = null; }
+}
+async function xRefresh() {
+  try { const p = await loadPrivy(); const { user } = await p.user.get(); xUser = user ? { id: user.id, handle: xHandleOf(user) } : null; }
+  catch (e) { xUser = null; }
+  if (xUser && xUser.handle) { myId = 'h:' + xUser.handle.toLowerCase(); try { localStorage.setItem('gs_handle', xUser.handle); localStorage.setItem('gs_x', '1'); } catch (e) {} }
+  renderXAuth(); return xUser;
+}
+function renderXAuth() {
+  for (const box of document.querySelectorAll('.xauth')) {
+    const inBtn = box.querySelector('[data-x="in"]'), who = box.querySelector('.xwho'), xh = box.querySelector('.xh');
+    const on = !!(xUser && xUser.handle);
+    inBtn.hidden = on; who.hidden = !on; if (on) xh.textContent = '@' + xUser.handle;
+    if (xUser && !xUser.handle) { inBtn.hidden = false; inBtn.textContent = tr('Connect X to post scores'); } else if (inBtn.dataset.en != null) inBtn.innerHTML = LANG === 'tr' ? UI_TR[inBtn.dataset.t] : inBtn.dataset.en;
+  }
+}
+async function xSignIn(fromEnd) {
+  const lm = fromEnd ? $('lbMsg') : $('xMsgTitle'); lm.className = 'msg';
+  try {
+    if (fromEnd && G) { // keep the finished run so it can be posted after the round trip to X
+      try { localStorage.setItem(PENDING_KEY, JSON.stringify({ stage: G.stage.id, name: G.stage.name, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now() })); } catch (e) {}
+    }
+    lm.textContent = tr('Opening X...');
+    const p = await loadPrivy();
+    const url = await p.auth.oauth.generateURL('twitter', location.origin + location.pathname);
+    location.assign(url);
+  } catch (e) { lm.textContent = tr(e.message === 'not configured' ? 'Sign in with X is being set up. Your best run stays on this device.' : 'Could not open X sign in. Try again in a moment.'); }
+}
+async function xSignOut() { try { const p = await loadPrivy(); const { user } = await p.user.get(); if (user) await p.auth.logout({ userId: user.id }); } catch (e) {} xUser = null; myId = null; try { localStorage.removeItem('gs_x'); } catch (e) {} renderXAuth(); }
+// returning from X: finish the login, clean the URL, post any run that was waiting
+async function xHandleReturn() {
+  const q = new URLSearchParams(location.search), code = q.get('privy_oauth_code'), state = q.get('privy_oauth_state');
+  if (!code) return;
+  history.replaceState(null, '', location.pathname);
+  try { const p = await loadPrivy(); await p.auth.oauth.loginWithCode(code, state); } catch (e) { $('xMsgTitle').textContent = tr('X sign in did not complete. Try again.'); return; }
+  await xRefresh();
+  let pending = null; try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (e) {}
+  if (pending && Date.now() - pending.at < 2 * 3600 * 1000) { const res = await postScore(pending); $('xMsgTitle').textContent = res.ok ? tr('Your {name} run ({s}) is on the board at #{r}.', { name: pending.name, s: Number(pending.score).toLocaleString('en-US'), r: res.rank }) : res.error; $('xMsgTitle').className = 'msg' + (res.ok ? ' ok' : ''); }
+  try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+}
+async function postScore(run) {
+  if (!run.run) return { ok: false, error: tr('This run was not registered with the board (offline at start). Play another run to post.') };
+  try {
+    const p = await loadPrivy(); const token = await p.getAccessToken();
+    if (!token) return { ok: false, error: tr('Sign in with X to post your score.') };
+    const r = await fetch(API + '/scores', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify({ stage: run.stage, score: run.score, wave: run.wave, lives: run.lives, decoded: run.decoded, kills: run.kills, run: run.run }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { if (r.status === 401) { xUser = null; renderXAuth(); } return { ok: false, error: j.error || tr('The board refused this run.') }; }
+    if (j.handle) { xUser = { ...(xUser || {}), handle: j.handle }; myId = 'h:' + j.handle.toLowerCase(); renderXAuth(); }
+    lbStage = run.stage; loadBoard();
+    return { ok: true, rank: j.rank, improved: j.improved, best: j.best, handle: j.handle };
+  } catch (e) { return { ok: false, error: tr('Could not reach the board. Try again in a moment.') }; }
 }
 let submitting = false;
+document.querySelectorAll('[data-x]').forEach(b => { b.onclick = async () => {
+  const k = b.dataset.x, fromEnd = !!b.closest('#xauthEnd');
+  if (k === 'in') return xSignIn(fromEnd);
+  if (k === 'out') return xSignOut();
+  if (k === 'submit') {
+    if (submitting || !G) return; submitting = true; const lm = $('lbMsg'); lm.className = 'msg'; lm.textContent = tr('Posting...');
+    const res = await postScore({ stage: G.stage.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok });
+    lm.textContent = res.ok ? (res.improved ? tr('On the {name} board at #{r} as @{h}.', { name: G.stage.name, r: res.rank, h: res.handle }) : tr('Your best ({s}) is already on the board, #{r}.', { s: Number(res.best).toLocaleString('en-US'), r: res.rank })) : res.error; lm.className = 'msg' + (res.ok ? ' ok' : '');
+    submitting = false;
+  }
+}; });
+// claude.ai artifact view keeps the typed handle path
 $('submitBtn').onclick = async () => {
   if (submitting || !G) return;
-  const h = API ? cleanHandle($('handleIn').value) : $('handleIn').value.trim().replace(/[^\w@.\- ]/g, '').slice(0, 24);
+  const h = $('handleIn').value.trim().replace(/[^\w@.\- ]/g, '').slice(0, 24);
   const lm = $('lbMsg'); lm.className = 'msg';
-  if (!h) { lm.textContent = API ? 'Type your X handle (letters, numbers, underscore).' : 'Type a handle first.'; return; }
+  if (!h) { lm.textContent = tr('Type a handle first.'); return; }
   try { localStorage.setItem('gs_handle', h); } catch (e) {}
   const stage = G.stage.id;
-  if (API) {
-    if (!runTok) { lm.textContent = 'This run was not registered with the board (offline at start). Play another run to submit.'; return; }
-    submitting = true; lm.textContent = 'Submitting...';
-    try {
-      const r = await fetch(API + '/scores', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handle: h, stage, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok }) });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) { lm.textContent = j.error || 'The board refused this run.'; }
-      else { myId = 'h:' + h.toLowerCase(); lm.textContent = j.improved ? `On the ${G.stage.name} board at #${j.rank}.` : `Your best (${Number(j.best).toLocaleString('en-US')}) is already on the board, #${j.rank}.`; lm.className = 'msg ok'; lbStage = stage; loadBoard(); }
-    } catch (e) { lm.textContent = 'Could not reach the board. Try again in a moment.'; }
-    submitting = false; return;
-  }
-  if (!DB || !myId) { lm.textContent = 'Submitting needs a signed in view with access to this page. Your best is saved on this device.'; return; }
+  if (!DB || !myId) { lm.textContent = tr('Submitting needs a signed in view with access to this page. Your best is saved on this device.'); return; }
   try {
     const ref = DB.doc(dbCol(stage) + '/' + myId); const cur = await ref.get();
     const prev = cur.exists ? cur.data() : null;
-    if (prev && Number(prev.score) >= G.score && prev.handle === h) { lm.textContent = `Your best (${Number(prev.score).toLocaleString('en-US')}) is already on the board.`; return; }
+    if (prev && Number(prev.score) >= G.score && prev.handle === h) { lm.textContent = tr('Your best ({s}) is already on the board.', { s: Number(prev.score).toLocaleString('en-US') }); return; }
     const best = prev && Number(prev.score) > G.score ? prev : { score: G.score, wave: G.wave, lives: G.lives, grade: grade(), at: new Date().toISOString() };
     await ref.set({ ...best, handle: h });
-    lm.textContent = 'On the board.'; lm.className = 'msg ok';
-  } catch (e) { lm.textContent = 'You can view this board but not post to it from this view. Ask the owner for contributor access.'; }
+    lm.textContent = tr('On the board.'); lm.className = 'msg ok';
+  } catch (e) { lm.textContent = tr('You can view this board but not post to it from this view. Ask the owner for contributor access.'); }
 };
 
 // ---------- Optimum quiz: every second wave, answer for a reward ----------
@@ -1717,25 +1965,30 @@ function pickQuestion(briefing) {
   return pool[0] || Q[Math.floor(Math.random() * Q.length)];
 }
 function rewardFor(briefing) {
-  if (briefing) return { k: 'coins', label: `briefing · right answer: up to +${40 * (G.quiz.streak >= 2 ? 2 : 1)} starting coins` };
+  if (briefing) return { k: 'coins', label: tr('briefing · right answer: up to +{n} starting coins', { n: 40 * (G.quiz.streak >= 2 ? 2 : 1) }) };
   let k = T.QUIZ_REWARDS[G.quiz.asked % T.QUIZ_REWARDS.length];
   if (k === 'lives' && G.lives >= G.maxLives) k = 'coins';
-  const x = G.quiz.streak >= 2 ? 2 : 1, label = { coins: `up to +${(40 + 12 * G.wave) * x} coins`, surge: `free Flexnode Surge${x > 1 ? ' ×2 long' : ''}`, burst: 'Publish Burst recharged', lives: `+${2 * x} validators` }[k];
-  return { k, label: (x > 1 ? 'streak ×2 · ' : '') + 'right answer: ' + label };
+  const x = G.quiz.streak >= 2 ? 2 : 1, label = { coins: tr('up to +{n} coins', { n: (40 + 12 * G.wave) * x }), surge: tr('free Flexnode Surge') + (x > 1 ? tr(' ×2 long') : ''), burst: tr('Publish Burst recharged'), lives: tr('+{n} validators', { n: 2 * x }) }[k];
+  return { k, label: (x > 1 ? tr('streak ×2 · ') : '') + tr('right answer: ') + label };
 }
 function openQuiz(briefing) {
   const item = pickQuestion(briefing); askedRun.add(item.id);
-  const opts = item.a.map((t, i) => ({ t, right: i === 0 })).sort(() => Math.random() - 0.5);
+  const opts = item.a.map((t, i) => ({ i, right: i === 0 })).sort(() => Math.random() - 0.5);
   quiz = { item, opts, el: 0, done: false, shown: 0, briefing: !!briefing, reward: rewardFor(briefing) };
-  $('qTag').textContent = briefing ? `STAGE BRIEFING ${BRIEF_N - G.briefLeft + 1} / ${BRIEF_N} · ${G.stage.name.toUpperCase()}${G.stage.guide ? ' · WITH ' + G.stage.guide.name.toUpperCase() : ''}` : 'OPTIMUM QUIZ';
-  $('qClose').textContent = briefing ? (G.briefLeft > 1 ? 'Next question' : 'Start the stage') : 'Back to the battle';
-  $('qSkip').hidden = !briefing;
-  $('qText').textContent = item.q; $('qReward').textContent = quiz.reward.label;
-  $('qStreak').textContent = G.quiz.streak ? `streak ${G.quiz.streak}` : '';
-  const box = $('qOpts'); box.innerHTML = '';
-  opts.forEach((o, i) => { const b = document.createElement('button'); b.className = 'qopt'; const n = document.createElement('b'); n.textContent = i + 1; const sp = document.createElement('span'); sp.textContent = o.t; b.append(n, sp); b.onclick = () => answerQuiz(i); box.appendChild(b); });
+  renderQuizText();
   $('qWhy').hidden = true; $('qClose').hidden = true; $('qHint').hidden = false; $('qBar').style.transform = 'scaleX(1)';
   $('quiz').hidden = false; closeRing(); sfx('pulse');
+}
+// question, options and labels in the current language (options keep their shuffled order)
+function renderQuizText() {
+  const { item, opts, briefing } = quiz, q = qT(item);
+  $('qTag').textContent = briefing ? tr('STAGE BRIEFING {i} / {n} · {name}', { i: BRIEF_N - G.briefLeft + 1, n: BRIEF_N, name: G.stage.name.toUpperCase() }) + (G.stage.guide ? tr(' · WITH {g}', { g: G.stage.guide.name.toUpperCase() }) : '') : tr('OPTIMUM QUIZ');
+  $('qClose').textContent = tr(briefing ? (G.briefLeft > 1 ? 'Next question' : 'Start the stage') : 'Back to the battle');
+  $('qSkip').hidden = !briefing;
+  $('qText').textContent = q.q; $('qReward').textContent = quiz.done ? $('qReward').textContent : rewardFor(briefing).label;
+  $('qStreak').textContent = G.quiz.streak ? tr('streak {n}', { n: G.quiz.streak }) : '';
+  const box = $('qOpts'), old = [...box.children]; box.innerHTML = '';
+  opts.forEach((o, i) => { const b = document.createElement('button'); b.className = old[i] ? old[i].className : 'qopt'; b.disabled = quiz.done; const n = document.createElement('b'); n.textContent = i + 1; const sp = document.createElement('span'); sp.textContent = q.a[o.i]; b.append(n, sp); b.onclick = () => answerQuiz(i); box.appendChild(b); });
 }
 function answerQuiz(i) {
   if (!quiz || quiz.done) return; quiz.done = true;
@@ -1745,14 +1998,15 @@ function answerQuiz(i) {
   const res = document.createElement('span'); res.className = 'res ' + (ok ? 'ok' : 'no');
   if (ok) {
     const got = T.quizReward(G, quiz.reward.k, 1 - quiz.el / QUIZ_TIME); handleEvents();
-    const parts = []; if (got.coins) parts.push(`+${got.coins} coins`); if (got.surge) parts.push(`Surge ${got.surge}s`); if (got.burst) parts.push('Burst ready'); if (got.lives) parts.push(`+${got.lives} validators`);
-    res.textContent = `Right! ${parts.join(' · ')} · +${got.score} score`; sfx('decoded');
+    const parts = []; if (got.coins) parts.push(tr('+{n} coins', { n: got.coins })); if (got.surge) parts.push(tr('Surge {n}s', { n: got.surge })); if (got.burst) parts.push(tr('Burst ready')); if (got.lives) parts.push(tr('+{n} validators', { n: got.lives }));
+    res.textContent = tr('Right! {p} · +{s} score', { p: parts.join(' · '), s: got.score }); sfx('decoded');
     recordAnswer(quiz.item.id, true);
-  } else { recordAnswer(quiz.item.id, false); T.quizReward(G, null); handleEvents(); res.textContent = i < 0 ? 'Time is up. The answer:' : 'Not quite. The answer:'; sfx('redundant'); }
+  } else { recordAnswer(quiz.item.id, false); T.quizReward(G, null); handleEvents(); res.textContent = tr(i < 0 ? 'Time is up. The answer:' : 'Not quite. The answer:'); sfx('redundant'); }
   why.appendChild(res);
-  if (!ok) { const a = document.createElement('b'); a.textContent = quiz.item.a[0] + '. '; why.appendChild(a); }
-  why.append(quiz.item.why + ' ');
-  const src = window.TD_QUIZ.SRC[quiz.item.src]; if (src) { const l = document.createElement('a'); l.href = src.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = 'Source: ' + src.label; why.appendChild(l); }
+  const q = qT(quiz.item);
+  if (!ok) { const a = document.createElement('b'); a.textContent = q.a[0] + '. '; why.appendChild(a); }
+  why.append(q.why + ' ');
+  const src = window.TD_QUIZ.SRC[quiz.item.src]; if (src) { const l = document.createElement('a'); l.href = src.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = tr('Source: ') + src.label; why.appendChild(l); }
   why.hidden = false; $('qClose').hidden = false; $('qHint').hidden = true; updateHud(true);
 }
 function closeQuiz() { const was = quiz; quiz = null; $('quiz').hidden = true; if (was && was.briefing && G) { G.briefLeft--; if (G.briefLeft > 0) { openQuiz(true); return; } } if (pending.length && !modalOpen) nextCodex(); }
@@ -1770,7 +2024,7 @@ window.addEventListener('keydown', (e) => { if (quiz && !quiz.done && /^[1-4]$/.
 // ---------- knowledge: every learned question with its answer and source ----------
 function showLearn() {
   const L = loadLearned(), Q = window.TD_QUIZ.Q, grid = $('lgrid'); grid.innerHTML = '';
-  $('learnTitle').textContent = `What you have learned · ${L.size} of ${Q.length}`;
+  $('learnTitle').textContent = tr('What you have learned · {n} of {t}', { n: L.size, t: Q.length });
   const srs = loadSrs(), mast = $('lmastery'); mast.innerHTML = '';
   for (const st of T.STAGES) {
     const qs = Q.filter(q => q.tag === st.key); if (!qs.length) continue;
@@ -1781,35 +2035,36 @@ function showLearn() {
     const ct = document.createElement('span'); ct.className = 'num'; ct.textContent = `${l}/${qs.length}`;
     row.append(nm, bar, ct); mast.appendChild(row);
   }
-  $('lverified').textContent = `Question bank checked against its sources on ${window.TD_QUIZ.VERIFIED}. Questions you miss come back sooner; ones you know come back later.`;
+  $('lverified').textContent = tr('Question bank checked against its sources on {d}. Questions you miss come back sooner; ones you know come back later.', { d: window.TD_QUIZ.VERIFIED });
   const order = T.STAGES.map(st => st.key);
   const items = Q.slice().sort((a, b) => (L.has(b.id) - L.has(a.id)) || order.indexOf(a.tag) - order.indexOf(b.tag));
-  for (const q of items) {
-    const known = L.has(q.id), c = document.createElement('div'); c.className = 'lcard' + (known ? '' : ' locked');
+  for (const q0 of items) {
+    const q = qT(q0), known = L.has(q.id), c = document.createElement('div'); c.className = 'lcard' + (known ? '' : ' locked');
     const st = T.STAGES.find(x => x.key === q.tag); const t = document.createElement('span'); t.className = 'lt'; t.textContent = st ? st.name : ''; c.appendChild(t);
     const lq = document.createElement('div'); lq.className = 'lq'; lq.textContent = q.q; c.appendChild(lq);
     if (known) {
       const la = document.createElement('div'); la.className = 'la'; la.textContent = q.a[0]; c.appendChild(la);
       const lw = document.createElement('div'); lw.className = 'lw'; lw.append(q.why + ' '); const src = window.TD_QUIZ.SRC[q.src]; if (src) { const a = document.createElement('a'); a.href = src.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = src.label; lw.appendChild(a); } c.appendChild(lw);
-    } else { const lw = document.createElement('div'); lw.className = 'lw'; lw.textContent = 'Answer it right in a run to unlock the explanation.'; c.appendChild(lw); }
+    } else { const lw = document.createElement('div'); lw.className = 'lw'; lw.textContent = tr('Answer it right in a run to unlock the explanation.'); c.appendChild(lw); }
     grid.appendChild(c);
   }
   $('stagesScr').hidden = true; $('learnScr').hidden = false;
 }
 $('learnBtn').onclick = () => showLearn();
 // who the game is built around: crew, stage guides, and others in Optimum's public work
-(function credits() {
+function renderCredits() {
   const el = $('lcredits'); if (!el) return;
   const crew = T.CREW_ORDER.map(k => T.CREW[k].name).join(', ');
   const guides = T.STAGES.map(st => st.guide && `${st.guide.name} (${st.name})`).filter(Boolean).join(', ');
   el.innerHTML = '';
-  const add = (label, text) => { const p = document.createElement('div'); const b = document.createElement('b'); b.textContent = label + ' '; p.append(b, text); el.appendChild(p); };
-  add('Crew, named after the Optimum team:', crew + '. Hover a crew member to see who.');
+  const add = (label, text) => { const p = document.createElement('div'); const b = document.createElement('b'); b.textContent = tr(label) + ' '; p.append(b, text); el.appendChild(p); };
+  add('Crew, named after the Optimum team:', crew + tr('. Hover a crew member to see who.'));
   add('Stage guides:', guides + '.');
-  add('Community:', 'Pegasus, the Discord mumbassador, is your coach and asks the questions. Flash, who hands out roles in the Discord, grades your campaign and assigns your role: Optimum Newbie, Observer, Refined, then Optimized or Chronicler.');
-  add('Also in Optimum\'s public research and code:', 'Slobodan Sudaric-Hefner (co-author of the staking revenue study), Chris Fuka (Gateway commits) and Walentyn (optimum-common SDK commits).');
-  add('Sources:', 'getoptimum.xyz/team, getoptimum.xyz/blog, the OptimumP2P paper (arXiv 2508.04833) and the public getoptimum GitHub repos. Fan made, not an official Optimum product.');
-})();
+  add('Community:', tr('Pegasus, the Discord mumbassador, is your coach and asks the questions. Flash, who hands out roles in the Discord, grades your campaign and assigns your role: Optimum Newbie, Observer, Refined, then Optimized or Chronicler.'));
+  add('Also in Optimum\'s public research and code:', LANG === 'tr' ? 'Slobodan Sudaric-Hefner (staking geliri çalışmasının ortak yazarı), Chris Fuka (Gateway commit\'leri) ve Walentyn (optimum-common SDK commit\'leri).' : 'Slobodan Sudaric-Hefner (co-author of the staking revenue study), Chris Fuka (Gateway commits) and Walentyn (optimum-common SDK commits).');
+  add('Sources:', tr('getoptimum.xyz/team, getoptimum.xyz/blog, the OptimumP2P paper (arXiv 2508.04833) and the public getoptimum GitHub repos. Fan made, not an official Optimum product.'));
+}
+renderCredits();
 $('learnBack').onclick = () => { $('learnScr').hidden = true; showStages(); };
 
 // ---------- campaign: stage select ----------
@@ -1823,7 +2078,7 @@ function renderStages() {
   const prog = loadProg(), grid = $('sgrid'); grid.innerHTML = '';
   const total = Object.values(prog.stars).reduce((a, b) => a + b, 0);
   $('ssStars').textContent = `${total} / ${T.STAGES.length * 3} ★`;
-  $('learnBtn').textContent = `Optimum knowledge ${loadLearned().size} / ${window.TD_QUIZ.Q.length}`;
+  $('learnBtn').textContent = tr('Optimum knowledge {n} / {t}', { n: loadLearned().size, t: window.TD_QUIZ.Q.length });
   for (const st of T.STAGES) {
     const locked = st.id > prog.unlocked, th = themeOf(st);
     const card = document.createElement('button'); card.className = 'scard' + (locked ? ' locked' : '') + (st.id === viewStage ? ' sel' : ''); card.style.setProperty('--acc', th.acc);
@@ -1840,21 +2095,21 @@ function renderStages() {
   renderStageDetail(prog);
 }
 function renderStageDetail(prog) {
-  const st = T.STAGES.find(x => x.id === viewStage) || T.STAGES[0], th = themeOf(st), locked = st.id > prog.unlocked, d = $('sdetail');
+  const st = T.STAGES.find(x => x.id === viewStage) || T.STAGES[0], th = themeOf(st), locked = st.id > prog.unlocked, d = $('sdetail'), sx = stT(st);
   d.style.setProperty('--acc', th.acc); d.innerHTML = '';
   const cvs = document.createElement('canvas'); cvs.width = 800; cvs.height = 450; drawMini(cvs.getContext('2d'), st, 800, 450); d.appendChild(cvs);
   const top = document.createElement('div'); top.className = 'srow';
-  const tier = document.createElement('span'); tier.className = 'tier'; tier.textContent = `Stage ${st.id} · ${st.tier} · ${st.waves} waves${st.paths.length > 1 ? ' · ' + st.paths.length + ' entries' : ''}${st.endless ? ' · then endless' : ''}`;
+  const tier = document.createElement('span'); tier.className = 'tier'; tier.textContent = tr('Stage {id} · {tier} · {w} waves', { id: st.id, tier: tr(st.tier), w: st.waves }) + (st.paths.length > 1 ? tr(' · {n} entries', { n: st.paths.length }) : '') + (st.endless ? tr(' · then endless') : '');
   const stars = document.createElement('span'); stars.className = 'stars'; stars.textContent = starStr(prog.stars[st.key] || 0);
   top.append(tier, stars); d.appendChild(top);
   const h = document.createElement('h3'); h.textContent = st.name; d.appendChild(h);
-  const rule = document.createElement('p'); rule.className = 'srule'; const rb = document.createElement('b'); rb.textContent = st.rule ? st.rule.name + '. ' : 'Training ground. '; rule.append(rb, st.rule ? st.rule.text : st.blurb); d.appendChild(rule);
-  const opt = document.createElement('p'); opt.className = 'sopt'; const ob = document.createElement('b'); ob.textContent = 'Optimum: '; opt.append(ob, st.optimum); d.appendChild(opt);
-  if (st.guide) { const gd = document.createElement('p'); gd.className = 'sguide'; const gb = document.createElement('b'); gb.textContent = 'Stage guide: ' + st.guide.name; gd.append(gb, ', ' + st.guide.note + '.'); d.appendChild(gd); }
+  const rule = document.createElement('p'); rule.className = 'srule'; const rb = document.createElement('b'); rb.textContent = sx.rule ? sx.rule.name + '. ' : tr('Training ground. '); rule.append(rb, sx.rule ? sx.rule.text : sx.blurb); d.appendChild(rule);
+  const opt = document.createElement('p'); opt.className = 'sopt'; const ob = document.createElement('b'); ob.textContent = 'Optimum: '; opt.append(ob, sx.optimum); d.appendChild(opt);
+  if (st.guide) { const gd = document.createElement('p'); gd.className = 'sguide'; const gb = document.createElement('b'); gb.textContent = tr('Stage guide: {name}', { name: st.guide.name }); gd.append(gb, ', ' + sx.guideNote + '.'); d.appendChild(gd); }
   const foot = document.createElement('div'); foot.className = 'srow foot';
-  const best = document.createElement('span'); best.className = 'num'; best.textContent = prog.best[st.key] ? 'Best ' + prog.best[st.key].toLocaleString('en-US') : locked ? '' : 'Not played yet';
+  const best = document.createElement('span'); best.className = 'num'; best.textContent = prog.best[st.key] ? tr('Best {s}', { s: prog.best[st.key].toLocaleString('en-US') }) : locked ? '' : tr('Not played yet');
   const go = document.createElement('button'); go.className = locked ? 'ghost' : 'chrome'; go.disabled = locked; go.id = 'stagePlay';
-  go.textContent = locked ? `Clear ${T.STAGES[st.id - 2].name} to unlock` : 'Play stage';
+  go.textContent = locked ? tr('Clear {name} to unlock', { name: T.STAGES[st.id - 2].name }) : tr('Play stage');
   go.onclick = () => { audio(); if (!locked) newRun(st.id); };
   foot.append(best, go); d.appendChild(foot);
 }
@@ -1877,7 +2132,7 @@ let crewLoop = false;
 function drawCrewTitle2(ts) { crewLoop = false; drawCrewTitle(ts / 1000); }
 
 const LOGO_D = '__LOGOPATHALL__';
-fillPortraits(); applyMode(); fit(); toTitle(); requestAnimationFrame(drawCrewTitle2); requestAnimationFrame(frameLoop);
+fillPortraits(); applyLang(); fit(); toTitle(); requestAnimationFrame(drawCrewTitle2); requestAnimationFrame(frameLoop);
 new MutationObserver(() => { if (!$('titleScr').hidden && !crewLoop) { crewLoop = true; requestAnimationFrame(drawCrewTitle2); } }).observe($('titleScr'), { attributes: true, attributeFilter: ['hidden'] });
 })();
 </script>

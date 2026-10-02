@@ -33,7 +33,7 @@
     },
     {
       id: 3, key: 'shard', name: 'Shard Threshold', guide: { name: 'Onyeka Obi', note: "co-author of the OptimumP2P paper" }, sub: 'You never need every shard', tier: 'Intermediate', theme: 'shard',
-      blurb: 'A valley route where every message from wave 3 on is coded.',
+      blurb: 'A valley route where every message from wave 5 on is coded.',
       waves: 15, hp: 1.6, speed: 1.02, coins: 240, lives: 20, scoreMult: 1.2, codedBonus: 0, allCoded: 4, codedFrom: 5, threshold: 0.75,
       rule: { name: 'Shard threshold', text: 'From wave 5 every enemy is coded into 4 shards, but a shield opens at 75%: 3 different crew members are enough.' },
       optimum: 'In mump2p a message is split into shards (default shard factor 4) and a node can forward or decode once it holds the threshold share, 75% by default.',

@@ -70,6 +70,8 @@ Upgrade buttons show every stat as "now → next" before you buy, and each damag
 ```
 src/stages.js                 campaign stages: routes, pads, rules, difficulty
 src/quiz.js                   Optimum question bank with sources
+src/i18n-quiz-tr.js           Turkish text for every question, keyed by question id
+src/i18n-content-tr.js        Turkish text for stages, crew, enemies and the tutorial
 src/core.js                   game rules, waves and combat (no DOM, deterministic)
 src/game.html                 rendering, UI, audio, leaderboard client
 src/bot.cjs                   balance bot: node src/bot.cjs
@@ -85,15 +87,17 @@ test/                         API tests and a local dev server
 | --- | --- | --- |
 | `/api/run` | POST | Signed run ticket, requested when a run starts |
 | `/api/scores?stage=n` | GET | Top 50 of a stage (1 to 10), best score per X handle |
-| `/api/scores` | POST | Submit a finished run (with its stage) |
+| `/api/scores` | POST | Submit a finished run (with its stage); needs a Privy access token from an X login |
+| `/api/privy` | GET | The Privy app id the page uses for sign in with X |
 
-Players have no accounts, so a determined cheater can still forge a score. The API stops the easy ways: a server signed ticket per run, a minimum real play time per wave, a score ceiling derived from the game's own scoring, one ticket per handle, and a short rate limit per client.
+Scores on the shared board belong to X accounts: the page signs the player in with X through Privy, sends the Privy access token with the run, and the function verifies the token (ES256, `PRIVY_VERIFICATION_KEY`) and reads the X username from Privy, so the handle on the board is the real one. On top of that: a server signed ticket per run, a minimum real play time per wave, a score ceiling derived from the game's own scoring, one ticket per handle, and a short rate limit per client. Until the Privy variables are set the board is read only and the page says sign in is being set up.
 
 ## Deploy on Netlify
 
 1. Import this repository in Netlify (Add new site, Import an existing project, GitHub).
 2. Build settings are read from `netlify.toml`; nothing to change.
 3. Deploy. Netlify Blobs needs no setup, and the leaderboard generates its own signing secret on first use. Setting `RUN_SECRET` (16+ random characters) in the environment variables is optional and overrides it.
+4. Sign in with X: create an app at dashboard.privy.io, enable Twitter (X) as a login method, add the site's URL under allowed origins, and set these environment variables in Netlify: `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_VERIFICATION_KEY` (the app's verification key from the Privy dashboard, PEM) and, if the app has a web client, `PRIVY_CLIENT_ID`. Redeploy afterwards.
 
 ## Local checks
 
@@ -104,6 +108,9 @@ npm run build
 node test/devserver.mjs      # serves dist/ and the API on http://localhost:8787
 ```
 
-## Day, night and mobile
+## Language, day, night and mobile
+
+The game runs in English or Turkish. The first visit follows the browser language; the TR / EN button on the title screen and in the HUD switches at any time, including mid run, and the choice is kept on the device. Everything a player reads is translated, including the stage rules, the crew cards, the tutorial and all 100 quiz questions with their explanations. Share text, the score card and X posts stay in English so the community reads one language on X.
+
 
 A day and night switch sits in the HUD and on the title screen; the first visit follows the system setting. On phones in landscape the HUD, quiz and menus grow so they stay readable and tappable; portrait shows a rotate prompt. Android and tablets get a full screen button, and iOS can add the game to the home screen.

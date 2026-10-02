@@ -1,9 +1,10 @@
 // Builds dist/ from src/: inlines the game engine and the Optimum logo into one HTML page,
 // adds the head (meta, social preview tags) and copies the static files from public/.
 import { cp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
+import { build as esbuild } from 'esbuild';
 
 const site = (process.env.URL || '').replace(/\/+$/, '');
-const [game, stages, quiz, core, logo] = await Promise.all(['src/game.html', 'src/stages.js', 'src/quiz.js', 'src/core.js', 'src/logo.svg'].map((f) => readFile(f, 'utf8')));
+const [game, stages, quiz, core, logo, quizTr, contentTr] = await Promise.all(['src/game.html', 'src/stages.js', 'src/quiz.js', 'src/core.js', 'src/logo.svg', 'src/i18n-quiz-tr.js', 'src/i18n-content-tr.js'].map((f) => readFile(f, 'utf8')));
 
 const logoSvg = logo.replaceAll('#3D4047', 'currentColor');
 const paths = [...logoSvg.matchAll(/<path d="([^"]+)"/g)].map((m) => m[1]);
@@ -15,7 +16,7 @@ let body = game
   .replace('<!--LOGO-->', logoSvg.replace('<svg ', '<svg class="logo" aria-label="Optimum" role="img" '))
   .replaceAll('__MARKPATH__', paths[0])
   .replaceAll('__LOGOPATHALL__', paths.join(' '))
-  .replace('/*__CORE__*/', () => stages + '\n' + quiz + '\n' + core); // stages.js defines the campaign before the engine reads it
+  .replace('/*__CORE__*/', () => [stages, quiz, quizTr, contentTr, core].join('\n')); // stages.js defines the campaign before the engine reads it; the Turkish text rides along
 
 const cut = body.indexOf('</style>') + '</style>'.length;
 const headPart = body.slice(0, cut), bodyPart = body.slice(cut);
@@ -53,4 +54,8 @@ await mkdir('dist', { recursive: true });
 await cp('public', 'dist', { recursive: true });
 for (const ph of ['__MARKPATH__', '__LOGOPATHALL__', '<!--MARK-->', '<!--LOGO-->', '/*__CORE__*/']) if (page.includes(ph)) { console.error('Build stopped: placeholder left in page: ' + ph); process.exit(1); }
 await writeFile('dist/index.html', page);
+// Privy sign in bundle (X login for the leaderboard), loaded by the page only when needed
+await writeFile('dist/privy-entry.js', "import Privy, { LocalStorage } from '@privy-io/js-sdk-core'; window.PrivyCore = { Privy, LocalStorage };");
+await esbuild({ entryPoints: ['dist/privy-entry.js'], bundle: true, minify: true, format: 'iife', platform: 'browser', target: 'es2020', outfile: 'dist/privy.js', logLevel: 'error' });
+await rm('dist/privy-entry.js');
 console.log(`built dist/index.html (${(page.length / 1024).toFixed(0)} KB) for ${site || 'relative URLs'}`);
