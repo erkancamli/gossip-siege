@@ -7,6 +7,7 @@ const [game, stages, quiz, core, logo] = await Promise.all(['src/game.html', 'sr
 
 const logoSvg = logo.replaceAll('#3D4047', 'currentColor');
 const paths = [...logoSvg.matchAll(/<path d="([^"]+)"/g)].map((m) => m[1]);
+if (!paths.length) throw new Error('logo.svg has no <path d=...>');
 const markSvg = `<svg viewBox="0 7 37 21" aria-hidden="true"><path d="${paths[0]}" fill="currentColor"/></svg>`;
 
 let body = game
@@ -50,5 +51,6 @@ for (const [, code] of page.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
 await rm('dist', { recursive: true, force: true });
 await mkdir('dist', { recursive: true });
 await cp('public', 'dist', { recursive: true });
+for (const ph of ['__MARKPATH__', '__LOGOPATHALL__', '<!--MARK-->', '<!--LOGO-->', '/*__CORE__*/']) if (page.includes(ph)) { console.error('Build stopped: placeholder left in page: ' + ph); process.exit(1); }
 await writeFile('dist/index.html', page);
 console.log(`built dist/index.html (${(page.length / 1024).toFixed(0)} KB) for ${site || 'relative URLs'}`);

@@ -142,6 +142,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 /* coach */
 .coach { position: absolute; z-index: 8; left: 50%; top: 70px; transform: translateX(-50%); padding: 10px 16px; border-radius: 12px; background: rgba(12,22,34,0.94); border: 1px solid rgba(77,163,255,0.55); font-size: 15px; display: flex; gap: 12px; align-items: center; white-space: nowrap; }
 .coach b { font-family: var(--display); }
+.coach .who { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); padding-right: 10px; border-right: 1px solid var(--line2); }
+.qhost { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.role { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line2); background: rgba(255,210,63,0.06); }
+.role .rt { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.role h4 { margin: 0; font-family: var(--display); font-size: 22px; }
+.role p { margin: 0; font-size: 12.5px; color: var(--soft); line-height: 1.45; }
+.role .next { font-family: var(--mono); font-size: 11px; color: var(--dim); }
 .coach button { font-family: var(--mono); font-size: 11px; color: var(--dim); }
 
 /* screens */
@@ -369,14 +376,14 @@ body.small .coach { font-size: 20px; }
     <div class="ring" id="ring" hidden></div>
     <div class="tip" id="tip" hidden></div>
     <div class="quiz" id="quiz" hidden role="dialog" aria-label="Optimum quiz">
-      <div class="qhead"><span class="qtag" id="qTag">OPTIMUM QUIZ</span><span class="qstreak" id="qStreak"></span><span class="qreward" id="qReward"></span></div>
+      <div class="qhead"><span class="qtag" id="qTag">OPTIMUM QUIZ</span><span class="qhost">asked by Pegasus</span><span class="qstreak" id="qStreak"></span><span class="qreward" id="qReward"></span></div>
       <div class="qtimer"><i id="qBar"></i></div>
       <h4 id="qText"></h4>
       <div class="qopts" id="qOpts"></div>
       <div class="qwhy" id="qWhy" hidden></div>
       <div class="qfoot"><span class="hint" id="qHint">Keys 1 to 4. The battle runs in slow motion while you think. Faster answers pay more.</span><span class="row"><button class="btn" id="qSkip" hidden>Skip briefing</button><button class="btn" id="qClose" hidden>Back to the battle</button></span></div>
     </div>
-    <div class="coach" id="coach" hidden><span id="coachText"></span><button id="coachSkip">skip</button></div>
+    <div class="coach" id="coach" hidden><span class="who">Pegasus</span><span id="coachText"></span><button id="coachSkip">skip</button></div>
 
     <div class="modal" id="modal" hidden>
       <div class="card">
@@ -436,6 +443,7 @@ body.small .coach { font-size: 20px; }
         <div class="endl">
           <span class="label full" id="eTag">The mesh held</span>
           <div class="full estars" id="eStars" hidden></div>
+          <div class="full role" id="roleBox" hidden><span class="rt">Flash assigned your role</span><h4 id="roleName"></h4><p id="roleWhy"></p><span class="next" id="roleNext"></span></div>
           <h2 class="full" id="eTitle"></h2>
           <canvas id="cardcv" width="1200" height="675" aria-label="Your score card"></canvas>
           <div class="stats" id="eStats"></div>
@@ -907,7 +915,7 @@ function buildBg() {
   }
   // pads
   st.pads.forEach((p, pi) => {
-    if ((st.flexPads || []).includes(pi)) { const fg = g.createRadialGradient(p[0], p[1], 4, p[0], p[1], 56); fg.addColorStop(0, `rgba(${R},0.55)`); fg.addColorStop(1, `rgba(${R},0)`); g.fillStyle = fg; g.beginPath(); g.ellipse(p[0], p[1], 60, 30, 0, 0, 7); g.fill(); }
+    if ((st.flexPads || []).includes(pi)) { const fg = g.createRadialGradient(p[0], p[1], 4, p[0], p[1], 56); fg.addColorStop(0, `rgba(${R},0.55)`); fg.addColorStop(1, `rgba(${R},0)`); g.fillStyle = fg; g.beginPath(); g.ellipse(p[0], p[1], 60, 30, GR, 0, 7); g.fill(); }
     g.fillStyle = 'rgba(0,0,0,0.45)'; g.beginPath(); g.ellipse(p[0], p[1] + 6, 34, 14, GR, 0, 7); g.fill();
     const pg = g.createLinearGradient(0, p[1] - 14, 0, p[1] + 14); pg.addColorStop(0, th.pad[0]); pg.addColorStop(1, th.pad[1]);
     g.fillStyle = pg; g.beginPath(); g.ellipse(p[0], p[1], 32, 14, GR, 0, 7); g.fill();
@@ -986,6 +994,7 @@ function newRun(stageId) {
   $('titleScr').hidden = true; $('endScr').hidden = true;
   let tut = true; try { tut = localStorage.getItem('gs_tut') !== '1'; } catch (e) {}
   coach = tut && stageId === 1 ? { step: 0 } : null; renderCoach();
+  if (coach) G.briefLeft = 0; // Pegasus walks a first time player through the basics first; briefings start on the next run
   renderWave(); updateHud(true);
   if (G.stage.rule) { delete seenCodex['stage' + stageId]; queueCodex('stage', stageId); }
 }
@@ -996,7 +1005,7 @@ function frameLoop(ts) {
     while (acc >= step && n < 12) { T.update(G, step); handleEvents(); acc -= step; n++; }
     if (n >= 12) acc = 0;
   }
-  if (G && !modalOpen && !quiz && G.briefLeft > 0 && G.wave === 0 && !coach) openQuiz(true);
+  if (G && !modalOpen && !quiz && G.briefLeft > 0 && G.wave === 0) openQuiz(true);
   if (G && !paused && !modalOpen && !G.over) { tickQuiz(dt); if (G.quizAt != null && G.t >= G.quizAt && !quiz && G.state !== 'victory') { G.quizAt = null; openQuiz(); } }
   for (const f of floaters) f.t += dt; floaters = floaters.filter(f => f.t < f.life);
   shake = Math.max(0, shake - dt * 2.5); vaultHit = Math.max(0, vaultHit - dt);
@@ -1016,7 +1025,7 @@ function handleEvents() {
       case 'redundant': if (Math.random() < 0.18) { floater(e.e.x - 10, e.e.y - 22, 'redundant', '#8a9099', 10, 0.5); sfx('redundant', { gap: 0.2 }); } break;
       case 'execute': floater(e.e.x, e.e.y - 22, 'decoded early', '#ffffff', 12, 0.7); break;
       case 'early': floater(1100, 600, `Speed is money +${e.bonus}`, '#ffd23f', 18, 1.6); sfx('coin'); break;
-      case 'wave': if (G.wave >= 2 && G.wave % 2 === 0 && G.wave <= G.finalWave) G.quizAt = G.t + 4 + Math.random() * 5; sfx('wave'); renderWave(); if (G.wave === 10 || G.wave === 20 || G.wave === G.finalWave) setTimeout(() => sfx('boss'), 400); break;
+      case 'wave': if (G.wave >= 2 && G.wave % 2 === 0) G.quizAt = G.t + 4 + Math.random() * 5; sfx('wave'); renderWave(); if (G.wave === 10 || G.wave === 20 || G.wave === G.finalWave) setTimeout(() => sfx('boss'), 400); break;
       case 'waveClear': floater(640, 120, e.perfect ? `Wave ${e.wave} clear · every block on time` : `Wave ${e.wave} clear`, '#e5e7eb', 22, 2.0); if (e.income) floater(640, 150, `Flexnode rent +${e.income}`, '#ffd23f', 16, 2.0); sfx('clear'); renderWave(); if (coach && coach.step === 3) { coach.step = 4; renderCoach(); } break;
       case 'newFoe': queueCodex('foe', e.foe, e.coded); break;
       case 'unlock': e.kinds.forEach(k => queueCodex('crew', k)); break;
@@ -1064,7 +1073,7 @@ function queueCodex(kind, id, coded) {
   if (seenCodex[key]) return; seenCodex[key] = true;
   if (kind === 'foe' && coded && seenCodex['coded']) return;
   if (coded) seenCodex['coded'] = true;
-  pending.push({ kind, id, coded }); if (!modalOpen) nextCodex();
+  pending.push({ kind, id, coded }); if (!modalOpen && !quiz) nextCodex(); // cards wait while a quiz is open
 }
 function nextCodex() {
   const m = pending.shift(); if (!m) { modalOpen = false; $('modal').hidden = true; return; }
@@ -1163,7 +1172,7 @@ function render(now) {
   for (const z of G.zones) {
     const life = Math.max(0, z.until - G.t), a = Math.min(1, life * 1.5);
     const gz = ctx.createRadialGradient(z.x, z.y, 4, z.x, z.y, z.r); gz.addColorStop(0, `rgba(255,170,60,${0.55 * a})`); gz.addColorStop(0.6, `rgba(255,90,40,${0.32 * a})`); gz.addColorStop(1, 'rgba(255,60,30,0)');
-    ctx.fillStyle = gz; ctx.beginPath(); ctx.ellipse(z.x, z.y, z.r, z.r * 0.7, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = gz; ctx.beginPath(); ctx.ellipse(z.x, z.y, z.r, z.r * 0.7, GR, 0, 7); ctx.fill();
     for (let i = 0; i < 7; i++) { const ph = (now * 2.2 + i * 0.37) % 1, fx = z.x + Math.sin(i * 2.3 + z.x) * z.r * 0.7, fy = z.y + Math.cos(i * 1.7) * z.r * 0.35 - ph * 26; ctx.fillStyle = `rgba(255,${150 + i * 12},70,${(1 - ph) * a})`; ctx.beginPath(); ctx.ellipse(fx, fy, 4 * (1 - ph) + 1.5, 7 * (1 - ph) + 2, 0, 0, 7); ctx.fill(); }
   }
   // depth sorted: towers and foes by y
@@ -1174,7 +1183,7 @@ function render(now) {
   items.sort((a, b) => a.y - b.y); for (const it of items) it.d();
   // nova beams: thicker and brighter with level, a straight line for Decode Ray, two beams for Twin Decoder
   for (const t of G.towers) if (t.kind === 'nova' && G.t - t.fireT < 0.1) {
-    const sx2 = t.x, sy2 = t.y - 46 - t.lvl * 2;
+    const sx2 = PORTRAIT ? t.x - 46 - t.lvl * 2 : t.x, sy2 = PORTRAIT ? t.y : t.y - 46 - t.lvl * 2;
     t.beams.forEach((b, i) => {
       if (!b) return;
       const heat = (t.beamHeat[i] || 0) / 2.5, w = 2 + t.lvl * 1.4 + heat * (4 + t.lvl * 1.5);
@@ -1233,7 +1242,7 @@ function render(now) {
   // floaters
   for (const f of floaters) { const k = f.t / f.life; ctx.globalAlpha = 1 - k * k; ctx.font = `700 ${f.size}px "Familjen Grotesk", sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,11,13,0.85)'; upright(ctx, f.x, f.y, (x, y) => { ctx.strokeText(f.text, x, y - k * 28); ctx.fillStyle = f.color; ctx.fillText(f.text, x, y - k * 28); }); ctx.globalAlpha = 1; }
   if (G.abilities.surge.active > 0) { ctx.fillStyle = `rgba(77,163,255,${0.05 + 0.03 * Math.sin(now * 8)})`; ctx.fillRect(0, 0, 1280, 720); }
-  if (paused && !modalOpen) { ctx.fillStyle = 'rgba(10,11,13,0.55)'; ctx.fillRect(0, 0, 1280, 720); ctx.fillStyle = '#e5e7eb'; ctx.font = '700 48px "Familjen Grotesk", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Paused', 640, 370); }
+  if (paused && !modalOpen) { ctx.fillStyle = 'rgba(10,11,13,0.55)'; ctx.fillRect(0, 0, 1280, 720); ctx.fillStyle = '#e5e7eb'; ctx.font = '700 48px "Familjen Grotesk", sans-serif'; ctx.textAlign = 'center'; upright(ctx, 640, 370, (x, y) => ctx.fillText('Paused', x, y)); }
   ctx.restore();
 }
 function drawRange(kind, lvl, spec, x, y, next) {
@@ -1301,7 +1310,7 @@ function drawAbilityCds() {
 // ---------- input ----------
 let pointer = null;
 function toLocal(ev) { const r = cv.getBoundingClientRect(); return toWorld((ev.clientX - r.left) / r.width * FW, (ev.clientY - r.top) / r.height * FH); }
-function hoverPad() { if (!pointer || !G) return -1; for (const p of G.pads) if (Math.hypot((pointer.x - p.x) / 1.4, pointer.y - p.y) < 32) return p.i; return -1; }
+function hoverPad() { if (!pointer || !G) return -1; for (const p of G.pads) if ((PORTRAIT ? Math.hypot(pointer.x - p.x, (pointer.y - p.y) / 1.4) : Math.hypot((pointer.x - p.x) / 1.4, pointer.y - p.y)) < 32) return p.i; return -1; }
 cv.addEventListener('pointermove', (ev) => { pointer = toLocal(ev); });
 cv.addEventListener('pointerleave', () => { pointer = null; });
 cv.addEventListener('pointerdown', (ev) => {
@@ -1309,13 +1318,13 @@ cv.addEventListener('pointerdown', (ev) => {
   if (aimBurst) { if (T.useBurst(G, pointer.x, pointer.y)) shake = 0.3; aimBurst = false; return; }
   const pi = hoverPad();
   // towers are tall: accept taps on the body too
-  let tw = null; for (const t of G.towers) if (Math.abs(pointer.x - t.x) < 30 && pointer.y < t.y + 16 && pointer.y > t.y - 80) tw = t;
+  let tw = null; for (const t of G.towers) if (PORTRAIT ? (Math.abs(pointer.y - t.y) < 30 && pointer.x < t.x + 16 && pointer.x > t.x - 80) : (Math.abs(pointer.x - t.x) < 30 && pointer.y < t.y + 16 && pointer.y > t.y - 80)) tw = t;
   if (tw) { openRing(tw.pad); return; }
   if (pi >= 0) { openRing(pi); return; }
   closeRing();
 });
 window.addEventListener('keydown', (e) => {
-  if (!G || $('titleScr').hidden === false) return;
+  if (!G || $('titleScr').hidden === false || !$('endScr').hidden || (e.target && e.target.tagName === 'INPUT')) return;
   if (e.key === ' ') { e.preventDefault(); togglePause(); }
   if (e.key === 'Escape') { closeRing(); aimBurst = false; }
   if (e.key === 'q' || e.key === 'Q') $('burstBtn').click();
@@ -1450,7 +1459,8 @@ if (canFs && matchMedia('(pointer: coarse)').matches) { $('fsBtn').hidden = fals
 $('fsBtn').onclick = goFull; $('fsBtn2').onclick = goFull;
 
 // ---------- coach ----------
-const COACH = ['Tap the glowing Flexnode pad', 'Hire <b>Kishori</b>, your Encoder. Hover a face to compare the crew.', 'Press <b>Start wave 1</b>. Calling waves early pays a speed bonus.', 'Coins come from kills. Build more crew between waves.', ''];
+// Pegasus, the community's mumbassador on Discord, is the helper who walks new players in
+const COACH = ['Welcome to the mesh. Tap the glowing Flexnode pad.', 'Hire <b>Kishori</b>, your Encoder. Hover a face to compare the crew.', 'Press <b>Start wave 1</b>. Calling waves early pays a speed bonus.', 'Coins come from kills. Build more crew between waves. Ask me in Discord if you get stuck.', ''];
 function renderCoach() {
   const el = $('coach'); if (!coach || coach.step >= 4) { el.hidden = true; if (coach) { coach = null; try { localStorage.setItem('gs_tut', '1'); } catch (e) {} } return; }
   el.hidden = false; $('coachText').innerHTML = COACH[coach.step];
@@ -1460,6 +1470,16 @@ $('coachSkip').onclick = () => { coach = { step: 4 }; renderCoach(); };
 // =====================================================================
 // END, SHARE CARD, LEADERBOARD
 // =====================================================================
+// Flash hands out roles in the Optimum Discord. In the game Flash grades the whole campaign: stars across
+// stages and Optimum knowledge decide the role, so the role on the share card says how far someone has come.
+const ROLES = [
+  { name: 'Gossip Recruit', need: (p) => true, text: 'You answered the call. The mesh has a new defender.' },
+  { name: 'Shard Runner', need: (p) => p.stars >= 6 && p.known >= 5, text: 'Two stages with stars and the first shards of Optimum knowledge.' },
+  { name: 'Flexnode Operator', need: (p) => p.stars >= 15 && p.known >= 15, text: 'Half the campaign starred and a working grasp of how mump2p moves data.' },
+  { name: 'Mesh Validator', need: (p) => p.stars >= 24 && p.known >= 30, text: 'Eight stages starred. You hold the line and you know why RLNC works.' },
+  { name: 'Mumbassador', need: (p) => p.stars >= 30 && p.known >= 50, text: 'Every stage three starred, half the knowledge bank learned. Flash has nothing left to give you.' },
+];
+function roleFor() { const prog = loadProg(), p = { stars: Object.values(prog.stars).reduce((a, b) => a + b, 0), known: loadLearned().size }; let r = ROLES[0], next = null; for (let i = 0; i < ROLES.length; i++) { if (ROLES[i].need(p)) r = ROLES[i]; else { next = ROLES[i]; break; } } return { r, next, p }; }
 function grade() { const w = G.wave, l = G.lives; if (G.won || w > G.finalWave) return l >= 18 ? 'S' : l >= 10 ? 'A' : 'B'; return w >= G.finalWave * 0.8 ? 'C' : 'D'; }
 // campaign progress on this device: highest unlocked stage, stars and best score per stage
 function loadProg() {
@@ -1492,12 +1512,14 @@ function finish(won) {
   $('againBtn').className = won && next ? 'ghost' : 'chrome';
   $('eTag').textContent = `Stage ${S.id} · ${S.name}` + (won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell');
   $('eStars').textContent = won && !endless ? starStr(stars) : ''; $('eStars').hidden = !(won && !endless);
+  { const { r, next, p } = roleFor(); $('roleBox').hidden = false; $('roleName').textContent = r.name; $('roleWhy').textContent = r.text; G.role = r.name;
+    $('roleNext').textContent = next ? `Next role ${next.name}: ${p.stars} / 30 stars, ${p.known} / 50 answers learned` : `${p.stars} / 30 stars, ${p.known} answers learned`; }
   $('eTitle').textContent = endless ? `Endless on ${S.name}: wave ${G.wave}` : won ? `${S.name} cleared, ${G.lives} of 20 validators standing` + (next ? `. ${next.name} unlocked` : '. Campaign complete') : `Overrun on wave ${G.wave} of ${G.finalWave}`;
   const st = [[newBest ? 'Score · new best' : 'Score', G.score.toLocaleString('en-US')], ['Wave', G.wave + ' / ' + G.finalWave], ['Validators', G.lives + '/20'], ['Grade', grade()], ['Kills', G.stats.kills], ['Shields decoded', G.stats.decoded], ['Speed bonus', '+' + G.stats.early], ['Optimum quiz', `${G.quiz.right} / ${G.quiz.asked} right`]];
   $('eStats').innerHTML = ''; st.forEach(([k, v]) => { const d = document.createElement('div'); const l = document.createElement('span'); l.className = 'label'; l.textContent = k; const b = document.createElement('span'); b.className = 'v'; b.textContent = v; d.append(l, b); $('eStats').appendChild(d); });
   drawCard();
   const text = won && !endless
-    ? `gMum. I cleared ${S.name} in Gossip Siege ${starStr(stars)}: ${G.lives}/20 validators on time, ${G.stats.decoded} coded shields cracked, ${G.quiz.right}/${G.quiz.asked} Optimum questions right. Score ${G.score.toLocaleString('en-US')}. Speed is money. @get_optimum`
+    ? `gMum. I cleared ${S.name} in Gossip Siege ${starStr(stars)}: ${G.lives}/20 validators on time, ${G.stats.decoded} coded shields cracked, ${G.quiz.right}/${G.quiz.asked} Optimum questions right. Score ${G.score.toLocaleString('en-US')}. Flash says I am a ${G.role}. Speed is money. @get_optimum`
     : `gMum. Gossip Siege, ${S.name}: wave ${G.wave}, ${G.stats.decoded} coded shields cracked with independent shards. Score ${G.score.toLocaleString('en-US')}, grade ${grade()}. Speed is money. @get_optimum`;
   $('shareX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text); $('shareX').dataset.text = text;
   let h = ''; try { h = localStorage.getItem('gs_handle') || ''; } catch (e) {} $('handleIn').value = h;
@@ -1520,6 +1542,7 @@ function drawCard() {
   // grade
   x.fillStyle = tg; x.font = '700 210px "Familjen Grotesk", sans-serif'; x.textAlign = 'right'; x.fillText(grade(), 1150, 300);
   if (G.stars) { x.fillStyle = '#ffd23f'; x.font = '700 54px "Instrument Sans", sans-serif'; x.fillText(starStr(G.stars), 1150, 372); }
+  if (G.role) { x.fillStyle = '#8a9099'; x.font = '600 22px "IBM Plex Mono", monospace'; x.fillText('ROLE · ' + G.role.toUpperCase(), 1150, 420); }
   x.textAlign = 'left';
   // crew line-up: the most valuable crew members of this run
   const crew = G.towers.slice().sort((a, b) => b.dmgDone + (b.kind === 'sunny' ? 9e4 : 0) - a.dmgDone - (a.kind === 'sunny' ? 9e4 : 0));
@@ -1554,7 +1577,7 @@ $('endlessBtn').onclick = () => { G.endless = true; G.state = 'build'; G.won = f
 const API = (window.claude && window.claude.use) ? null : '/api';
 let DB = null, USER = null, myId = null, lbRows = [], boardOn = false, runTok = null, lbStage = 1, dbUnsub = null, lbSeq = 0;
 const cleanHandle = (v) => String(v || '').trim().replace(/^@+/, '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 15);
-const dbCol = (n) => (n === 1 ? 'scores' : 'scores_s' + n);
+const dbCol = (n) => ({ 1: 'scores', 4: 'scores_s2', 6: 'scores_s3', 10: 'scores_s4' })[n] || 'scores_' + (T.STAGES.find(x => x.id === n) || {}).key; // legacy names kept for the four stage campaign
 async function apiStartRun() {
   if (!API) return; runTok = null;
   try { const r = await fetch(API + '/run', { method: 'POST' }); if (r.ok) runTok = await r.json(); } catch (e) {}
@@ -1701,7 +1724,7 @@ function answerQuiz(i) {
   const src = window.TD_QUIZ.SRC[quiz.item.src]; if (src) { const l = document.createElement('a'); l.href = src.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = 'Source: ' + src.label; why.appendChild(l); }
   why.hidden = false; $('qClose').hidden = false; $('qHint').hidden = true; updateHud(true);
 }
-function closeQuiz() { const was = quiz; quiz = null; $('quiz').hidden = true; if (was && was.briefing && G) { G.briefLeft--; if (G.briefLeft > 0) openQuiz(true); } }
+function closeQuiz() { const was = quiz; quiz = null; $('quiz').hidden = true; if (was && was.briefing && G) { G.briefLeft--; if (G.briefLeft > 0) { openQuiz(true); return; } } if (pending.length && !modalOpen) nextCodex(); }
 function skipBriefing() { if (G) G.briefLeft = 0; quiz = null; $('quiz').hidden = true; }
 $('qSkip').onclick = () => skipBriefing();
 function tickQuiz(dt) {
@@ -1752,6 +1775,7 @@ $('learnBtn').onclick = () => showLearn();
   const add = (label, text) => { const p = document.createElement('div'); const b = document.createElement('b'); b.textContent = label + ' '; p.append(b, text); el.appendChild(p); };
   add('Crew, named after the Optimum team:', crew + '. Hover a crew member to see who.');
   add('Stage guides:', guides + '.');
+  add('Community:', 'Pegasus, the Discord mumbassador, is your coach and asks the questions. Flash, who hands out roles in the Discord, grades your campaign and assigns your role.');
   add('Also in Optimum\'s public research and code:', 'Slobodan Sudaric-Hefner (co-author of the staking revenue study), Chris Fuka (Gateway commits) and Walentyn (optimum-common SDK commits).');
   add('Sources:', 'getoptimum.xyz/team, getoptimum.xyz/blog, the OptimumP2P paper (arXiv 2508.04833) and the public getoptimum GitHub repos. Fan made, not an official Optimum product.');
 })();

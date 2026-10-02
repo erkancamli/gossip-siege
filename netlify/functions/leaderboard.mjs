@@ -71,7 +71,7 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   if (req.method === 'GET') {
     const st = stageOf(url.searchParams.get('stage'));
     const b = await readBoard(store, STAGES[st].key);
-    return json({ stage: st, rows: b.rows.slice(0, SHOW) }, 200, { 'cache-control': 'public, max-age=10' });
+    return json({ stage: st, rows: b.rows.slice(0, SHOW) }, 200, { 'cache-control': 'no-store' });
   }
   if (req.method !== 'POST') return json({ error: 'Use GET or POST.' }, 405);
 

@@ -156,7 +156,7 @@
     [['hog', 8, 1.0, 0, 3], ['boss', 1, 1, 4, 4], ['boss', 1, 1, 22, 4], ['dupe', 40, 0.12, 12]],
   ];
   const FINAL_WAVE = WAVES.length; // the hardest stage plays all 25
-  function hpMultBase(w) { return 1 + 0.1 * (w - 1) + 0.028 * (w - 1) * (w - 1) + (w > 14 ? 0.6 * (w - 14) * (w - 14) : 0); }
+  function hpMultBase(w) { return 1 + 0.1 * (w - 1) + 0.028 * (w - 1) * (w - 1) + (w > 14 ? 0.3 * (w - 14) * (w - 14) : 0); }
   // The first waves are a warm up on every stage: enemies start light and the stage's own difficulty
   // fades in over the first six waves, so two starting heroes clear wave 1 and upgrades matter later.
   const earlyHp = (w) => Math.min(1, 0.4 + 0.15 * (w - 1));
@@ -205,7 +205,7 @@
   function sell(g, t) { if (!t) return 0; const v = Math.floor(t.invested * 0.7); g.coins += v; g.pads[t.pad].tower = null; g.towers = g.towers.filter(x => x !== t); emit(g, { type: 'sell', t, v }); return v; }
 
   function waveGroups(g, w) {
-    let gs = w <= FINAL_WAVE ? WAVES[w - 1].map((x) => x.slice()) : endlessWave(w, g.rng);
+    let gs = w <= FINAL_WAVE ? WAVES[w - 1].map((x) => x.slice()) : endlessWave(w, rng32((g.seed || 1) * 977 + w * 131)); // per wave rng so the preview matches the real wave
     // every stage ends on a boss wave, and harder stages make coded shields need more shards
     if (w === g.finalWave && !gs.some((x) => x[0] === 'boss')) gs.push(['boss', 1, 1, 6, 3]);
     if (g.stage.codedBonus) gs = gs.map((x) => (x[4] ? [x[0], x[1], x[2], x[3], Math.min(5, x[4] + g.stage.codedBonus)] : x));
@@ -220,7 +220,7 @@
   function previewWave(g, w) { const gs = waveGroups(g, w); const m = {}; gs.forEach(([t, n, , , k]) => { const key = t + (k ? '#' + k : ''); m[key] = (m[key] || 0) + n; }); return m; }
 
   function startWave(g, early) {
-    if (g.waveActive && g.spawnQ.length) return false;
+    if (g.waveActive) return false;
     let bonus = 0;
     if (early && g.countdown != null && g.countdown > 0) { bonus = Math.ceil(g.countdown) * 2 * (g.stage.earlyX || 1); g.coins += bonus; g.score += bonus * 5; g.stats.early += bonus; emit(g, { type: 'early', bonus }); }
     g.wave++; g.countdown = null; g.waveActive = true; g.leaksThisWave = 0;
@@ -235,7 +235,7 @@
   }
 
   function spawn(g, type, k, d0, opt) {
-    const F = FOES[type], m = type === 'boss' ? (1 + 0.12 * (g.wave - 1)) * (g.wave >= 25 ? 2.2 : g.wave >= 20 ? 1.6 : 1) * g.stage.hp : hpMult(g, g.wave);
+    const F = FOES[type], m = type === 'boss' ? hpMult(g, g.wave) * 0.5 * (g.wave >= 25 ? 1.4 : g.wave >= 20 ? 1.2 : 1) : hpMult(g, g.wave);
     const e = { id: g.nextId++, type, hp: F.hp * m, maxhp: F.hp * m, spd: F.spd * (1 + Math.min(0.25, g.wave * 0.006)) * g.stage.speed, d: d0 || 0, path: opt && opt.path != null ? opt.path : (g.spawnCount++ % g.paths.length), x: 0, y: 0, armor: (F.armor || 0) * (1 + g.wave * 0.03), r: F.r,
       shield: k ? { k, need: g.stage.threshold ? Math.ceil(k * g.stage.threshold) : k, got: new Set(), broken: false } : null, slowUntil: 0, slowF: 0, revealedUntil: 0, blinkT: F.blink ? F.blink * (0.6 + g.rng() * 0.6) : 0, hitFlash: 0, born: g.t, dotUntil: 0, dot: 0, bossNext: 0.88, knock: 0, markUntil: 0, markF: 0, stunUntil: 0 };
     const p = posAt(g, e); e.x = p.x; e.y = p.y;
@@ -319,13 +319,13 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     const mult = 0.5 + 0.5 * Math.max(0, Math.min(1, speed)), streakX = q.streak >= 3 ? 2 : 1;
     let got = {};
     if (kind === 'coins') { const c = Math.round((40 + 12 * g.wave) * mult * streakX); g.coins += c; got.coins = c; }
-    else if (kind === 'surge') { g.abilities.surge.left = 0; g.abilities.surge.active = 6 * streakX; got.surge = 6 * streakX; }
+    else if (kind === 'surge') { g.abilities.surge.left = 0; g.abilities.surge.active = Math.max(g.abilities.surge.active, 6 * streakX); got.surge = 6 * streakX; }
     else if (kind === 'burst') { g.abilities.burst.left = 0; const c = Math.round(20 * mult * streakX); g.coins += c; got.burst = true; got.coins = c; }
     else if (kind === 'lives') { const l = Math.min(g.maxLives - g.lives, streakX * 2); g.lives += l; got.lives = l; if (!l) { const c = Math.round((30 + 8 * g.wave) * mult); g.coins += c; got.coins = c; } }
     const pts = Math.round(150 * mult * streakX * g.stage.scoreMult); g.score += pts; got.score = pts; got.streak = q.streak;
     emit(g, { type: 'quizRight', got }); return got;
   }
-  function useSurge(g) { const a = g.abilities.surge; if (a.left > 0 || g.over) return false; a.left = a.cd; a.active = 6; emit(g, { type: 'surge' }); return true; }
+  function useSurge(g) { const a = g.abilities.surge; if (a.left > 0 || a.active > 0 || g.over) return false; a.left = a.cd; a.active = 6; emit(g, { type: 'surge' }); return true; }
 
   function update(g, dt) {
     if (g.over) return;
@@ -384,7 +384,7 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
           t.cd = 1.0; let any = false; t.pulses++;
           const stun = S.stun && t.pulses % 4 === 0;
           for (const e of g.foes) if (e.hp > 0 && Math.hypot(e.x - t.x, e.y - t.y) <= S.range + e.r) {
-            any = true; e.slowUntil = g.t + 1.6; e.slowF = Math.max(g.t < e.slowUntil ? e.slowF : 0, S.slow); e.revealedUntil = g.t + 1.3;
+            any = true; const wasSlow = g.t < e.slowUntil; e.slowUntil = g.t + 1.6; e.slowF = Math.max(wasSlow ? e.slowF : 0, S.slow); e.revealedUntil = g.t + 1.3;
             if (S.dot) { e.dot = S.dot; e.dotUntil = g.t + 1.1; e.dotSrc = t; }
             if (S.mark) { e.markUntil = g.t + 2.2; e.markF = S.mark; }
             if (stun && !FOES[e.type].boss) e.stunUntil = g.t + S.stun;
