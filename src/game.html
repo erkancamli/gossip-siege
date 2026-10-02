@@ -142,9 +142,18 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 /* coach */
 .coach { position: absolute; z-index: 8; left: 50%; top: 70px; transform: translateX(-50%); padding: 10px 16px; border-radius: 12px; background: rgba(12,22,34,0.94); border: 1px solid rgba(77,163,255,0.55); font-size: 15px; display: flex; gap: 12px; align-items: center; white-space: nowrap; }
 .coach b { font-family: var(--display); }
+.face { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line2); flex: none; }
+.face.big { width: 80px; height: 80px; border-radius: 16px; }
+.role > div { display: grid; gap: 6px; }
+.community { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.cm { display: flex; gap: 10px; align-items: center; }
+.cm div { display: grid; }
+.cm b { font-family: var(--display); font-size: 14px; }
+.cm span { font-size: 11.5px; color: var(--dim); }
+body.small .face { width: 52px; height: 52px; }
 .coach .who { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); padding-right: 10px; border-right: 1px solid var(--line2); }
 .qhost { font-family: var(--mono); font-size: 11px; color: var(--dim); }
-.role { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line2); background: rgba(255,210,63,0.06); }
+.role { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line2); background: rgba(255,210,63,0.06); }
 .role .rt { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
 .role h4 { margin: 0; font-family: var(--display); font-size: 22px; }
 .role p { margin: 0; font-size: 12.5px; color: var(--soft); line-height: 1.45; }
@@ -376,14 +385,14 @@ body.small .coach { font-size: 20px; }
     <div class="ring" id="ring" hidden></div>
     <div class="tip" id="tip" hidden></div>
     <div class="quiz" id="quiz" hidden role="dialog" aria-label="Optimum quiz">
-      <div class="qhead"><span class="qtag" id="qTag">OPTIMUM QUIZ</span><span class="qhost">asked by Pegasus</span><span class="qstreak" id="qStreak"></span><span class="qreward" id="qReward"></span></div>
+      <div class="qhead"><canvas class="face" data-portrait="pegasus" data-mood="focus" width="84" height="84"></canvas><span class="qtag" id="qTag">OPTIMUM QUIZ</span><span class="qhost">asked by Pegasus</span><span class="qstreak" id="qStreak"></span><span class="qreward" id="qReward"></span></div>
       <div class="qtimer"><i id="qBar"></i></div>
       <h4 id="qText"></h4>
       <div class="qopts" id="qOpts"></div>
       <div class="qwhy" id="qWhy" hidden></div>
       <div class="qfoot"><span class="hint" id="qHint">Keys 1 to 4. The battle runs in slow motion while you think. Faster answers pay more.</span><span class="row"><button class="btn" id="qSkip" hidden>Skip briefing</button><button class="btn" id="qClose" hidden>Back to the battle</button></span></div>
     </div>
-    <div class="coach" id="coach" hidden><span class="who">Pegasus</span><span id="coachText"></span><button id="coachSkip">skip</button></div>
+    <div class="coach" id="coach" hidden><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><span class="who">Pegasus</span><span id="coachText"></span><button id="coachSkip">skip</button></div>
 
     <div class="modal" id="modal" hidden>
       <div class="card">
@@ -406,6 +415,10 @@ body.small .coach { font-size: 20px; }
           <h1 class="big">Gossip<br>Siege</h1>
           <p class="lede">The Gossip Blob and its swarm of duplicates are marching on your validators. Hire the <b>Optimum crew</b>, crack coded armor with <b>independent shards</b>, and take the mesh from <b>Hoodi Testnet to Mainnet</b> across ten stages. Every second wave asks an <b>Optimum question</b>: learn the tech, earn boosts.</p>
           <canvas id="crewcv" width="1400" height="360" aria-label="The Optimum crew"></canvas>
+          <div class="community"><span class="label">Community</span>
+            <div class="cm"><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><div><b>Pegasus</b><span>Mumbassador. Your coach, asks the questions.</span></div></div>
+            <div class="cm"><canvas class="face" data-portrait="flash" data-mood="excited" width="84" height="84"></canvas><div><b>Flash</b><span>Hands out the roles: Newbie to Chronicler.</span></div></div>
+          </div>
           <div class="tcta"><button class="chrome" id="playBtn">Defend the mesh</button><button class="ghost" id="howBtn">How it plays</button><button class="ghost" id="modeBtn2" title="Day or night mode">☀ Day</button><button class="ghost" id="fsBtn2" hidden>Full screen</button></div>
           <p class="fine">Fan made for the Optimum community by @ekinoks_26, not an official Optimum product. Crew designed after the community's Optimum mascot. Game numbers are for fun; the RLNC rule inside is real: a coded block only opens with enough independent shards. <a href="https://www.getoptimum.xyz" target="_blank" rel="noopener">getoptimum.xyz</a></p>
         </div>
@@ -443,7 +456,7 @@ body.small .coach { font-size: 20px; }
         <div class="endl">
           <span class="label full" id="eTag">The mesh held</span>
           <div class="full estars" id="eStars" hidden></div>
-          <div class="full role" id="roleBox" hidden><span class="rt">Flash assigned your role</span><h4 id="roleName"></h4><p id="roleWhy"></p><span class="next" id="roleNext"></span></div>
+          <div class="full role" id="roleBox" hidden><canvas class="face big" data-portrait="flash" data-mood="excited" width="160" height="160"></canvas><div><span class="rt">Flash assigned your role</span><h4 id="roleName"></h4><p id="roleWhy"></p><span class="next" id="roleNext"></span></div></div>
           <h2 class="full" id="eTitle"></h2>
           <canvas id="cardcv" width="1200" height="675" aria-label="Your score card"></canvas>
           <div class="stats" id="eStats"></div>
@@ -1133,12 +1146,20 @@ function drawMini(c, st, w, h) {
 }
 
 // ---------- portraits for buttons and cards ----------
+// The community characters: Pegasus (the Discord mumbassador, your coach and quiz host) and Flash (hands out the roles).
+// Same mascot body as the crew, their own looks: Pegasus in sky blue with a white mane, Flash in lightning yellow.
+const COMMUNITY = {
+  pegasus: { name: 'Pegasus', role: 'Mumbassador · your coach', look: { visor: '#8ec5ff', hair: 'long', hairColor: '#f4f6f8', jacket: '#16304a' } },
+  flash: { name: 'Flash', role: 'Hands out the roles', look: { visor: '#ffd23f', hair: 'spiky', hairColor: '#ffd23f', jacket: '#2a2410' } },
+};
 function portrait(c, kind, size, mood) {
+  const look = (T.CREW[kind] || COMMUNITY[kind]).look;
   c.save(); c.clearRect(0, 0, size, size);
   const g = c.createRadialGradient(size / 2, size * 0.42, 4, size / 2, size / 2, size * 0.7); g.addColorStop(0, '#2a2e35'); g.addColorStop(1, '#0e0f12'); c.fillStyle = g; c.fillRect(0, 0, size, size);
-  drawMascot(c, size / 2, size * 1.02, size / 4.2, T.CREW[kind].look, { t: 0.5, aim: Math.PI / 2 + 0.3, mood: mood || 'idle', lvl: 0, kind, seed: 1 });
+  drawMascot(c, size / 2, size * 1.02, size / 4.2, look, { t: 0.5, aim: Math.PI / 2 + 0.3, mood: mood || 'idle', lvl: 0, kind, seed: 1 });
   c.restore();
 }
+function fillPortraits() { for (const el of document.querySelectorAll('canvas[data-portrait]')) { const k = el.dataset.portrait, n = el.width; portrait(el.getContext('2d'), k, n, el.dataset.mood || 'happy'); } }
 const portraitCache = {};
 function portraitURL(kind) {
   if (!portraitCache[kind]) { const c = document.createElement('canvas'); c.width = c.height = 112; portrait(c.getContext('2d'), kind, 112); portraitCache[kind] = c; }
@@ -1856,7 +1877,7 @@ let crewLoop = false;
 function drawCrewTitle2(ts) { crewLoop = false; drawCrewTitle(ts / 1000); }
 
 const LOGO_D = '__LOGOPATHALL__';
-applyMode(); fit(); toTitle(); requestAnimationFrame(drawCrewTitle2); requestAnimationFrame(frameLoop);
+fillPortraits(); applyMode(); fit(); toTitle(); requestAnimationFrame(drawCrewTitle2); requestAnimationFrame(frameLoop);
 new MutationObserver(() => { if (!$('titleScr').hidden && !crewLoop) { crewLoop = true; requestAnimationFrame(drawCrewTitle2); } }).observe($('titleScr'), { attributes: true, attributeFilter: ['hidden'] });
 })();
 </script>
