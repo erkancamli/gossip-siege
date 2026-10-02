@@ -686,7 +686,9 @@ function fit() {
   if (PORTRAIT) { WS = (1280 - PT_TOP - PT_BOTTOM) / 1280; WY = PT_TOP; WX = (720 - 720 * WS) / 2; } else { WS = 1; WX = 0; WY = 0; }
   document.body.classList.toggle('portrait', PORTRAIT);
   $('frame').style.width = FW + 'px'; $('frame').style.height = FH + 'px';
-  SCALE = Math.min(vw / FW, vh / FH);
+  // landscape stops growing past 1.35x (1728x972 CSS px): big monitors get margins instead of a giant game, and
+  // browser zoom works the way people expect, since the cap is in CSS px and zooming out shrinks those
+  SCALE = Math.min(vw / FW, vh / FH, PORTRAIT ? 99 : 1.35);
   document.body.classList.toggle('small', SCALE < 0.72);
   $('frame').style.transform = `translate(-50%, -50%) scale(${SCALE})`;
   DPR = Math.min(2.5, (window.devicePixelRatio || 1) * SCALE);
