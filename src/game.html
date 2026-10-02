@@ -579,7 +579,7 @@ const UI_TR = {
   'DECODED': 'ÇÖZÜLDÜ', ' recoded': ' yeniden kodlandı', 'redundant': 'gereksiz', 'decoded early': 'erken çözüldü', '+{n} rent': '+{n} kira',
   'Wave {w} clear · every block on time': '{w}. dalga temizlendi · her blok zamanında', 'Wave {w} clear': '{w}. dalga temizlendi', 'Flexnode rent +{n}': 'Flexnode kirası +{n}',
   'Level {n}': 'Seviye {n}', 'CRIT {n}': 'KRİTİK {n}', 'Mesh full: {n} crew is the maximum. Upgrade instead.': 'Mesh dolu: en fazla {n} ekip üyesi olabilir. Onun yerine geliştir.',
-  'Optimum quiz: right': 'Optimum sorusu: doğru', ' · streak {n}': ' · {n} seri', 'blob burst ×{n}': 'blob patlaması ×{n}', 'lost': 'kayboldu',
+  'Optimum quiz: right': 'Optimum sorusu: doğru', 'jammed': 'susturuldu', 'JAMMED': 'SUSTURULDU', 'rate limited': 'rate limit', 'rebroadcast': 'tekrar yayın', ' · streak {n}': ' · {n} seri', 'blob burst ×{n}': 'blob patlaması ×{n}', 'lost': 'kayboldu',
   'VALIDATORS': 'VALIDATORLAR', 'Paused': 'Durduruldu', 'LOSSY LINK · {p}% DROP': 'KAYIPLI HAT · %{p} KAYIP',
   // codex cards
   'STAGE {id} · {tier} · NEW RULE': 'BÖLÜM {id} · {tier} · YENİ KURAL', '{name} · {n} waves': '{name} · {n} dalga',
@@ -973,6 +973,34 @@ function drawFoe(c, e, t, scale = 1, preview = false) {
       c.fillStyle = '#f4f0ff'; c.beginPath(); c.arc(k * 0.15, 0, k * 0.25, 0, 7); c.fill();
       break;
     }
+    case 'spam': { // a round bot with an antenna and a megaphone, shouting
+      c.fillStyle = body || '#2f3540'; c.beginPath(); c.arc(0, 0, k * 0.95, 0, 7); c.fill();
+      c.strokeStyle = '#ff9a6a'; c.lineWidth = k * 0.12; c.beginPath(); c.moveTo(0, -k * 0.9); c.lineTo(0, -k * 1.5); c.stroke(); c.fillStyle = '#ff9a6a'; c.beginPath(); c.arc(0, -k * 1.55, k * 0.16, 0, 7); c.fill();
+      c.fillStyle = '#ffd23f'; c.beginPath(); c.moveTo(k * 0.5, -k * 0.2); c.lineTo(k * 1.45, -k * 0.55); c.lineTo(k * 1.45, k * 0.45); c.lineTo(k * 0.5, k * 0.15); c.closePath(); c.fill();
+      c.fillStyle = '#0e0f12'; c.fillRect(-k * 0.55, -k * 0.25, k * 0.3, k * 0.22); c.fillRect(-k * 0.1, -k * 0.25, k * 0.3, k * 0.22);
+      const ga = c.globalAlpha, bl = (Math.sin(t * 9 + (e.id || 0)) + 1) / 2; c.globalAlpha = ga * (0.5 + bl * 0.5); c.fillStyle = '#ff9a6a'; c.font = `700 ${k * 0.7}px IBM Plex Mono, monospace`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('!!!', k * 1.9, -k * 0.9); c.globalAlpha = ga;
+      break;
+    }
+    case 'stale': { // a dark block with a clock that already ran out
+      c.fillStyle = body || '#2a2d33'; rr(c, -k, -k * 0.9, k * 2, k * 1.8, k * 0.2); c.fill(); c.fillStyle = body ? '#cccccc' : '#3d424b'; rr(c, -k * 0.85, -k * 0.75, k * 1.7, k * 0.5, k * 0.15); c.fill();
+      c.strokeStyle = '#8a9099'; c.lineWidth = k * 0.1; c.beginPath(); c.arc(0, k * 0.2, k * 0.45, 0, 7); c.stroke(); c.beginPath(); c.moveTo(0, k * 0.2); c.lineTo(0, -k * 0.15); c.moveTo(0, k * 0.2); c.lineTo(k * 0.3 * Math.cos(t * 3), k * 0.2 + k * 0.3 * Math.sin(t * 3)); c.stroke();
+      c.fillStyle = '#ff5a4e'; c.font = `700 ${k * 0.4}px IBM Plex Mono, monospace`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('LATE', 0, -k * 0.5);
+      break;
+    }
+    case 'relay': { // a diamond with an antenna that keeps broadcasting
+      c.fillStyle = body || '#4a3f6b'; c.beginPath(); c.moveTo(0, -k); c.lineTo(k, 0); c.lineTo(0, k); c.lineTo(-k, 0); c.closePath(); c.fill();
+      c.strokeStyle = '#c4b5fd'; c.lineWidth = k * 0.1; c.beginPath(); c.moveTo(0, -k); c.lineTo(0, -k * 1.5); c.stroke();
+      const ga = c.globalAlpha, ph = (t * 1.5 + (e.id || 0) * 0.37) % 1; c.globalAlpha = ga * (1 - ph); c.beginPath(); c.arc(0, -k * 1.5, k * (0.3 + ph * 0.9), Math.PI * 1.15, Math.PI * 1.85); c.stroke(); c.globalAlpha = ga;
+      c.fillStyle = '#0e0f12'; c.font = `700 ${k * 0.8}px IBM Plex Mono, monospace`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('×2', 0, k * 0.05);
+      break;
+    }
+    case 'carrier': { // a hex hauler with a blob strapped on top
+      c.fillStyle = body || '#3b3f47'; c.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; c.lineTo(Math.cos(a) * k, Math.sin(a) * k * 0.8); } c.closePath(); c.fill();
+      c.fillStyle = body || '#6b7280'; c.beginPath(); c.arc(0, -k * 0.55, k * 0.75 * (1 + wob * 0.5), 0, 7); c.fill(); c.fillStyle = '#9aa4b2'; c.beginPath(); c.arc(-k * 0.25, -k * 0.75, k * 0.25, 0, 7); c.fill();
+      c.fillStyle = '#ff5a4e'; c.beginPath(); c.arc(k * 0.55, k * 0.1, k * 0.1, 0, 7); c.fill();
+      c.fillStyle = '#0e0f12'; c.font = `700 ${k * 0.34}px IBM Plex Mono, monospace`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('BLOB', 0, k * 0.3);
+      break;
+    }
     case 'boss': {
       const p = t * 2; c.fillStyle = body || '#5d636d'; c.beginPath();
       for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI * 2, r = k * (1 + 0.08 * Math.sin(a * 5 + p) + 0.05 * Math.sin(a * 3 - p)); c.lineTo(Math.cos(a) * r, Math.sin(a) * r * 0.85); } c.fill();
@@ -1260,6 +1288,9 @@ function handleEvents() {
       case 'meshFull': floater(640, 120, tr('Mesh full: {n} crew is the maximum. Upgrade instead.', { n: G.stage.crewCap }), '#7bdc6a', 16, 1.6); break;
       case 'quizRight': floater(640, 150, tr('Optimum quiz: right') + (e.got.streak >= 3 ? tr(' · streak {n}', { n: e.got.streak }) : ''), '#7bdc6a', 18, 1.6); if (e.got.surge) sfx('wave'); break;
       case 'split': floater(e.e.x, e.e.y - 26, tr('blob burst ×{n}', { n: G.stage.split }), '#c4b5fd', 13, 0.8); sfx('redundant', { gap: 0.15 }); break;
+      case 'jam': floater(e.t.x, e.t.y - 96, tr('jammed'), '#ff9a6a', 13, 1.0); sfx('redundant', { gap: 0.3 }); e.t.mood = 'focus'; e.t.moodT = 1.4; break;
+      case 'jamBlocked': floater(e.t.x, e.t.y - 96, tr('rate limited'), '#7bdc6a', 12, 0.9); break;
+      case 'rebroadcast': floater(e.e.x, e.e.y - 28, tr('rebroadcast'), '#c4b5fd', 11, 0.7); break;
       case 'drop': if (Math.random() < 0.5) floater(e.e.x + 12, e.e.y - 20, tr('lost'), '#ff9a6a', 11, 0.5); break;
     }
   }
@@ -1283,6 +1314,10 @@ const WHY = {
   silk: 'Long haul links between regions are where latency piles up; one good path saves many hops.',
   cyan: 'Recoding is RLNC\'s superpower: relays mix the shards they hold into fresh ones without decoding, so what they pass on is always useful.',
   sunny: 'Flexnodes are Optimum\'s accelerators: operators contribute bandwidth and earn from validators who pay for speed.',
+  spam: 'Spam is the oldest attack on a gossip network: flood peers with junk until real messages wait. mump2p keeps rate limiting and peer scoring from Gossipsub, which is exactly what Nancy does.',
+  stale: 'A block that arrives after the attestation deadline is worth nothing to a validator. That is the whole reason Optimum exists: speed is money, and late data is money lost.',
+  relay: 'In Gossipsub every peer forwards the whole message to its mesh, so one node keeps generating copies. RLNC relays forward recoded shards instead, and every one of them is useful.',
+  carrier: 'Blobs (EIP 4844) are big and still have to arrive on time. Optimum reported Gossipsub choking at 4 MB under load while mump2p carried 10 MB. A carrier only opens to independent shards from different crew members.',
   nova: 'Decoding: once enough independent shards arrive, the receiver solves for the original block.',
 };
 function queueCodex(kind, id, coded) {
@@ -1488,6 +1523,7 @@ function drawTower(t, now) {
   for (let i = 0; i < t.lvl + 1; i++) { const o = PORTRAIT ? { x: t.x + 18, y: t.y + (t.lvl * 9) / 2 - i * 9 } : { x: t.x - (t.lvl * 9) / 2 + i * 9, y: t.y + 18 }; const px = o.x, py = o.y; ctx.fillStyle = i === 3 ? C.look.visor : '#e5e7eb'; ctx.beginPath(); ctx.arc(px, py, i === 3 ? 4 : 3, 0, 7); ctx.fill(); }
   const aim = t.kind === 'sunny' || t.kind === 'cyan' ? Math.PI / 2 + Math.sin(now * 0.7 + t.id) * 0.4 : t.angle;
   let mood = t.mood; if (G.abilities.surge.active > 0 && mood === 'idle') mood = 'focus';
+  if (t.jamUntil > G.t) upright(ctx, t.x, t.y - 84, (x, y) => { ctx.fillStyle = 'rgba(14,15,18,0.85)'; rr(ctx, x - 30, y - 9, 60, 16, 5); ctx.fill(); ctx.fillStyle = '#ff9a6a'; ctx.font = '700 10px IBM Plex Mono, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(tr('JAMMED'), x, y); });
   upright(ctx, t.x, t.y + 4, (ux, uy) => drawMascot(ctx, ux, uy, sc, C.look, { t: now, aim: PORTRAIT ? aim + Math.PI / 2 : aim, fireAge: G.t - t.fireT, mood, lvl: t.lvl, spec: t.spec, kind: t.kind, seed: t.id * 1.37 }));
   if (t.kind === 'cyan') { for (let i = 0; i < 3; i++) { const a = now * 2 + i * 2.1; ctx.fillStyle = '#4dd8ff'; ctx.beginPath(); ctx.arc(t.x + Math.cos(a) * 26, t.y - 40 + Math.sin(a) * 9, 2.6, 0, 7); ctx.fill(); } }
   if (sel && sel.tower === t) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(t.x, t.y + 4, 30, 12, GR, 0, 7); ctx.stroke(); }

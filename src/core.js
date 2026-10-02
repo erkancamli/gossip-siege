@@ -124,6 +124,10 @@
     dupe: { name: 'Dupe', hp: 16, spd: 72, bounty: 2, lives: 1, r: 10, blurb: 'Gossipsub sends whole copies of a block to every peer, so most arrivals are duplicates. They come in swarms: splash them.' },
     hog: { name: 'Bandwidth Hog', hp: 260, spd: 30, bounty: 20, lives: 2, r: 24, armor: 7, blurb: 'Eats bandwidth for breakfast. Armor shrugs off weak hits; bring Swarna or heavy splash.' },
     phantom: { name: 'Eclipse Phantom', hp: 80, spd: 58, bounty: 10, lives: 1, r: 15, invis: true, blurb: 'Tries to cut validators off from honest peers. Invisible until Nancy exposes it or something hits it.' },
+    spam: { name: 'Spam Bot', hp: 60, spd: 55, bounty: 8, lives: 1, r: 14, jam: { every: 3.2, range: 110, dur: 1.4 }, blurb: 'Floods the mesh with junk until a crew member nearby stops firing for a moment. Crew inside Nancy\'s rate limit are immune.' },
+    stale: { name: 'Stale Block', hp: 300, spd: 24, bounty: 36, lives: 2, r: 22, stale: true, blurb: 'A block that arrives late is worth nothing. Its bounty shrinks the further down the line it gets: kill it early or earn almost nothing.' },
+    relay: { name: 'Rebroadcaster', hp: 110, spd: 46, bounty: 12, lives: 1, r: 16, rebroadcast: { every: 4, max: 5 }, blurb: 'Keeps forwarding full copies: every few seconds it drops a fresh Dupe behind it. Kill it first or the swarm never ends.' },
+    carrier: { name: 'Blob Carrier', hp: 520, spd: 22, bounty: 45, lives: 3, r: 28, armor: 4, alwaysCoded: 4, blurb: 'Hauls a full blob down the line and always travels coded. Three validators fall if it reaches the vault; crack it with different crew members.' },
     boss: { name: 'Gossip Blob', hp: 1300, spd: 18, bounty: 250, lives: 6, r: 44, armor: 3, boss: true, blurb: 'Every redundant copy the network ever sent, fused into one. It leaks Dupes as it takes damage.' },
   };
 
@@ -135,25 +139,25 @@
     [['gremlin', 10, 0.7, 0], ['lag', 6, 1.0, 3]],
     [['hog', 2, 4, 0, 2], ['dupe', 18, 0.3, 2], ['lag', 6, 0.9, 6]],
     [['lag', 10, 0.8, 0], ['gremlin', 10, 0.55, 4], ['hog', 2, 3, 9, 2]],
-    [['dupe', 30, 0.22, 0], ['hog', 3, 3, 4, 2]],
+    [['dupe', 26, 0.22, 0], ['hog', 3, 3, 4, 2], ['spam', 3, 1.2, 7]],
     [['lag', 8, 0.9, 0, 2], ['gremlin', 10, 0.5, 3], ['lag', 6, 0.9, 8]],
-    [['hog', 4, 2.5, 0, 2], ['dupe', 24, 0.25, 3], ['gremlin', 8, 0.5, 8]],
-    [['lag', 10, 0.7, 0], ['boss', 1, 1, 6]],
-    [['gremlin', 18, 0.4, 0], ['hog', 4, 2.2, 4, 2], ['dupe', 20, 0.22, 9]],
+    [['hog', 4, 2.5, 0, 2], ['dupe', 20, 0.25, 3], ['stale', 2, 3, 5], ['gremlin', 8, 0.5, 9]],
+    [['lag', 10, 0.7, 0], ['spam', 4, 0.8, 2], ['boss', 1, 1, 6]],
+    [['gremlin', 14, 0.4, 0], ['relay', 3, 1.5, 2], ['hog', 4, 2.2, 4, 2], ['dupe', 16, 0.22, 9]],
     [['lag', 14, 0.6, 0, 2], ['hog', 5, 2.0, 5], ['gremlin', 12, 0.4, 9]],
-    [['phantom', 8, 1.0, 0], ['lag', 10, 0.7, 2], ['dupe', 30, 0.18, 7]],
-    [['hog', 7, 1.6, 0, 2], ['phantom', 8, 0.9, 5], ['gremlin', 16, 0.35, 9]],
+    [['phantom', 8, 1.0, 0], ['lag', 10, 0.7, 2], ['spam', 5, 0.9, 4], ['dupe', 26, 0.18, 7]],
+    [['hog', 6, 1.6, 0, 2], ['stale', 3, 2.5, 3], ['phantom', 8, 0.9, 5], ['gremlin', 14, 0.35, 9]],
     [['dupe', 50, 0.13, 0], ['lag', 14, 0.55, 5, 2], ['phantom', 8, 0.8, 9]],
-    [['hog', 6, 1.6, 0, 3], ['gremlin', 20, 0.3, 4], ['lag', 12, 0.5, 9, 3]],
-    [['phantom', 14, 0.6, 0], ['hog', 6, 1.4, 4, 2], ['dupe', 40, 0.14, 8]],
+    [['hog', 5, 1.6, 0, 3], ['carrier', 2, 3, 2, 4], ['gremlin', 18, 0.3, 4], ['lag', 12, 0.5, 9, 3]],
+    [['phantom', 12, 0.6, 0], ['relay', 4, 1.2, 2], ['hog', 6, 1.4, 4, 2], ['dupe', 34, 0.14, 8]],
     [['lag', 20, 0.45, 0, 3], ['gremlin', 24, 0.28, 6], ['hog', 6, 1.3, 10, 3]],
-    [['dupe', 60, 0.1, 0], ['phantom', 14, 0.5, 4], ['hog', 8, 1.2, 8, 2]],
-    [['hog', 6, 1.4, 0, 3], ['boss', 1, 1, 5], ['dupe', 30, 0.15, 10]],
-    [['gremlin', 30, 0.22, 0], ['lag', 20, 0.4, 5, 3], ['phantom', 14, 0.5, 10]],
-    [['hog', 12, 0.9, 0, 3], ['dupe', 60, 0.1, 4], ['gremlin', 20, 0.25, 9]],
-    [['phantom', 20, 0.4, 0], ['lag', 24, 0.35, 4, 3], ['hog', 10, 0.9, 9, 3]],
-    [['dupe', 80, 0.08, 0], ['hog', 12, 0.8, 4, 3], ['gremlin', 30, 0.2, 8], ['phantom', 16, 0.4, 12]],
-    [['hog', 8, 1.0, 0, 3], ['boss', 1, 1, 4, 4], ['boss', 1, 1, 22, 4], ['dupe', 40, 0.12, 12]],
+    [['dupe', 54, 0.1, 0], ['stale', 4, 2, 2], ['phantom', 14, 0.5, 4], ['hog', 7, 1.2, 8, 2]],
+    [['hog', 6, 1.4, 0, 3], ['boss', 1, 1, 5], ['carrier', 2, 3, 12, 4], ['dupe', 26, 0.15, 10]],
+    [['gremlin', 26, 0.22, 0], ['spam', 8, 0.5, 3], ['lag', 20, 0.4, 5, 3], ['phantom', 14, 0.5, 10]],
+    [['hog', 11, 0.9, 0, 3], ['relay', 6, 0.9, 2], ['dupe', 50, 0.1, 4], ['gremlin', 20, 0.25, 9]],
+    [['phantom', 20, 0.4, 0], ['lag', 22, 0.35, 4, 3], ['stale', 5, 1.5, 6], ['hog', 9, 0.9, 9, 3]],
+    [['dupe', 70, 0.08, 0], ['carrier', 3, 2.5, 2, 4], ['hog', 11, 0.8, 4, 3], ['gremlin', 28, 0.2, 8], ['phantom', 16, 0.4, 12]],
+    [['hog', 8, 1.0, 0, 3], ['boss', 1, 1, 4, 4], ['carrier', 2, 3, 8, 4], ['boss', 1, 1, 22, 4], ['dupe', 36, 0.12, 12]],
   ];
   const FINAL_WAVE = WAVES.length; // the hardest stage plays all 25
   function hpMultBase(w) { return 1 + 0.1 * (w - 1) + 0.028 * (w - 1) * (w - 1) + (w > 14 ? 0.3 * (w - 14) * (w - 14) : 0); }
@@ -163,8 +167,8 @@
   const stageHp = (g, w) => 1 + (g.stage.hp - 1) * Math.min(1, (w - 1) / 6);
   const hpMult = (g, w) => hpMultBase(w) * earlyHp(w) * stageHp(g, w);
   function endlessWave(w, rng) {
-    const types = ['lag', 'gremlin', 'dupe', 'hog', 'phantom'], g = [];
-    for (let i = 0; i < 4; i++) { const t = types[Math.floor(rng() * types.length)]; const n = t === 'dupe' ? 60 : t === 'hog' ? 10 : 22; g.push([t, n, t === 'dupe' ? 0.09 : 0.35, i * 4, rng() < 0.6 ? 3 + Math.floor(rng() * 2) : 0]); }
+    const types = ['lag', 'gremlin', 'dupe', 'hog', 'phantom', 'spam', 'stale', 'relay', 'carrier'], g = [];
+    for (let i = 0; i < 4; i++) { const t = types[Math.floor(rng() * types.length)]; const n = t === 'dupe' ? 60 : t === 'hog' ? 10 : t === 'carrier' ? 3 : t === 'stale' ? 5 : t === 'relay' ? 6 : t === 'spam' ? 8 : 22; g.push([t, n, t === 'dupe' ? 0.09 : 0.35, i * 4, rng() < 0.6 ? 3 + Math.floor(rng() * 2) : 0]); }
     if (w % 5 === 0) g.push(['boss', 1 + Math.floor((w - 25) / 10), 6, 6, 4]);
     return g;
   }
@@ -237,12 +241,14 @@
   const KENT_DILUTION = 0.6; // each extra Kent pays this share of the one before
   const MIN_PROGRESS = 0.3; // an enemy under fire always advances at least this share of its speed
   function spawn(g, type, k, d0, opt) {
-    const F = FOES[type], m = type === 'boss' ? hpMult(g, g.wave) * 0.5 * (g.wave >= 25 ? 1.4 : g.wave >= 20 ? 1.2 : 1) : hpMult(g, g.wave);
+    const F = FOES[type]; if (F.alwaysCoded && !k) k = F.alwaysCoded;
+    const m = type === 'boss' ? hpMult(g, g.wave) * 0.5 * (g.wave >= 25 ? 1.4 : g.wave >= 20 ? 1.2 : 1) : hpMult(g, g.wave);
     const e = { id: g.nextId++, type, hp: F.hp * m, maxhp: F.hp * m, spd: F.spd * (1 + Math.min(0.25, g.wave * 0.006)) * g.stage.speed, d: d0 || 0, path: opt && opt.path != null ? opt.path : (g.spawnCount++ % g.paths.length), x: 0, y: 0, armor: (F.armor || 0) * (1 + g.wave * 0.03), r: F.r,
-      shield: k ? { k, need: g.stage.threshold ? Math.ceil(k * g.stage.threshold) : k, got: new Set(), broken: false } : null, slowUntil: 0, slowF: 0, dFloor: d0 || 0, revealedUntil: 0, blinkT: F.blink ? F.blink * (0.6 + g.rng() * 0.6) : 0, hitFlash: 0, born: g.t, dotUntil: 0, dot: 0, bossNext: 0.88, knock: 0, markUntil: 0, markF: 0, stunUntil: 0 };
+      shield: k ? { k, need: g.stage.threshold ? Math.ceil(k * g.stage.threshold) : k, got: new Set(), broken: false } : null, slowUntil: 0, slowF: 0, dFloor: d0 || 0, revealedUntil: 0, jamT: F.jam ? F.jam.every * 0.6 : 0, relayT: F.rebroadcast ? F.rebroadcast.every * 0.5 : 0, relayed: 0, blinkT: F.blink ? F.blink * (0.6 + g.rng() * 0.6) : 0, hitFlash: 0, born: g.t, dotUntil: 0, dot: 0, bossNext: 0.88, knock: 0, markUntil: 0, markF: 0, stunUntil: 0 };
     const p = posAt(g, e); e.x = p.x; e.y = p.y;
     g.foes.push(e);
-    if (!g.seenFoes[type + (k ? '#' : '')]) { g.seenFoes[type + (k ? '#' : '')] = true; emit(g, { type: 'newFoe', foe: type, coded: !!k }); }
+    const codedCard = !!k && !F.alwaysCoded, seenKey = type + (codedCard ? '#' : ''); // an always coded enemy gets its own card, not the generic coded armor one
+    if (!g.seenFoes[seenKey]) { g.seenFoes[seenKey] = true; emit(g, { type: 'newFoe', foe: type, coded: codedCard }); }
     return e;
   }
 
@@ -285,7 +291,8 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     const F = FOES[e.type];
     // speed is money: kills made soon after the enemy appears pay a little extra
     const fast = Math.max(0, 1 - (g.t - e.born) / 14);
-    const bounty = Math.max(1, Math.round(F.bounty * 1.3 * (1 + 0.5 * fast) * (g.stage.bountyX || 1)));
+    const late = F.stale ? Math.max(0.1, 1 - e.d / g.paths[e.path].end) : 1; // a stale block is worth less the later it is
+    const bounty = Math.max(1, Math.round(F.bounty * 1.3 * (1 + 0.5 * fast) * (g.stage.bountyX || 1) * late));
     let extra = 0;
     for (const t of g.towers) if (t.kind === 'sunny' && t.spec === 'b' && Math.hypot(t.x - e.x, t.y - e.y) <= stat(t).range) extra += stat(t).bonus;
     g.coins += bounty + extra; g.score += Math.round(bounty * 10 * g.stage.scoreMult); g.stats.kills++; if (F.boss) g.stats.bossKills++;
@@ -358,6 +365,11 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
       if (e.hp <= 0) continue;
       const p = posAt(g, e); e.x = p.x; e.y = p.y; e.dir = p;
       e.hitFlash = Math.max(0, e.hitFlash - dt);
+      // Spam Bot: jams the nearest crew member for a moment, unless that crew member sits inside Nancy's rate limit
+      if (F.jam) { e.jamT -= dt; if (e.jamT <= 0) { e.jamT = F.jam.every; let best = null, bd = F.jam.range; for (const t of g.towers) { if (t.kind === 'sunny' && t.spec !== 'b') continue; const d = Math.hypot(t.x - e.x, t.y - e.y); if (d < bd) { bd = d; best = t; } }
+        if (best) { const guarded = g.towers.some((m) => m.kind === 'moss' && Math.hypot(m.x - best.x, m.y - best.y) <= stat(m).range); if (guarded) emit(g, { type: 'jamBlocked', t: best, e }); else { best.jamUntil = g.t + F.jam.dur; emit(g, { type: 'jam', t: best, e }); } } } }
+      // Rebroadcaster: keeps forwarding full copies, one Dupe behind it every few seconds
+      if (F.rebroadcast && e.relayed < F.rebroadcast.max) { e.relayT -= dt; if (e.relayT <= 0) { e.relayT = F.rebroadcast.every; e.relayed++; spawn(g, 'dupe', 0, Math.max(0, e.d - 30), { path: e.path }); emit(g, { type: 'rebroadcast', e }); } }
       if (e.d >= g.paths[e.path].end) {
         e.hp = 0; e.leaked = true; g.lives -= F.lives; g.leaksThisWave += F.lives; g.stats.leaks += F.lives;
         // Mainnet rule: a leaked block is a missed opportunity, it costs coins too
@@ -374,6 +386,7 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     // towers act
     for (const t of g.towers) {
       const S = stat(t); t.moodT = Math.max(0, t.moodT - dt); if (t.moodT <= 0 && t.mood !== 'idle') t.mood = 'idle';
+      if (t.jamUntil > g.t) continue; // jammed by a Spam Bot
       const rm = rateMult(g, t);
       if (t.kind === 'sunny') {
         if (t.spec !== 'b') continue;

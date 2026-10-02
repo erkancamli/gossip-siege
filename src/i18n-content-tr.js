@@ -163,6 +163,10 @@
       dupe: { name: 'Dupe', blurb: "Gossipsub bir bloğun tam kopyasını her peer'a gönderdiği için gelenlerin çoğu kopya. Sürü halinde gelirler; alan hasarıyla dağıt." },
       hog: { name: 'Bant Oburu', blurb: "Bant genişliğini kahvaltı niyetine yer. Zırhı zayıf vuruşları umursamaz; Swarna'yı ya da ağır alan hasarını getir." },
       phantom: { name: 'Eclipse Hayaleti', blurb: "Validator'ları dürüst peer'lardan koparmaya çalışır. Nancy ortaya çıkarana ya da bir şey ona vurana kadar görünmez." },
+      spam: { name: 'Spam Botu', blurb: "Mesh'i çöp mesajla doldurur; yakınındaki bir ekip üyesi bir süre ateş edemez. Nancy'nin rate limit alanındaki ekip bundan etkilenmez." },
+      stale: { name: 'Bayat Blok', blurb: "Geç gelen bloğun değeri yoktur. Yolda ilerledikçe ödülü erir: erken öldür, yoksa eline neredeyse hiçbir şey geçmez." },
+      relay: { name: 'Tekrar Yayıncı', blurb: "Tam kopyaları iletmeye devam eder: birkaç saniyede bir arkasına yeni bir Dupe bırakır. Önce onu öldür, yoksa sürü hiç bitmez." },
+      carrier: { name: 'Blob Taşıyıcı', blurb: "Koca bir blob'u hat boyunca taşır ve her zaman kodlu gelir. Kasaya ulaşırsa üç validator düşer; farklı ekip üyeleriyle kır." },
       boss: { name: 'Gossip Blob', blurb: "Ağın bugüne kadar gönderdiği bütün gereksiz kopyalar tek bir gövdede toplanmış. Hasar aldıkça etrafa Dupe saçar." },
     },
     why: {
@@ -179,6 +183,10 @@
       silk: "Bölgeler arası uzun mesafeli hatlar gecikmenin biriktiği yerdir; iyi bir yol birçok hop kazandırır.",
       cyan: "Yeniden kodlama RLNC'nin süper gücü: relay'ler ellerindeki shard'ları çözmeden taze shard'lara karıştırır, böylece ilettikleri her şey işe yarar.",
       sunny: "Flexnode'lar Optimum'un hızlandırıcıları: operatörler bant genişliği sağlar, hız için ödeme yapan validator'lardan kazanır.",
+      spam: "Spam, gossip ağlarına yapılan en eski saldırı: peer'ları çöp mesajla boğ, gerçek mesajlar beklesin. mump2p, Gossipsub'daki rate limiting ve peer scoring'i koruyor; Nancy'nin yaptığı da tam olarak bu.",
+      stale: "Attestation süresi dolduktan sonra gelen bloğun validator için hiçbir değeri yok. Optimum'un var olma sebebi bu: hız paradır, geç gelen veri kaybedilen paradır.",
+      relay: "Gossipsub'da her peer mesajın tamamını mesh'indeki herkese iletir; tek bir node bile kopya üretmeye devam eder. RLNC relay'leri bunun yerine yeniden kodlanmış shard iletir ve her biri işe yarar.",
+      carrier: "Blob'lar (EIP 4844) büyüktür ve yine de zamanında ulaşmak zorundadır. Optimum'un paylaştığına göre Gossipsub yük altında 4 MB'ta tıkanırken mump2p 10 MB taşıdı. Taşıyıcı sadece farklı ekip üyelerinden gelen bağımsız shard'larla açılır.",
       nova: "Çözme: yeterli sayıda bağımsız shard ulaştığında alıcı orijinal bloğu geri elde eder.",
     },
     coach: [

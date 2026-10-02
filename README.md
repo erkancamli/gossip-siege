@@ -8,6 +8,10 @@ Not an official Optimum product. Play it at [gossipsiege.xyz](https://gossipsieg
 
 Coded enemies wear a shield with k segments. It only breaks after hits from k different crew members, the same way a block coded with Random Linear Network Coding only decodes once k independent shards arrive. Repeat hits from one tower are redundant copies. Muriel, the Recoder, remixes the shots of nearby crew so every hit counts as new, like an RLNC relay recoding shards without decoding them.
 
+## Enemies
+
+Every enemy is a piece of network waste or a threat Optimum's design answers. Lag Slug (latency), Packet Gremlin (packet loss, blinks forward), Dupe (Gossipsub's full copies, in swarms), Bandwidth Hog (armored, splits on Blob Season), Eclipse Phantom (invisible until Nancy or a hit reveals it), Spam Bot (jams the nearest crew member for a moment unless that crew member sits inside Nancy's rate limit), Stale Block (its bounty shrinks the further it gets, like a block that misses the attestation deadline), Rebroadcaster (drops a fresh Dupe behind it every few seconds, like a Gossipsub peer forwarding whole copies), Blob Carrier (always coded, three validators if it leaks, EIP 4844 blobs) and the Gossip Blob boss. Coded groups appear from wave 5 on every stage.
+
 ## Campaign
 
 Ten stages. Clearing one unlocks the next. Each stage has its own map and look and adds one rule taken from a documented Optimum idea. Stars depend on validators left: 18 or more for three, 10 or more for two.
