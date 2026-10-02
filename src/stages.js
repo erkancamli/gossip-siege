@@ -15,6 +15,7 @@
   const STAGES = [
     {
       id: 1, key: 'hoodi', name: 'Hoodi Testnet', guide: { name: 'Nicolas Nicolaou', note: "co-author of Optimum's 'Acceleration: mump2p Early Results on Hoodi Testnet' and of the OptimumP2P paper" }, sub: 'Where every validator starts', tier: 'Beginner', theme: 'hoodi',
+      hint: 'Two crew members on one bend beat four spread out. Coded shields open only to hits from different crew members.',
       blurb: 'One long pipe, friendly traffic, room to learn the crew.',
       waves: 12, hp: 1.6, speed: 1.0, coins: 220, lives: 20, scoreMult: 1.0, codedBonus: 0,
       rule: null,
@@ -24,6 +25,7 @@
     },
     {
       id: 2, key: 'flood', name: 'Copy Storm', guide: { name: 'Aayush Rajasekaran', note: "co-author of 'Comparing the Performance of OptimumP2P and Gossipsub' and of the OptimumP2P paper" }, sub: 'Why Gossipsub wastes bandwidth', tier: 'Beginner', theme: 'flood',
+      hint: 'Dupes come in swarms: one blast from Jeff clears a whole pack.',
       blurb: 'A vortex of duplicate copies spirals into the vault.',
       waves: 14, hp: 2.6, speed: 1.02, coins: 230, lives: 20, scoreMult: 1.1, codedBonus: 0, dupeX: 2.5,
       rule: { name: 'Copy storm', text: 'Dupe swarms are two and a half times larger. Every Dupe is a redundant full copy, so splash crews like Jeff pay off.' },
@@ -33,8 +35,9 @@
     },
     {
       id: 3, key: 'shard', name: 'Shard Threshold', guide: { name: 'Onyeka Obi', note: "co-author of the OptimumP2P paper" }, sub: 'You never need every shard', tier: 'Intermediate', theme: 'shard',
+      hint: 'From wave 5 every enemy is coded. Put three different crew members on the same stretch.',
       blurb: 'A valley route where every message from wave 5 on is coded.',
-      waves: 15, hp: 1.5, speed: 1.02, coins: 240, lives: 20, scoreMult: 1.2, codedBonus: 0, allCoded: 4, codedFrom: 5, threshold: 0.75,
+      waves: 15, hp: 1.55, speed: 1.02, coins: 240, lives: 20, scoreMult: 1.2, codedBonus: 0, allCoded: 4, codedFrom: 5, threshold: 0.75,
       rule: { name: 'Shard threshold', text: 'From wave 5 every enemy is coded into 4 shards, but a shield opens at 75%: 3 different crew members are enough.' },
       optimum: 'In mump2p a message is split into shards (default shard factor 4) and a node can forward or decode once it holds the threshold share, 75% by default.',
       paths: [[[-40, 120], [260, 120], [260, 300], [520, 300], [520, 480], [780, 480], [780, 260], [1040, 260], [1040, 140], [1200, 140]]],
@@ -42,8 +45,9 @@
     },
     {
       id: 4, key: 'blob', name: 'Blob Season', guide: { name: 'Aleksandr Bezobchuk', note: "co-author of the OptimumP2P paper and a contributor to Optimum's docs" }, sub: 'Big blocks, bigger floods', tier: 'Intermediate', theme: 'blob',
+      hint: "Bandwidth Hogs split into three when they die: kill them where Jeff's splash catches the pieces.",
       blurb: 'Blob traffic floods a tight zigzag.',
-      waves: 16, hp: 2.85, speed: 1.04, coins: 240, lives: 20, scoreMult: 1.3, codedBonus: 1, split: 3,
+      waves: 16, hp: 2.7, speed: 1.04, coins: 240, lives: 20, scoreMult: 1.3, codedBonus: 1, split: 3,
       rule: { name: 'Blob burst', text: 'Blobs are big. Gossiped the old way, a Bandwidth Hog bursts into 3 duplicate copies when it goes down, and coded shields need one extra shard.' },
       optimum: "mump2p carries blocks, blobs and transactions. In Optimum's early A/B tests Gossipsub choked on 4 MB messages under load while mump2p carried 10 MB.",
       paths: [[[-40, 130], [860, 130], [860, 330], [300, 330], [300, 510], [1180, 510]]],
@@ -51,6 +55,7 @@
     },
     {
       id: 5, key: 'mesh', name: 'Mesh Limits', guide: { name: 'Har Preet Singh', note: "co-author of the OptimumP2P versus Gossipsub comparison and of the OptimumP2P paper, and a contributor to the mump2p dev setup guide" }, sub: 'Six peers is the sweet spot', tier: 'Intermediate', theme: 'mesh',
+      hint: 'Six crew members is the sweet spot: the whole crew fires 15% faster. Upgrade instead of spamming.',
       blurb: 'A column route through a peer graph. Your crew is the mesh.',
       waves: 17, hp: 2.4, speed: 1.04, coins: 250, lives: 20, scoreMult: 1.4, codedBonus: 0, crewCap: 12, meshTarget: 6, meshBonus: 0.15,
       rule: { name: 'Mesh degree', text: 'At most 12 crew members (the mesh maximum). Once 6 are hired (the mesh target) the whole crew fires 15% faster. Upgrade, do not spam.' },
@@ -60,6 +65,7 @@
     },
     {
       id: 6, key: 'subsea', name: 'Subsea Cable', guide: { name: 'Santiago Paiva', note: "co-author of the OptimumP2P paper and a contributor to Optimum's docs" }, sub: 'Two routes, one vault', tier: 'Advanced', theme: 'subsea',
+      hint: 'The undersea stretch drops 30% of plain shots. Shots near Muriel are coded, and coded shots never drop.',
       blurb: 'Traffic arrives from two continents and merges under the sea.',
       waves: 18, hp: 1.35, speed: 1.06, coins: 270, lives: 20, scoreMult: 1.5, codedBonus: 1,
       lossy: [[[420, 360], [700, 360]], [[700, 190], [1000, 190]]], loss: 0.3,
@@ -73,6 +79,7 @@
     },
     {
       id: 7, key: 'flex', name: 'Flexnode Grid', guide: { name: 'Michael Meier', note: "co-author of the OptimumP2P paper" }, sub: 'A global network of data accelerators', tier: 'Advanced', theme: 'flex',
+      hint: 'Build on the five glowing Flexnode pads: 25% faster fire and every shot counts as a fresh shard.',
       blurb: 'Some pads are Flexnodes. Build on them.',
       waves: 19, hp: 1.9, speed: 1.06, coins: 270, lives: 20, scoreMult: 1.6, codedBonus: 1, flexPick: 5,
       rule: { name: 'Flexnode pads', text: 'Five glowing pads are Flexnodes. Crew built there fire 25% faster and every shot is a coded shard, so it always counts as new on a shield.' },
@@ -82,6 +89,7 @@
     },
     {
       id: 8, key: 'gateway', name: 'The Gateway', guide: { name: 'Alejandro Bergasov', note: "co-author of the OptimumP2P paper and a contributor to Optimum Gateway" }, sub: 'Plug in, no client changes', tier: 'Expert', theme: 'gateway',
+      hint: 'Past the Gateway every hit is a coded shard. Put your strongest crew on the second half.',
       blurb: 'The left half is plain libp2p. The right half is mump2p.',
       waves: 20, hp: 1.65, speed: 1.08, coins: 280, lives: 20, scoreMult: 1.7, codedBonus: 0, allCoded: 3, codedFrom: 6, gateway: 0.45,
       rule: { name: 'Gateway', text: 'From wave 6 every enemy is coded. Past the Gateway, a bit before halfway, every hit from any crew member lands as a coded shard. Hold the second half.' },
@@ -91,6 +99,7 @@
     },
     {
       id: 9, key: 'stress', name: 'Stress Test', guide: { name: 'Prof. Sriram Vishwanath', note: "Optimum advisor and co-author of the OptimumP2P paper, working on information theory and network science" }, sub: 'High traffic, no excuses', tier: 'Expert', theme: 'stress',
+      hint: 'Twice the enemies with half the health: splash and chain hits win here.',
       blurb: 'The route is the Optimum mark itself: one full infinity loop, crossing the center twice.',
       waves: 22, hp: 1.25, speed: 1.08, coins: 290, lives: 20, scoreMult: 1.85, codedBonus: 1, countX: 2, bountyX: 0.5,
       rule: { name: 'Stress test', text: 'From wave 3 every wave sends twice as many enemies, each with less health. Splash and chains beat single shots.' },
@@ -100,6 +109,7 @@
     },
     {
       id: 10, key: 'mainnet', name: 'Mainnet', guide: { name: 'Moritz Grundei', note: "co-author of Optimum's study on how lower latency raises ETH staking revenue" }, sub: 'Speed is money', tier: 'Master', theme: 'mainnet',
+      hint: 'Every leaked validator costs 15 coins and calling waves early pays double. Fast and clean.',
       blurb: 'Two entries feed one long trunk, and the last wave brings twin Gossip Blobs. Then go endless.',
       waves: 25, hp: 1.45, speed: 1.08, coins: 300, lives: 20, scoreMult: 2.0, codedBonus: 1, endless: true, leakCoins: 15, earlyX: 2,
       rule: { name: 'Speed is money', text: 'Every leaked life also costs 15 coins, and calling a wave early pays double. Fast and clean wins.' },

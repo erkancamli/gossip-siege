@@ -93,12 +93,12 @@
         b: { name: 'Chain Recoder', cost: 330, blurb: 'Its zap jumps across five enemies, and every jump lands as a fresh independent shard.', st: { buff: 0.55, dmg: 28, rate: 1.8, range: 162, chain: 5 } },
       } },
     sunny: { name: 'Kent', role: 'Flexnode Bank', unlock: 5, look: { visor: '#ffd23f', hair: 'short', hairColor: '#2a211b', jacket: '#101216' },
-      blurb: 'Does not fight. Kent is your economy: he pays coins after every wave you clear, plus interest on the coins you keep. Hire him early so the rent compounds, then spend it on upgrades. Speed is money.',
+      blurb: 'Does not fight. Kent is your economy: he pays rent after every wave you clear. Hire him early so the rent adds up, then spend it on upgrades. Each extra Kent pays 60% of the one before: staking yield dilutes. Speed is money.',
       cost: [125, 130, 190],
-      lv: [{ income: 25, interest: 0 }, { income: 45, interest: 0.03 }, { income: 70, interest: 0.06 }],
+      lv: [{ income: 25 }, { income: 50 }, { income: 80 }],
       specs: {
-        a: { name: 'Validator Fund', cost: 390, blurb: 'A full staking desk: 130 coins every wave plus 8% interest on savings.', st: { income: 130, interest: 0.08 } },
-        b: { name: 'MEV Hunter', cost: 370, blurb: 'Throws gold at enemies, and every kill anywhere in its range pays 3 extra coins.', st: { income: 70, interest: 0.03, range: 155, dmg: 26, rate: 1.6, bonus: 3 } },
+        a: { name: 'Validator Fund', cost: 390, blurb: 'A full staking desk: 150 coins of rent every wave.', st: { income: 150 } },
+        b: { name: 'MEV Hunter', cost: 370, blurb: 'Throws gold at enemies, and every kill anywhere in its range pays 3 extra coins.', st: { income: 80, range: 155, dmg: 26, rate: 1.6, bonus: 3 } },
       } },
     nova: { name: 'Sajida', role: 'Decoder', unlock: 8, look: { visor: '#4da3ff', hair: 'long', hairColor: '#24160f', jacket: '#e9ecef', fem: true, clip: '#4da3ff' },
       blurb: 'A visor beam that heats up on one target. Instantly decodes anything left with a sliver of health, and hits decoded armor twice as hard.',
@@ -133,9 +133,9 @@
     [['lag', 8, 1.0, 0], ['gremlin', 4, 0.9, 6]],
     [['dupe', 14, 0.35, 0], ['lag', 5, 1.1, 4]],
     [['gremlin', 10, 0.7, 0], ['lag', 6, 1.0, 3]],
-    [['hog', 2, 4, 0], ['dupe', 18, 0.3, 2], ['lag', 6, 0.9, 6]],
-    [['lag', 10, 0.8, 0], ['gremlin', 10, 0.55, 4], ['hog', 2, 3, 9]],
-    [['dupe', 30, 0.22, 0], ['hog', 3, 3, 4]],
+    [['hog', 2, 4, 0, 2], ['dupe', 18, 0.3, 2], ['lag', 6, 0.9, 6]],
+    [['lag', 10, 0.8, 0], ['gremlin', 10, 0.55, 4], ['hog', 2, 3, 9, 2]],
+    [['dupe', 30, 0.22, 0], ['hog', 3, 3, 4, 2]],
     [['lag', 8, 0.9, 0, 2], ['gremlin', 10, 0.5, 3], ['lag', 6, 0.9, 8]],
     [['hog', 4, 2.5, 0, 2], ['dupe', 24, 0.25, 3], ['gremlin', 8, 0.5, 8]],
     [['lag', 10, 0.7, 0], ['boss', 1, 1, 6]],
@@ -234,6 +234,7 @@
     return true;
   }
 
+  const KENT_DILUTION = 0.6; // each extra Kent pays this share of the one before
   const MIN_PROGRESS = 0.3; // an enemy under fire always advances at least this share of its speed
   function spawn(g, type, k, d0, opt) {
     const F = FOES[type], m = type === 'boss' ? hpMult(g, g.wave) * 0.5 * (g.wave >= 25 ? 1.4 : g.wave >= 20 ? 1.2 : 1) : hpMult(g, g.wave);
@@ -489,11 +490,13 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     // wave end
     if (g.waveActive && !g.spawnQ.length && !g.foes.length) {
       g.waveActive = false;
-      let income = 0; for (const t of g.towers) if (t.kind === 'sunny') { const S = stat(t); income += S.income + Math.min(t.spec === 'a' ? 120 : 60, Math.floor(g.coins * S.interest)); }
+      // rent: the best paid Kent pays in full, every further Kent 60% of the one before (staking yield dilutes), so stacking Kents never prints the whole economy
+      let income = 0; const rents = [];
+      g.towers.filter((t) => t.kind === 'sunny').map((t) => [t, stat(t).income]).sort((a, b) => b[1] - a[1]).forEach(([t, inc], i) => { const amount = Math.round(inc * Math.pow(KENT_DILUTION, i)); income += amount; rents.push({ id: t.id, amount }); });
       const clear = 45 + g.wave * 9; // wave clear pay, enough for one upgrade every wave or two
       g.coins += clear + income;
       g.score += Math.round((100 * g.wave + (g.leaksThisWave ? 0 : 50 * g.wave)) * g.stage.scoreMult);
-      emit(g, { type: 'waveClear', wave: g.wave, income, clear, perfect: !g.leaksThisWave });
+      emit(g, { type: 'waveClear', wave: g.wave, income, rents, clear, perfect: !g.leaksThisWave });
       for (const t of g.towers) { t.mood = 'excited'; t.moodT = 1.4; }
       if (g.wave === g.finalWave && !g.endless) { g.won = true; g.score += Math.round(g.lives * 200 * g.stage.scoreMult); emit(g, { type: 'victory' }); g.countdown = null; g.state = 'victory'; }
       else g.countdown = 18;
@@ -506,5 +509,5 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
   // pads and targets stay linked) with the rng state and the stage id instead of the live closures.
   function snapshot(g) { const { rng, stage, paths, ...rest } = g; return structuredClone({ ...rest, rngA: rng.a, stageId: stage.id }); }
   function restore(snap) { const s = structuredClone(snap); const stage = STAGES.find((x) => x.id === s.stageId) || STAGES[0]; const g = { ...s, stage, paths: COMPILED[STAGES.indexOf(stage)], rng: rng32(s.rngA) }; delete g.rngA; delete g.stageId; g.events = []; g.over = false; g.continued = (g.continued || 0) + 1; return g; }
-  root.TD = { starsFor, snapshot, restore, inLoss, pastGateway, quizReward, QUIZ_REWARDS, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
+  root.TD = { KENT_DILUTION, starsFor, snapshot, restore, inLoss, pastGateway, quizReward, QUIZ_REWARDS, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -60,7 +60,7 @@ Every crew member has four levels, the Kingdom Rush pattern. Levels 1 to 3 raise
 | Nancy, Throttle | Rate Limiter: every 4th pulse freezes | Peer Scoring: marked enemies take +35% damage |
 | Swarna, Long Haul | Global Relay: map wide, 40% triple crits | Shrapnel Lance: bursts into 6 fragments |
 | Muriel, Recoder | Mesh Amplifier: bigger aura, +85% crew speed | Chain Recoder: zap chains across 5 enemies |
-| Kent, Flexnode Bank | Validator Fund: 130 per wave, 8% interest | MEV Hunter: throws gold, +3 coins per kill nearby |
+| Kent, Flexnode Bank | Validator Fund: 150 rent per wave (each extra Kent pays 60% of the one before) | MEV Hunter: throws gold, +3 coins per kill nearby |
 | Sriram, Decoder | Decode Ray: the beam burns through a line | Twin Decoder: two beams, decodes below 30% |
 
 Upgrade buttons show every stat as "now → next" before you buy, and each damage dealing crew member has a target priority (First, Last, Strong, Close).

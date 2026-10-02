@@ -598,12 +598,12 @@ const UI_TR = {
   'Max': 'Maks', 'Sell': 'Sat', 'Target priority': 'Hedef önceliği', 'Info': 'Bilgi', 'wave {n}': '{n}. dalga', 'Lv {n}': 'Sv {n}', 'Target': 'Hedef',
   'First': 'İlk', 'Last': 'Son', 'Strong': 'Güçlü', 'Close': 'Yakın', ' upgrade': ' geliştirme', 'global': 'tüm harita', '% hp': '% can', 'New: ': 'Yeni: ',
   'Damage': 'Hasar', 'Beam dps': 'Işın hasarı/sn', 'Shards per volley': 'Atış başına shard', 'Shots per second': 'Saniyede atış', 'Range': 'Menzil', 'Blast radius': 'Patlama alanı',
-  'Slow': 'Yavaşlatma', 'Burn per second': 'Saniyede yanma', 'Crew speed aura': 'Ekip hız aurası', 'Instant decode below': 'Anında çözme eşiği', 'Crit chance': 'Kritik şansı', 'Rent per wave': 'Dalga başına kira', 'Interest': 'Faiz',
+  'Slow': 'Yavaşlatma', 'Burn per second': 'Saniyede yanma', 'Crew speed aura': 'Ekip hız aurası', 'Instant decode below': 'Anında çözme eşiği', 'Crit chance': 'Kritik şansı', 'Rent per wave': 'Dalga başına kira',
   'Every shard is independent': 'Her shard bağımsız sayılır', 'Pierces up to 6, ignores armor': '6 düşmana kadar deler, zırhı yok sayar', 'Splits into 4 bomblets': '4 küçük bombaya ayrılır', 'Leaves a firewall': 'Arkasında ateş duvarı bırakır',
   'Every 4th pulse freezes': 'Her 4. dalgası dondurur', 'Marked foes take +35%': 'İşaretli düşmanlar %35 fazla hasar alır', 'Ignores armor': 'Zırhı yok sayar', 'Bursts into 6 fragments': '6 parçaya dağılır', 'Chains to 5 foes': '5 düşmana sıçrar',
   '+3 coins per kill in range': 'Menzildeki her öldürme +3 coin', 'Burns through a line': 'Düz bir çizgi boyunca yakar', 'Two beams': 'İki ışın', 'Knocks enemies back': 'Düşmanları geri iter',
   'Reveals Eclipse Phantoms': 'Eclipse Hayaletlerini ortaya çıkarır', 'Aura: hits from nearby crew count as independent shards': 'Aura: yakınındaki ekibin vuruşları bağımsız shard sayılır',
-  'No weapon. Pays +{n} coins after every wave{int}. Level 4 MEV Hunter also attacks.': 'Silahı yok. Her dalgadan sonra +{n} coin öder{int}. 4. seviyedeki MEV Hunter saldırmaya da başlar.', ' and {p}% interest on your savings': ', üstüne birikimine %{p} faiz işletir',
+  'No weapon. Pays +{n} coins of rent after every wave. Each extra Kent pays 60% of the one before. Level 4 MEV Hunter also attacks.': "Silahı yok. Her dalgadan sonra +{n} coin kira öder. Her ek Kent bir öncekinin %60'ını öder. 4. seviyedeki MEV Hunter saldırmaya da başlar.",
   'damage dealt': 'verilen hasar', 'kills': 'öldürme', 'Joins the crew at wave {n}': '{n}. dalgada ekibe katılır',
   // roles
   'Everyone starts here. Clear a stage with stars and learn a few answers, and Flash moves you up.': 'Herkes buradan başlar. Bir bölümü yıldızla bitir, birkaç cevap öğren; Flash seni bir üst role taşır.',
@@ -662,7 +662,7 @@ const UI_TR = {
 };
 function tr(s, v) { let out = LANG === 'tr' && Object.prototype.hasOwnProperty.call(UI_TR, s) ? UI_TR[s] : s; if (v) for (const k in v) out = out.split('{' + k + '}').join(v[k]); return out; }
 const CT = () => (LANG === 'tr' && window.TD_CONTENT_TR) || null;
-function stT(st) { const c = CT(), t = c && c.stages[st.key]; return t ? { blurb: t.blurb, optimum: t.optimum, rule: t.rule || st.rule, guideNote: t.guide || (st.guide && st.guide.note) } : { blurb: st.blurb, optimum: st.optimum, rule: st.rule, guideNote: st.guide && st.guide.note }; }
+function stT(st) { const c = CT(), t = c && c.stages[st.key]; return t ? { blurb: t.blurb, optimum: t.optimum, rule: t.rule || st.rule, guideNote: t.guide || (st.guide && st.guide.note), hint: t.hint || st.hint } : { blurb: st.blurb, optimum: st.optimum, rule: st.rule, guideNote: st.guide && st.guide.note, hint: st.hint }; }
 function crewT(k) { const C = T.CREW[k], c = CT(), t = c && c.crew[k]; if (!t) return C; return { ...C, role: t.role, blurb: t.blurb, tribute: t.tribute, short: t.short, specs: { a: { ...C.specs.a, ...t.specs.a }, b: { ...C.specs.b, ...t.specs.b } } }; }
 function foeT(k) { const F = T.FOES[k], c = CT(), t = c && c.foes[k]; return t ? { ...F, name: t.name, blurb: t.blurb } : F; }
 function whyT(k) { const c = CT(); return (c && c.why[k]) || WHY[k]; }
@@ -679,7 +679,7 @@ function applyLang() {
 function setLang(l) {
   LANG = l; try { localStorage.setItem('gs_lang', l); } catch (e) {}
   applyLang(); renderCredits(); renderCoach(); renderBoards();
-  if (G) { $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`; renderWave(); updateHud(true); if (quiz) renderQuizText(true); if (!$('endScr').hidden) renderEnd(); }
+  if (G) { $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`; renderWave(); updateHud(true); if (quiz) renderQuizText(true); if (!$('endScr').hidden) renderEnd(); if (hintOn) $('coachText').textContent = stT(G.stage).hint; }
   if (!$('stagesScr').hidden) renderStages();
   if (!$('learnScr').hidden) showLearn();
 }
@@ -1211,6 +1211,7 @@ function newRun(stageId) {
   let tut = true; try { tut = localStorage.getItem('gs_tut') !== '1'; } catch (e) {}
   coach = tut && stageId === 1 ? { step: 0 } : null; renderCoach();
   if (coach) G.briefLeft = 0; // Pegasus walks a first time player through the basics first; briefings start on the next run
+  hintOn = false; showHint();
   renderWave(); updateHud(true);
   if (G.stage.rule) { delete seenCodex['stage' + stageId]; queueCodex('stage', stageId); }
 }
@@ -1241,8 +1242,8 @@ function handleEvents() {
       case 'redundant': if (Math.random() < 0.18) { floater(e.e.x - 10, e.e.y - 22, tr('redundant'), '#8a9099', 10, 0.5); sfx('redundant', { gap: 0.2 }); } break;
       case 'execute': floater(e.e.x, e.e.y - 22, tr('decoded early'), '#ffffff', 12, 0.7); break;
       case 'early': floater(1100, 600, `Speed is money +${e.bonus}`, '#ffd23f', 18, 1.6); sfx('coin'); break;
-      case 'wave': if (G.wave >= 2 && G.wave % 2 === 0) G.quizAt = G.t + 4 + Math.random() * 5; sfx('wave'); renderWave(); if (G.wave === 10 || G.wave === 20 || G.wave === G.finalWave) setTimeout(() => sfx('boss'), 400); break;
-      case 'waveClear': for (const t of G.towers) if (t.kind === 'sunny') { const S = T.stat(t); floater(t.x, t.y - 70, tr('+{n} rent', { n: S.income }), '#ffd23f', 16, 1.6); t.mood = 'happy'; t.moodT = 1.2; } floater(640, 120, tr(e.perfect ? 'Wave {w} clear · every block on time' : 'Wave {w} clear', { w: e.wave }), '#e5e7eb', 22, 2.0); if (e.income) floater(640, 150, tr('Flexnode rent +{n}', { n: e.income }), '#ffd23f', 16, 2.0); sfx('clear'); renderWave(); if (coach && coach.step === 3) { coach.step = 4; renderCoach(); } if (!G.endless) { checkpoints.push(T.snapshot(G)); if (checkpoints.length > 3) checkpoints.shift(); } break;
+      case 'wave': hideHint(); if (G.wave >= 2 && G.wave % 2 === 0) G.quizAt = G.t + 4 + Math.random() * 5; sfx('wave'); renderWave(); if (G.wave === 10 || G.wave === 20 || G.wave === G.finalWave) setTimeout(() => sfx('boss'), 400); break;
+      case 'waveClear': for (const r of e.rents || []) { const t = G.towers.find(x => x.id === r.id); if (t) { floater(t.x, t.y - 70, tr('+{n} rent', { n: r.amount }), '#ffd23f', 16, 1.6); t.mood = 'happy'; t.moodT = 1.2; } } floater(640, 120, tr(e.perfect ? 'Wave {w} clear · every block on time' : 'Wave {w} clear', { w: e.wave }), '#e5e7eb', 22, 2.0); if (e.income) floater(640, 150, tr('Flexnode rent +{n}', { n: e.income }), '#ffd23f', 16, 2.0); sfx('clear'); renderWave(); if (coach && coach.step === 3) { coach.step = 4; renderCoach(); } if (!G.endless) { checkpoints.push(T.snapshot(G)); if (checkpoints.length > 3) checkpoints.shift(); } break;
       case 'newFoe': queueCodex('foe', e.foe, e.coded); break;
       case 'unlock': e.kinds.forEach(k => queueCodex('crew', k)); break;
       case 'burst': sfx('boom'); break;
@@ -1627,7 +1628,7 @@ function closeRing() { sel = null; $('ring').hidden = true; $('ring').innerHTML 
 const STAT_ROWS = [
   ['dmg', 'Damage', v => v], ['dps', 'Beam dps', v => v], ['shots', 'Shards per volley', v => v], ['rate', 'Shots per second', v => v.toFixed(1)], ['range', 'Range', v => v >= 2000 ? tr('global') : v],
   ['splash', 'Blast radius', v => v], ['slow', 'Slow', v => Math.round(v * 100) + '%'], ['dot', 'Burn per second', v => v], ['buff', 'Crew speed aura', v => '+' + Math.round(v * 100) + '%'],
-  ['exec', 'Instant decode below', v => Math.round(v * 100) + tr('% hp')], ['crit', 'Crit chance', v => Math.round(v * 100) + '%'], ['income', 'Rent per wave', v => '+' + v], ['interest', 'Interest', v => Math.round(v * 100) + '%'],
+  ['exec', 'Instant decode below', v => Math.round(v * 100) + tr('% hp')], ['crit', 'Crit chance', v => Math.round(v * 100) + '%'], ['income', 'Rent per wave', v => '+' + v],
 ];
 const FLAGS = { fresh: 'Every shard is independent', rail: 'Pierces up to 6, ignores armor', cluster: 'Splits into 4 bomblets', fire: 'Leaves a firewall', stun: 'Every 4th pulse freezes', mark: 'Marked foes take +35%', pierce: 'Ignores armor', shrapnel: 'Bursts into 6 fragments', chain: 'Chains to 5 foes', bonus: '+3 coins per kill in range', line: 'Burns through a line', beams: 'Two beams', knock: 'Knocks enemies back' };
 function showTip(kind, lvl, spec, anchor, t, info) {
@@ -1652,7 +1653,7 @@ function showTip(kind, lvl, spec, anchor, t, info) {
   if (flags.length) { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = (t && !info ? tr('New: ') : '') + flags.map(k => tr(FLAGS[k])).join(' · '); tip.appendChild(pk); }
   if (kind === 'moss') { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = tr('Reveals Eclipse Phantoms'); tip.appendChild(pk); }
   if (kind === 'cyan') { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = tr('Aura: hits from nearby crew count as independent shards'); tip.appendChild(pk); }
-  if (kind === 'sunny' && !(spec === 'b' && lvl >= T.MAX_LVL)) { const pk = document.createElement('div'); pk.className = 'perk'; pk.style.color = 'var(--gold)'; pk.textContent = tr('No weapon. Pays +{n} coins after every wave{int}. Level 4 MEV Hunter also attacks.', { n: nxt.income, int: nxt.interest ? tr(' and {p}% interest on your savings', { p: Math.round(nxt.interest * 100) }) : '' }); tip.appendChild(pk); }
+  if (kind === 'sunny' && !(spec === 'b' && lvl >= T.MAX_LVL)) { const pk = document.createElement('div'); pk.className = 'perk'; pk.style.color = 'var(--gold)'; pk.textContent = tr('No weapon. Pays +{n} coins of rent after every wave. Each extra Kent pays 60% of the one before. Level 4 MEV Hunter also attacks.', { n: nxt.income }); tip.appendChild(pk); }
   if (t && info) { const ex = document.createElement('div'); ex.className = 'st'; ex.innerHTML = ''; [['damage dealt', Math.round(t.dmgDone)], ['kills', t.kills]].forEach(([k, v]) => { const s = document.createElement('span'); s.append(tr(k) + ' '); const b = document.createElement('b'); b.textContent = v; s.appendChild(b); ex.appendChild(s); }); tip.appendChild(ex); }
   if (!G.unlocked[kind]) { const pk = document.createElement('div'); pk.className = 'perk'; pk.textContent = tr('Joins the crew at wave {n}', { n: C.unlock }); tip.appendChild(pk); }
   if (C.tribute && (info || !t)) { const trb = document.createElement('div'); trb.className = 'st'; trb.textContent = info ? C.tribute : C.short || C.tribute.split(/[,:]/)[0] + '.'; tip.appendChild(trb); }
@@ -1690,11 +1691,17 @@ $('fsBtn').onclick = goFull; $('fsBtn2').onclick = goFull;
 // ---------- coach ----------
 // Pegasus, the community's mumbassador on Discord, is the helper who walks new players in
 const COACH = ['Welcome to the mesh. Tap the glowing Flexnode pad.', 'Hire <b>Kishori</b>, your Encoder. Hover a face to compare the crew.', 'Press <b>Start wave 1</b>. Calling waves early pays a speed bonus.', 'Coins come from kills. Build more crew between waves. Ask me in Discord if you get stuck.', ''];
+let hintOn = false;
 function renderCoach() {
-  const el = $('coach'); if (!coach || coach.step >= 4) { el.hidden = true; if (coach) { coach = null; try { localStorage.setItem('gs_tut', '1'); } catch (e) {} } return; }
+  const el = $('coach');
+  if (!coach) { if (!hintOn) el.hidden = true; return; } // a stage hint may be using the bubble
+  if (coach.step >= 4) { el.hidden = true; coach = null; try { localStorage.setItem('gs_tut', '1'); } catch (e) {} return; }
   el.hidden = false; $('coachText').innerHTML = coachT()[coach.step];
 }
-$('coachSkip').onclick = () => { coach = { step: 4 }; renderCoach(); };
+$('coachSkip').onclick = () => { if (coach) { coach = { step: 4 }; renderCoach(); } else hideHint(); };
+// Pegasus gives every stage's one line lesson before wave 1 (not during the first run tutorial, which has its own lines)
+function showHint() { const h = stT(G.stage).hint; if (!h || coach) return; hintOn = true; $('coachText').textContent = h; $('coach').hidden = false; }
+function hideHint() { if (hintOn) { hintOn = false; $('coach').hidden = true; } }
 
 // =====================================================================
 // END, SHARE CARD, LEADERBOARD

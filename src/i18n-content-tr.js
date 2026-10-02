@@ -5,6 +5,7 @@
   root.TD_CONTENT_TR = {
     stages: {
       hoodi: {
+        hint: "Bir viraja iki ekip üyesi, dört yere dağıtmaktan iyidir. Kodlu kalkanlar sadece farklı ekip üyelerinden gelen vuruşlarla açılır.",
         sub: "Her validator'ın yola çıktığı yer",
         blurb: 'Tek bir uzun hat, sakin bir trafik, ekibi tanımak için bol bol zaman.',
         optimum: "Optimum ağını validator ekipleriyle birlikte Ethereum'un Hoodi testnet'inde devreye aldı. Orada blokların ortalama 150 ms civarında ulaştığını açıklıyor.",
@@ -12,6 +13,7 @@
         guide: "Optimum'un 'Acceleration: mump2p Early Results on Hoodi Testnet' yazısının ve OptimumP2P makalesinin ortak yazarı",
       },
       flood: {
+        hint: "Dupe'lar sürü halinde gelir: Jeff'in tek patlaması bütün sürüyü temizler.",
         sub: 'Gossipsub bant genişliğini neden boşa harcar',
         blurb: "Birbirinin kopyası mesajlardan oluşan bir girdap kasanın üstüne çöküyor.",
         optimum: "Gossipsub mesajı olduğu gibi iletir; bu yüzden peer'lar aynı bloğu defalarca alır. mump2p ise kodlanmış shard'lar gönderir. Optimum'a göre bu, Gossipsub'a kıyasla %90 ile %95 arasında daha az bant genişliği demek.",
@@ -19,6 +21,7 @@
         guide: "'Comparing the Performance of OptimumP2P and Gossipsub' yazısının ve OptimumP2P makalesinin ortak yazarı",
       },
       shard: {
+        hint: "5. dalgadan itibaren her düşman kodlu. Aynı hatta üç farklı ekip üyesi koy.",
         sub: "Tüm shard'lara hiçbir zaman ihtiyacın yok",
         blurb: "Bir vadi rotası. 5. dalgadan itibaren gelen her mesaj kodlu.",
         optimum: "mump2p'de bir mesaj shard'lara bölünür (varsayılan shard faktörü 4). Bir node, elindeki shard'lar eşik payına ulaştığı anda mesajı iletebilir ya da çözebilir; bu eşik varsayılan olarak %75.",
@@ -26,6 +29,7 @@
         guide: 'OptimumP2P makalesinin ortak yazarı',
       },
       blob: {
+        hint: "Bant Oburları ölünce üçe bölünür: onları Jeff'in alan hasarının parçaları yakalayacağı yerde öldür.",
         sub: 'Büyük bloklar, daha büyük seller',
         blurb: "Blob trafiği dar bir zikzak rotayı sel gibi basıyor.",
         optimum: "mump2p blokları, blob'ları ve işlemleri taşır. Optimum'un ilk A/B testlerinde Gossipsub yük altında 4 MB'lık mesajlarda tıkanırken mump2p 10 MB'lık mesajları taşıyabildi.",
@@ -33,6 +37,7 @@
         guide: "OptimumP2P makalesinin ortak yazarı ve Optimum dokümanlarına katkı verenlerden",
       },
       mesh: {
+        hint: "Altı ekip üyesi tam kıvamı: bütün ekip %15 daha hızlı ateş eder. Yığmak yerine geliştir.",
         sub: 'Altı peer tam kararında',
         blurb: "Bir peer grafiğinin içinden geçen sütun sütun bir rota. Mesh dediğin, senin ekibin.",
         optimum: "mump2p de Gossipsub gibi bir peer mesh'i tutar: hedef 6 peer. Sayı 4'ün altına inerse yeni peer ekler, 12'yi aşarsa budar.",
@@ -40,6 +45,7 @@
         guide: "OptimumP2P ile Gossipsub karşılaştırmasının ve OptimumP2P makalesinin ortak yazarı; mump2p geliştirici kurulum rehberine de katkı verdi",
       },
       subsea: {
+        hint: "Denizaltı hattı düz atışların %30'unu yutar. Muriel'in yakınındaki atışlar kodludur, kodlu atış kaybolmaz.",
         sub: 'İki rota, tek kasa',
         blurb: 'Trafik iki kıtadan geliyor ve denizin altında birleşiyor.',
         optimum: "RLNC kayıplı hatlar için tasarlandı: birbirinden bağımsız herhangi k kodlu shard mesajı yeniden kurar, yani yolda düşen bir shard'ın hiçbir maliyeti yok. Flexnode'lar kayıpları telafi etmek için kodlu tamponlar tutar.",
@@ -47,6 +53,7 @@
         guide: "OptimumP2P makalesinin ortak yazarı ve Optimum dokümanlarına katkı verenlerden",
       },
       flex: {
+        hint: "Parlayan beş Flexnode pad'ine kur: %25 daha hızlı ateş, her atış taze shard sayılır.",
         sub: 'Dünyaya yayılmış bir veri hızlandırıcı ağı',
         blurb: "Bazı pad'ler Flexnode. Ekibini oralara kur.",
         optimum: "Flexnode'lar RLNC ile kodlanmış çerçeveleri kodlayan, çözen ve ileten, izin gerektirmeyen node'lardır. Operatörler bant genişliği sağladıkları için ödül kazanır.",
@@ -54,6 +61,7 @@
         guide: 'OptimumP2P makalesinin ortak yazarı',
       },
       gateway: {
+        hint: "Gateway'den sonra her vuruş kodlu shard. En güçlü ekibini ikinci yarıya koy.",
         sub: "Tak ve çalıştır, client'a dokunma",
         blurb: "Sol yarı düz libp2p, sağ yarı mump2p.",
         optimum: "Optimum Gateway sayesinde Prysm, Lighthouse, Nimbus, Teku ve Lodestar hiçbir client değişikliği yapmadan mump2p kullanabiliyor: Gateway gossip trafiğini alıyor, RLNC üzerinden taşıyor ve geri teslim ediyor.",
@@ -61,6 +69,7 @@
         guide: "OptimumP2P makalesinin ortak yazarı ve Optimum Gateway'e katkı verenlerden",
       },
       stress: {
+        hint: "İki kat düşman, yarı can: alan hasarı ve zincir vuruşlar burada kazanır.",
         sub: 'Yoğun trafik, bahane yok',
         blurb: "Rota Optimum logosunun ta kendisi: tam bir sonsuzluk döngüsü, merkezden iki kez geçiyor.",
         optimum: "Optimum ilk A/B testlerinde yoğun trafik altında Gossipsub'a göre yaklaşık 10 kat daha düşük gecikme ölçtüğünü ve stres senaryolarında tek bir mesajın bile kaybolmadığını açıkladı.",
@@ -68,6 +77,7 @@
         guide: "Optimum danışmanı ve OptimumP2P makalesinin ortak yazarı; bilgi teorisi ve ağ bilimi üzerine çalışıyor",
       },
       mainnet: {
+        hint: "Kaçan her validator 15 coin'e mal olur, dalgayı erken çağırmak iki kat öder. Hızlı ve temiz oyna.",
         sub: 'Hız paradır',
         blurb: "İki giriş tek bir uzun ana hatta akıyor; son dalgada ikiz Gossip Blob geliyor. Sonrası sonsuz mod.",
         optimum: "Optimum'a göre daha hızlı yayılım, validator'lar için daha fazla attestation ödülü, daha iyi MEV fırsatları ve daha az kaçırılan blok önerisi anlamına geliyor.",
@@ -129,10 +139,10 @@
       sunny: {
         role: 'Flexnode Bankası',
         short: "Adını Kent Lin'den alıyor.",
-        blurb: "Savaşmaz. Kent senin ekonomin: temizlediğin her dalgadan sonra coin öder, biriktirdiğin coin'lere de faiz işletir. Kira katlanarak büyüsün diye onu erken al, parayı da geliştirmelere harca. Hız paradır.",
+        blurb: "Savaşmaz. Kent senin ekonomin: temizlediğin her dalgadan sonra kira öder. Kira birikip işe yarasın diye onu erken al, parayı da geliştirmelere harca. Her ek Kent bir öncekinin %60'ını öder: staking getirisi seyrelir. Hız paradır.",
         tribute: "Adını Optimum kurucu ortağı Kent Lin'den alıyor. İş geliştirme, tokenomics ve yatırım turlarından sorumlu; daha önce GSRV'de Partner ve Harvard Blockchain Club başkanıydı.",
         specs: {
-          a: { name: 'Validator Fund', blurb: "Tam teşekküllü bir staking masası: her dalga 130 coin, üstüne birikime %8 faiz." },
+          a: { name: 'Validator Fund', blurb: "Tam teşekküllü bir staking masası: her dalga 150 coin kira." },
           b: { name: 'MEV Hunter', blurb: "Düşmanlara altın fırlatır; menzilinde gerçekleşen her öldürme 3 coin fazladan kazandırır." },
         },
       },
