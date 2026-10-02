@@ -3,6 +3,7 @@
 //   POST /api/run      -> { id, ts, sig }   signed run ticket, requested when a run starts
 //   POST /api/register -> { handle, key }   claims a player name; the key stays on the player's device and signs their posts
 //   GET  /api/scores?stage=n -> { rows: [...] }   top 50 of that campaign stage, best score per player name
+//   GET  /api/scores?stage=all -> { rows: [...] }  overall board: best score per stage added up, with the stage count
 //   POST /api/scores   -> { ok, improved, rank, best }   needs handle + key from /api/register
 //
 // Player names live on this server: a name is claimed once, the device that claimed it gets a secret key, and
@@ -52,6 +53,13 @@ const hashIp = (secret, ip) => crypto.createHmac('sha256', secret).update(`ip:${
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 const int = (v) => (Number.isFinite(Number(v)) ? Math.floor(Number(v)) : NaN);
 
+// Overall board: every player's best score on each stage added up, plus how many stages they have a score on.
+export async function overall(store) {
+  const boards = await Promise.all(Object.values(STAGES).map((S) => readBoard(store, S.key)));
+  const by = new Map();
+  boards.forEach((b, i) => { for (const r of b.rows) { const k = r.handle.toLowerCase(); const o = by.get(k) || { handle: r.handle, score: 0, stages: 0, wave: 0, at: r.at }; o.score += r.score; o.stages += 1; o.wave = Math.max(o.wave, r.wave); if (r.at > o.at) o.at = r.at; by.set(k, o); } });
+  return [...by.values()].sort((x, y) => y.score - x.score || y.stages - x.stages || x.at.localeCompare(y.at));
+}
 async function readBoard(store, key) {
   const b = await store.get(key, { type: 'json' });
   return b && Array.isArray(b.rows) ? b : { rows: [] };
@@ -95,6 +103,7 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   if (!path.endsWith('/api/scores')) return json({ error: 'Not found.' }, 404);
 
   if (req.method === 'GET') {
+    if (url.searchParams.get('stage') === 'all') return json({ stage: 'all', rows: (await overall(store)).slice(0, SHOW) }, 200, { 'cache-control': 'no-store' });
     const st = stageOf(url.searchParams.get('stage'));
     const b = await readBoard(store, STAGES[st].key);
     return json({ stage: st, rows: b.rows.slice(0, SHOW) }, 200, { 'cache-control': 'no-store' });

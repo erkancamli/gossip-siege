@@ -122,3 +122,14 @@ test('registration is rate limited per client', async () => {
   assert.equal((await handle(req('POST', '/api/register', { handle: 'second' }), { ...env, now: 1000 })).status, 429);
   assert.equal((await handle(req('POST', '/api/register', { handle: 'second' }), { ...env, now: 20_000 })).status, 200);
 });
+
+test('overall board adds up the best score per stage for each name', async () => {
+  const env = { store: memStore(), ip: '1.1.1.9', secret: SECRET };
+  const a = await ticket(env, 0), b = await ticket(env, 0), c = await ticket(env, 0);
+  assert.equal((await submit(env, { handle: 'ada', stage: 1, score: 30000, wave: 12, lives: 20, run: a }, 900_000)).status, 200);
+  assert.equal((await submit(env, { handle: 'ada', stage: 2, score: 40000, wave: 14, lives: 20, run: b }, 1_800_000)).status, 200);
+  assert.equal((await submit(env, { handle: 'bob', stage: 1, score: 50000, wave: 12, lives: 20, run: c }, 2_700_000)).status, 200);
+  const all = await (await handle(req('GET', '/api/scores?stage=all'), env)).json();
+  assert.equal(all.stage, 'all');
+  assert.deepEqual(all.rows.map((r) => [r.handle, r.score, r.stages]), [['ada', 70000, 2], ['bob', 50000, 1]]);
+});

@@ -87,10 +87,11 @@ test/                         API tests and a local dev server
 | --- | --- | --- |
 | `/api/run` | POST | Signed run ticket, requested when a run starts |
 | `/api/scores?stage=n` | GET | Top 50 of a stage (1 to 10), best score per player name |
+| `/api/scores?stage=all` | GET | Overall board: each player's best score per stage added up, with the number of stages scored |
 | `/api/scores` | POST | Submit a finished run (with its stage); needs the player's name and device key |
 | `/api/register` | POST | Claim a player name; returns the device key that signs that name's posts |
 
-Player names live on the game's own server: a name is claimed once (3 to 15 letters, digits or underscores), the device that claimed it gets a secret key kept in its local storage, and only posts carrying that key count for that name. A player who changes device picks a new name; the old scores stay on the board. On top of that: a server signed ticket per run, a minimum real play time per wave, a score ceiling derived from the game's own scoring, one ticket per run, and a short rate limit per client for posts and registrations.
+Player names live on the game's own server: a name is claimed once (3 to 15 letters, digits or underscores), the device that claimed it gets a secret key kept in its local storage, and only posts carrying that key count for that name. A player who changes device picks a new name; the old scores stay on the board. Once a name is saved every finished run is posted automatically, and the Overall tab adds up each player's best per stage. On top of that: a server signed ticket per run, a minimum real play time per wave, a score ceiling derived from the game's own scoring, one ticket per run, and a short rate limit per client for posts and registrations.
 
 ## Deploy on Netlify
 

@@ -351,6 +351,8 @@ body.small .coach { font-size: 20px; }
 .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
 .tab { font-family: var(--mono); font-size: 11px; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); color: var(--dim); }
 .tab.on { color: var(--paper); border-color: var(--line2); background: rgba(255,255,255,0.06); }
+.tab.all { color: var(--gold); border-color: rgba(255,210,63,0.4); }
+.tab.all.on { background: rgba(255,210,63,0.12); }
 .estars { font-size: 40px; color: var(--gold); letter-spacing: 0.08em; line-height: 1; }
 .stagechip .v { font-family: var(--display); font-size: 14px; font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .rbtn, .card { animation: none; } .sendbtn.go { animation: none; } }
@@ -603,7 +605,8 @@ const UI_TR = {
   // leaderboard and player names
   'Stage {id} board': '{id}. bölüm tablosu', 'No scores on this stage yet. Be the first to hold the mesh.': "Bu bölümde henüz skor yok. Mesh'i koruyan ilk kişi sen ol.",
   'The shared leaderboard is not reachable right now. Your best runs are kept on this device.': 'Ortak sıralamaya şu anda ulaşılamıyor. En iyi skorların bu cihazda saklanıyor.',
-  'Your best on this device: {s}': 'Bu cihazdaki en iyi skorun: {s}',
+  'Your best on this device: {s}': 'Bu cihazdaki en iyi skorun: {s}', 'Overall': 'Genel', 'Every stage added up': 'Tüm bölümlerin toplamı', 'Your total on this device: {s} across {n} stages': 'Bu cihazdaki toplamın: {n} bölümde {s}',
+  'Every stage added up. Save a name and your runs are posted automatically.': 'Tüm bölümlerin toplamı. Bir ad kaydet, oyunların otomatik olarak tabloya girsin.', 'No scores yet. Save a name and finish a stage.': 'Henüz skor yok. Bir ad kaydet ve bir bölüm bitir.',
   'Names need 3 to 15 letters, digits or underscores.': 'Ad 3 ile 15 karakter arasında olmalı; harf, rakam ve alt çizgi kullanabilirsin.', 'Saving...': 'Kaydediliyor...', 'Saved. You post scores as @{h}.': 'Kaydedildi. Skorların tabloya @{h} adıyla girecek.',
   'That name is taken. Pick another.': 'Bu ad alınmış. Başka bir ad dene.', 'That name is reserved. Pick another.': 'Bu ad kullanılamaz. Başka bir ad dene.', 'Could not reach the board. Try again in a moment.': 'Tabloya ulaşılamadı. Biraz sonra tekrar dene.',
   'Change name? Your scores stay on the board under @{h}; the new name starts fresh.': 'Adını değiştirmek istiyor musun? Eski skorların tabloda @{h} adıyla kalır, yeni ad sıfırdan başlar.',
@@ -1730,6 +1733,7 @@ function finish(won) {
   $('submitBtn').disabled = false; renderName();
   $('lbMsg').textContent = ''; $('lbMsg').className = 'msg';
   lbStage = S.id; loadBoard();
+  if (API && loadPlayer() && runTok) postCurrent(); // registered players are posted automatically; the button stays for retries
 }
 // the end screen text in the current language; rerun when the language changes
 function renderEnd() {
@@ -1792,7 +1796,7 @@ $('endlessBtn').onclick = () => { G.endless = true; G.state = 'build'; G.won = f
 //  inside claude.ai: the artifact db, each signed in player writes scores/<their id> (scores_s<n> for stages 2+)
 //  on the open web (Netlify): /api/scores?stage=n, keyed by X handle, runs signed by /api/run
 const API = (window.claude && window.claude.use) ? null : '/api';
-let DB = null, USER = null, myId = null, lbRows = [], boardOn = false, runTok = null, lbStage = 1, dbUnsub = null, lbSeq = 0;
+let DB = null, USER = null, myId = null, lbRows = [], boardOn = false, runTok = null, lbStage = 0, dbUnsub = null, lbSeq = 0; // lbStage 0 is the overall board (web only)
 const cleanHandle = (v) => String(v || '').trim().replace(/^@+/, '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 15);
 const dbCol = (n) => ({ 1: 'scores', 4: 'scores_s2', 6: 'scores_s3', 10: 'scores_s4' })[n] || 'scores_' + (T.STAGES.find(x => x.id === n) || {}).key; // legacy names kept for the four stage campaign
 async function apiStartRun() {
@@ -1802,11 +1806,12 @@ async function apiStartRun() {
 async function loadBoard() {
   const want = lbStage, seq = ++lbSeq; renderTabs();
   if (API) {
-    try { const r = await fetch(API + '/scores?stage=' + want, { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); if (seq !== lbSeq) return; lbRows = (j.rows || []).map(x => ({ ...x, id: 'h:' + String(x.handle || '').toLowerCase() })); boardOn = true; }
+    try { const r = await fetch(API + '/scores?stage=' + (want === 0 ? 'all' : want), { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); if (seq !== lbSeq) return; lbRows = (j.rows || []).map(x => ({ ...x, id: 'h:' + String(x.handle || '').toLowerCase() })); boardOn = true; }
     catch (e) { if (seq !== lbSeq) return; boardOn = false; lbRows = []; }
     renderBoards(); return;
   }
   if (!DB) { renderBoards(); return; }
+  if (lbStage === 0) lbStage = 1; // the artifact view has no overall board
   if (dbUnsub) { try { dbUnsub(); } catch (e) {} dbUnsub = null; }
   lbRows = []; renderBoards();
   try { dbUnsub = DB.collection(dbCol(want)).orderBy('score', 'desc').limit(25).onSnapshot((snap) => { if (want !== lbStage) return; lbRows = snap.docs.map(d => ({ id: d.id, ...d.data() })); boardOn = true; renderBoards(); }, () => { boardOn = false; renderBoards(); }); } catch (e) { boardOn = false; renderBoards(); }
@@ -1832,23 +1837,26 @@ async function loadBoard() {
 function renderTabs() {
   for (const el of document.querySelectorAll('.tabs')) {
     el.innerHTML = '';
+    if (API) { const b = document.createElement('button'); b.className = 'tab all' + (lbStage === 0 ? ' on' : ''); b.textContent = tr('Overall'); b.title = tr('Every stage added up'); b.onclick = () => { if (lbStage !== 0) { lbStage = 0; loadBoard(); } }; el.appendChild(b); }
     for (const st of T.STAGES) { const b = document.createElement('button'); b.className = 'tab' + (st.id === lbStage ? ' on' : ''); b.textContent = st.name; b.title = tr('Stage {id} board', { id: st.id }); b.onclick = () => { if (lbStage !== st.id) { lbStage = st.id; loadBoard(); } }; el.appendChild(b); }
   }
 }
 function renderBoards() {
   for (const id of ['lbTitle', 'lbEnd', 'lbStages']) {
     const el = $(id); if (!el) continue; el.innerHTML = '';
-    if (!lbRows.length) { const p = document.createElement('div'); p.className = 'lbnote'; p.textContent = tr(boardOn ? 'No scores on this stage yet. Be the first to hold the mesh.' : 'The shared leaderboard is not reachable right now. Your best runs are kept on this device.'); el.appendChild(p); }
+    if (!lbRows.length) { const p = document.createElement('div'); p.className = 'lbnote'; p.textContent = tr(!boardOn ? 'The shared leaderboard is not reachable right now. Your best runs are kept on this device.' : lbStage === 0 ? 'No scores yet. Save a name and finish a stage.' : 'No scores on this stage yet. Be the first to hold the mesh.'); el.appendChild(p); }
     lbRows.slice(0, id === 'lbEnd' ? 12 : 10).forEach((r, i) => {
       const row = document.createElement('div'); row.className = 'lbr' + (r.id === myId ? ' me' : '');
       const rk = document.createElement('span'); rk.className = 'rk'; rk.textContent = i + 1;
       const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (API ? '@' : '') + String(r.handle || 'anon').slice(0, 24);
-      const wv = document.createElement('span'); wv.className = 'wv'; wv.textContent = 'w' + (r.wave || 0);
+      const wv = document.createElement('span'); wv.className = 'wv'; wv.textContent = lbStage === 0 ? (r.stages || 0) + '/' + T.STAGES.length : 'w' + (r.wave || 0);
       const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = Number(r.score || 0).toLocaleString('en-US');
       row.append(rk, nm, wv, sc); el.appendChild(row);
     });
   }
-  const lk = (T.STAGES.find(x => x.id === lbStage) || T.STAGES[0]).key, pr = loadProg(), b = pr.best[lk], stars = pr.stars[lk] || 0;
+  const pr = loadProg();
+  if (lbStage === 0) { const tot = Object.values(pr.best).reduce((a, b) => a + b, 0), n = Object.keys(pr.best).length; $('lbNoteTitle').textContent = tot ? tr('Your total on this device: {s} across {n} stages', { s: tot.toLocaleString('en-US'), n }) : tr('Every stage added up. Save a name and your runs are posted automatically.'); return; }
+  const lk = (T.STAGES.find(x => x.id === lbStage) || T.STAGES[0]).key, b = pr.best[lk], stars = pr.stars[lk] || 0;
   $('lbNoteTitle').textContent = b ? tr('Your best on this device: {s}', { s: b.toLocaleString('en-US') }) + (stars ? '  ' + starStr(stars) : '') : '';
 }
 // ---------- player names ----------
@@ -2102,7 +2110,7 @@ $('ssBack').onclick = () => toTitle();
 // ---------- title ----------
 function toTitle() {
   pending.length = 0; modalOpen = false; $('modal').hidden = true; closeQuiz(); $('learnScr').hidden = true;
-  G = null; closeRing(); ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = true); $('endScr').hidden = true; $('stagesScr').hidden = true; $('titleScr').hidden = false; $('coach').hidden = true; loadBoard();
+  G = null; closeRing(); ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = true); $('endScr').hidden = true; $('stagesScr').hidden = true; $('titleScr').hidden = false; $('coach').hidden = true; if (API) lbStage = 0; loadBoard();
 }
 $('playBtn').onclick = () => { audio(); showStages(); };
 $('howBtn').onclick = () => { pending.length = 0; ['spike', 'cyan', 'nova'].forEach(k => pending.push({ kind: 'crew', id: k })); pending.unshift({ kind: 'foe', id: 'lag', coded: true }); modalOpen = true; nextCodex(); };
