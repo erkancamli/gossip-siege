@@ -96,6 +96,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 
 /* rings */
 .ring { position: absolute; width: 0; height: 0; z-index: 6; }
+.syn { position: absolute; left: 0; transform: translateX(-50%); white-space: nowrap; padding: 3px 10px; border-radius: 7px; background: rgba(14,15,18,0.86); color: #f3f4f6; font: 600 11px var(--mono); pointer-events: none; }
+.syn.alone { background: rgba(255,90,78,0.9); }
+.syn:empty { display: none; }
 .rbtn { position: absolute; width: 66px; height: 66px; margin: -33px 0 0 -33px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #23262c, #0e0f12 70%); border: 1px solid var(--line2); display: grid; place-items: center; transition: transform .14s; animation: pop .18s backwards; }
 .rbtn:hover:not(:disabled) { transform: scale(1.08); border-color: var(--paper); }
 .rbtn canvas { width: 56px; height: 56px; border-radius: 50%; }
@@ -230,6 +233,11 @@ body.small .face { width: 52px; height: 52px; }
 .xbtn:hover { background: var(--paper); opacity: 0.9; }
 .xwho { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .xwho .xh { font-family: var(--mono); font-size: 13px; color: var(--paper); }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; border: 1px solid currentColor; font: 600 11px/1.4 var(--mono); letter-spacing: 0.02em; white-space: nowrap; }
+.ebadge { font: 600 13px var(--mono); color: var(--paper); text-align: center; margin-top: 4px; }
+.ebadge .badge { font-size: 12px; margin-left: 6px; }
+.tot .badge { margin-left: 8px; vertical-align: middle; }
+.tot .nextb { margin-left: 10px; font: 500 11px var(--mono); color: var(--dim); }
 .xwho .xout { font-family: var(--mono); font-size: 11px; color: var(--dim); text-decoration: underline; }
 /* portrait: 720x1280 frame. Info on top, actions in the bottom thumb zone, menus as bottom sheets. */
 body.portrait .hud { flex-wrap: wrap; gap: 6px; }
@@ -400,7 +408,7 @@ body.small .coach { font-size: 20px; }
       <div class="tabs"></div>
       <div class="lb" id="lbTitle"></div>
       <div class="lbnote" id="lbNoteTitle"></div>
-      <div class="xauth" id="nameTitle"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="save" data-t="nameSave">Save name</button></div><div class="xwho" hidden><span class="xh"></span><button class="xout" data-n="change" data-t="nameChange">change name</button></div><div class="msg" id="nameMsgTitle"></div></div>
+      <div class="xauth" id="nameTitle"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="save" data-t="nameSave">Save name</button></div><div class="xwho" hidden><span class="xh"></span><span class="badgeSlot"></span><button class="xout" data-n="change" data-t="nameChange">change name</button></div><div class="msg" id="nameMsgTitle"></div></div>
     </aside>
     <footer class="foot">
       <div class="lgroup"><span class="label">Optimum</span><a href="https://www.getoptimum.xyz" target="_blank" rel="noopener" data-t="lkSite">Website</a><a href="https://docs.getoptimum.xyz" target="_blank" rel="noopener" data-t="lkDocs">Docs</a><a href="https://www.getoptimum.xyz/blog" target="_blank" rel="noopener">Blog</a><a href="https://x.com/get_optimum" target="_blank" rel="noopener">X</a><a href="https://discord.gg/getoptimum" target="_blank" rel="noopener">Discord</a><a href="https://t.me/+I1fmgPCPO5IxNzZl" target="_blank" rel="noopener">Telegram</a><a href="https://github.com/getoptimum" target="_blank" rel="noopener">GitHub</a><a href="https://arxiv.org/abs/2508.04833" target="_blank" rel="noopener" data-t="lkPaper">OptimumP2P paper</a></div>
@@ -494,7 +502,7 @@ body.small .coach { font-size: 20px; }
       <div class="endc">
         <div class="endl">
           <span class="label full" id="eTag">The mesh held</span>
-          <div class="full estars" id="eStars" hidden></div>
+          <div class="full estars" id="eStars" hidden></div><div class="full ebadge" id="eBadge" hidden></div>
           <div class="full role" id="roleBox" hidden><canvas class="face big" data-portrait="flash" data-mood="excited" width="160" height="160"></canvas><div><span class="rt" data-t="roleRt">Flash assigned your role</span><h4 id="roleName"></h4><p id="roleWhy"></p><span class="next" id="roleNext"></span></div></div>
           <h2 class="full" id="eTitle"></h2>
           <canvas id="cardcv" width="1200" height="675" aria-label="Your score card"></canvas>
@@ -513,7 +521,7 @@ body.small .coach { font-size: 20px; }
           <h3 data-t="boardH3">Mesh leaderboard</h3>
           <div class="tabs"></div>
           <div class="handle" id="handleRow" hidden><input id="handleIn" maxlength="24" placeholder="Your handle" aria-label="Your handle"><button class="btn" id="submitBtn" data-t="submitBtn">Submit</button></div>
-          <div class="xauth" id="nameEnd"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="savepost" data-t="nameSavePost">Save and post score</button></div><div class="xwho" hidden><span class="xh"></span><button class="btn xbtn" data-n="submit" data-t="namePost">Post score</button><button class="xout" data-n="change" data-t="nameChange">change name</button></div></div>
+          <div class="xauth" id="nameEnd"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="savepost" data-t="nameSavePost">Save and post score</button></div><div class="xwho" hidden><span class="xh"></span><span class="badgeSlot"></span><button class="btn xbtn" data-n="submit" data-t="namePost">Post score</button><button class="xout" data-n="change" data-t="nameChange">change name</button></div></div>
           <div class="msg" id="lbMsg"></div>
           <div class="lb" id="lbEnd"></div>
         </aside>
@@ -546,6 +554,9 @@ const UI_TR = {
   fsBtn: 'Tam ekran',
   fine: "Optimum topluluğu için @ekinoks_26 tarafından hazırlanmış bir hayran yapımıdır; resmi bir Optimum ürünü değildir. Ekip, topluluğun Optimum maskotundan esinlenerek tasarlandı. Oyundaki sayılar eğlence içindir; ama içindeki RLNC kuralı gerçek: kodlu bir blok ancak yeterli sayıda bağımsız shard ile açılır. <a href=\"https://www.getoptimum.xyz\" target=\"_blank\" rel=\"noopener\">getoptimum.xyz</a>",
   boardH3: 'Mesh sıralaması', dailyLabel: 'Günün meydan okuması', dailyBtn: 'Bugünün meydan okumasını oyna',
+  'Mesh Builder': 'Mesh Ustası', 'Mesh Keeper': 'Mesh Bekçisi', 'Perfect Mesh': 'Kusursuz Mesh', '{n} campaign stars': '{n} kampanya yıldızı', '{n} ★ to {name}': '{name} için {n} ★ kaldı', 'New badge earned:': 'Yeni rozet kazanıldı:',
+  '{n} crew in the aura': 'auranın içinde {n} ekip üyesi', 'no crew in aura range': 'aura menzilinde ekip üyesi yok', '{n} crew shielded from Spam Bots': "Spam Bot'lardan korunan {n} ekip üyesi", 'no crew in range to shield': 'menzilde korunacak ekip üyesi yok',
+  'alone on this stretch': 'bu kesimde tek başına', '{n} crew on this stretch · {n} shards': 'bu kesimde {n} ekip üyesi · {n} shard',
   'Daily': 'Günlük', 'This week': 'Bu hafta', "Today's challenge, same board for everyone": 'Bugünün meydan okuması, herkes için aynı tablo', 'Best per stage since Monday, added up': "Pazartesiden beri bölüm başına en iyi skorların toplamı",
   'Nobody has posted today. Be the first.': 'Bugün henüz kimse skor göndermedi. İlk sen ol.', 'Today: {name} · {mod}': 'Bugün: {name} · {mod}', 'Your best today: {s}': 'Bugünkü en iyi skorun: {s}',
   'Best per stage since Monday, added up. Resets Monday 00:00 UTC.': 'Pazartesiden beri bölüm başına en iyi skorların toplamı. Pazartesi 00:00 UTC\'de sıfırlanır.', 'New challenge in {h}h {m}m': 'Yeni meydan okuma {h} sa {m} dk sonra',
@@ -1180,6 +1191,7 @@ function buildBg() {
     const pg = g.createLinearGradient(0, p[1] - 14, 0, p[1] + 14); pg.addColorStop(0, th.pad[0]); pg.addColorStop(1, th.pad[1]);
     g.fillStyle = pg; g.beginPath(); g.ellipse(p[0], p[1], 32, 14, GR, 0, 7); g.fill();
     g.strokeStyle = INK(0.28); g.lineWidth = 1.2; g.beginPath(); g.ellipse(p[0], p[1], 32, 14, GR, 0, 7); g.stroke();
+    { const tier = starTier(starTotal()); if (tier) { g.strokeStyle = tier.col; g.globalAlpha = 0.75; g.lineWidth = 1.6; g.beginPath(); g.ellipse(p[0], p[1], 35, 15.5, GR, 0, 7); g.stroke(); g.globalAlpha = 1; } }
     g.save(); g.translate(p[0], p[1]); g.scale(1, 0.42); markAt(g, 0, 0, 30, INK(0.18)); g.restore();
     if ((st.flexPads || []).includes(pi)) { g.strokeStyle = th.acc; g.lineWidth = 2; g.beginPath(); g.ellipse(p[0], p[1], 34, 15, GR, 0, 7); g.stroke(); g.fillStyle = th.acc; g.font = '600 9px IBM Plex Mono, monospace'; g.textAlign = 'center'; upright(g, p[0], p[1] + 28, (x, y) => g.fillText('FLEXNODE', x, y)); }
   });
@@ -1429,7 +1441,7 @@ function foeIcon(type, coded) { const c = document.createElement('canvas'); c.wi
 // ---------- render ----------
 function render(now) {
   setWorld(ctx);
-  const key = curStage().id + ':' + DPR + ':' + DAY + ':' + PORTRAIT; if (!bgCache || bgKey !== key) { bgCache = buildBg(); bgKey = key; }
+  const tier = starTier(starTotal()), key = curStage().id + ':' + DPR + ':' + DAY + ':' + PORTRAIT + ':' + (tier ? tier.at : 0); if (!bgCache || bgKey !== key) { bgCache = buildBg(); bgKey = key; }
   const sx = shake ? (Math.random() - 0.5) * shake * 10 : 0, sy = shake ? (Math.random() - 0.5) * shake * 10 : 0;
   ctx.save(); ctx.translate(sx, sy);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.translate(sx * DPR, sy * DPR); ctx.drawImage(bgCache, 0, 0); ctx.restore();
@@ -1448,6 +1460,7 @@ function render(now) {
   // range preview for selection (shows the next level's range dashed while hovering an upgrade)
   if (sel && sel.tower) { drawRange(sel.tower.kind, sel.tower.lvl, sel.tower.spec, sel.tower.x, sel.tower.y); if (sel.nextPreview) drawRange(sel.tower.kind, sel.nextPreview.lvl, sel.nextPreview.spec, sel.tower.x, sel.tower.y, true); }
   if (sel && sel.preview) drawRange(sel.preview, 0, null, G.pads[sel.pad].x, G.pads[sel.pad].y);
+  drawSynergy(now);
   // cyan auras
   for (const t of G.towers) if (t.kind === 'cyan') { const r = T.stat(t).range; ctx.strokeStyle = t.lvl >= 3 ? 'rgba(77,216,255,0.32)' : 'rgba(77,216,255,0.16)'; ctx.setLineDash([4, 8]); ctx.lineDashOffset = -now * 20 * (1 + t.lvl * 0.5); ctx.lineWidth = 1.5 + t.lvl * 0.5; ctx.beginPath(); ctx.ellipse(t.x, t.y, r, r * 0.92, GR, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
   // firewalls on the path
@@ -1526,6 +1539,50 @@ function render(now) {
   if (G.abilities.surge.active > 0) { ctx.fillStyle = `rgba(77,163,255,${0.05 + 0.03 * Math.sin(now * 8)})`; ctx.fillRect(0, 0, 1280, 720); }
   if (paused && !modalOpen) { ctx.fillStyle = 'rgba(10,11,13,0.55)'; ctx.fillRect(0, 0, 1280, 720); ctx.fillStyle = '#e5e7eb'; ctx.font = '700 48px "Familjen Grotesk", sans-serif'; ctx.textAlign = 'center'; upright(ctx, 640, 370, (x, y) => ctx.fillText(tr('Paused'), x, y)); }
   ctx.restore();
+}
+// Synergy lines: with a crew member selected (or one previewed on an empty pad) show who it buffs, who buffs it,
+// who shields it from Spam Bots, and which other crew cover the same stretch of road (each one is another
+// independent shard against a coded shield). Pure UI, reads the engine's own rules.
+const DEALERS = { spike: 1, blaze: 1, silk: 1, nova: 1 }, SHARDERS = { spike: 1, blaze: 1, silk: 1, cyan: 1, nova: 1 };
+let synCache = { key: '', links: [], cover: 0 };
+function synergyOf(kind, lvl, spec, x, y, self) {
+  const st = T.statAt(kind, lvl, spec), range = st.range || 0, links = [], d = (t) => Math.hypot(t.x - x, t.y - y);
+  for (const t of G.towers) {
+    if (t === self) continue; const ts = T.stat(t);
+    if (kind === 'cyan' && t.kind !== 'sunny' && d(t) <= range) links.push({ t, type: 'buff' });
+    if (t.kind === 'cyan' && kind !== 'cyan' && kind !== 'sunny' && d(t) <= ts.range) links.push({ t, type: 'buffed' });
+    if (G.seenFoes.spam) { if (kind === 'moss' && t.kind !== 'moss' && d(t) <= range) links.push({ t, type: 'guard' }); if (t.kind === 'moss' && kind !== 'moss' && d(t) <= ts.range) links.push({ t, type: 'guarded' }); }
+  }
+  let cover = 0;
+  if (DEALERS[kind] && range) { // road samples inside this range, then how many other dealers also reach each one
+    const others = G.towers.filter(t => t !== self && SHARDERS[t.kind]), shared = new Set();
+    for (const P of G.paths) for (let dd = 0; dd <= P.len; dd += 22) { const q = T.pathPos(P, dd); if (Math.hypot(q.x - x, q.y - y) > range) continue; let n = 1; for (const t of others) if (Math.hypot(q.x - t.x, q.y - t.y) <= T.stat(t).range) { n++; shared.add(t); } cover = Math.max(cover, n); }
+    for (const t of shared) if (!links.some(l => l.t === t)) links.push({ t, type: 'stretch' });
+  }
+  return { links, cover, kind };
+}
+function drawSynergy(now) {
+  if (!sel) return;
+  const pad = G.pads[sel.pad]; let kind, lvl, spec, self = null;
+  if (sel.tower) { kind = sel.tower.kind; lvl = sel.nextPreview ? sel.nextPreview.lvl : sel.tower.lvl; spec = sel.nextPreview ? sel.nextPreview.spec : sel.tower.spec; self = sel.tower; }
+  else if (sel.preview) { kind = sel.preview; lvl = 0; spec = null; } else return;
+  const key = [kind, lvl, spec, pad.i, G.towers.length, G.towers.map(t => t.id + ':' + t.lvl + (t.spec || '')).join(',')].join('|');
+  if (synCache.key !== key) synCache = { key, ...synergyOf(kind, lvl, spec, pad.x, pad.y, self) };
+  const COL = { buff: 'rgba(77,216,255,0.85)', buffed: 'rgba(77,216,255,0.85)', guard: 'rgba(123,220,106,0.8)', guarded: 'rgba(123,220,106,0.8)', stretch: DAY ? 'rgba(14,15,18,0.55)' : 'rgba(229,231,235,0.6)' };
+  ctx.save(); ctx.lineCap = 'round';
+  for (const l of synCache.links) {
+    const t = l.t, flow = l.type === 'buff' || l.type === 'guard'; // arrows run from the giver to the receiver
+    ctx.strokeStyle = COL[l.type]; ctx.lineWidth = l.type === 'stretch' ? 1.8 : 2.4; ctx.setLineDash(l.type === 'stretch' ? [3, 7] : [8, 6]); ctx.lineDashOffset = (flow ? -1 : 1) * now * 40;
+    ctx.beginPath(); ctx.moveTo(pad.x, pad.y - 10); ctx.lineTo(t.x, t.y - 10); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = COL[l.type]; ctx.beginPath(); ctx.arc(t.x, t.y - 10, 4, 0, 7); ctx.fill();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+  const l = $('synLabel'); if (l && l.dataset.key !== key) { l.dataset.key = key; const n = synCache.cover, k = synCache.kind, c = (ty) => synCache.links.filter(x => x.type === ty).length; let txt = '', alone = false;
+    if (DEALERS[k]) { txt = n <= 1 ? tr('alone on this stretch') : tr('{n} crew on this stretch · {n} shards', { n }); alone = n <= 1; }
+    else if (k === 'cyan') { const m = c('buff'); txt = m ? tr('{n} crew in the aura', { n: m }) : tr('no crew in aura range'); alone = !m; }
+    else if (k === 'moss' && G.seenFoes.spam) { const m = c('guard'); txt = m ? tr('{n} crew shielded from Spam Bots', { n: m }) : tr('no crew in range to shield'); alone = !m; }
+    l.textContent = txt; l.classList.toggle('alone', alone); }
 }
 function drawRange(kind, lvl, spec, x, y, next) {
   const st = T.statAt(kind, lvl, spec); if (!st.range) return; const r = Math.min(st.range, 1400);
@@ -1623,6 +1680,7 @@ function openRing(padIdx) {
   const bar = !pad.tower, cx = bar ? Math.max(300, Math.min(FW - 300, sp.x)) : Math.max(110, Math.min(FW - 110, sp.x));
   const above = sp.y > 230;
   ring.style.left = cx + 'px'; ring.style.top = (bar ? sp.y + (above ? -128 : 120) : Math.max(140, Math.min(FH - 120, sp.y))) + 'px';
+  { const l = document.createElement('div'); l.className = 'syn'; l.id = 'synLabel'; l.style.top = (bar ? (above ? 60 : -62) : -150) + 'px'; l.style.left = (bar ? (sp.x - cx) : 0) + 'px'; ring.appendChild(l); }
   if (pad.tower) {
     const t = pad.tower;
     const mk = (cls, x, y, html) => { const b = document.createElement('button'); b.className = 'rbtn act ' + cls; b.style.left = x + 'px'; b.style.top = y + 'px'; b.innerHTML = html; ring.appendChild(b); return b; };
@@ -1798,6 +1856,13 @@ function loadProg() {
 }
 function saveProg(p) { try { const { unlocked, ...rest } = p; localStorage.setItem('gs_progress2', JSON.stringify(rest)); } catch (e) {} }
 const starStr = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
+// Cosmetic star rewards: campaign stars add up to a badge. Nothing in play changes, only looks: the badge next to
+// the player name, a tinted rim on every pad, and a line on the stage select that says what the next badge costs.
+const STAR_TIERS = [{ at: 10, name: 'Mesh Builder', col: '#d59a62' }, { at: 20, name: 'Mesh Keeper', col: '#cfd5de' }, { at: 30, name: 'Perfect Mesh', col: '#ffd23f' }];
+const starTotal = (prog) => Object.values((prog || loadProg()).stars).reduce((a, b) => a + b, 0);
+const starTier = (total) => STAR_TIERS.filter(t => total >= t.at).pop() || null;
+function badgeHtml(total) { const t = starTier(total); if (!t) return ''; return `<span class="badge" style="color:${t.col}" title="${tr('{n} campaign stars', { n: total })}">★ ${tr(t.name)}</span>`; }
+function renderBadges() { const total = starTotal(); for (const el of document.querySelectorAll('.badgeSlot')) el.innerHTML = badgeHtml(total); }
 function finish(won) {
   pending.length = 0; modalOpen = false; $('modal').hidden = true; closeQuiz();
   ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = true); closeRing(); $('coach').hidden = true;
@@ -1810,7 +1875,9 @@ function finish(won) {
     prog.daily = prog.daily || {}; newBest = !prog.daily[G.daily] || G.score > prog.daily[G.daily];
     if (newBest) { prog.daily[G.daily] = G.score; if (API && runTok) { prog.runs = prog.runs || {}; prog.runs['daily:' + G.daily] = { stage: 'daily', day: G.daily, name: S.name, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now(), posted: false }; } }
   } else {
+    const tierBefore = starTier(starTotal(prog));
     if (stars) { prog.stars[S.key] = Math.max(prog.stars[S.key] || 0, stars); prog.cleared[S.key] = true; }
+    G.newTier = starTier(starTotal(prog)) !== tierBefore ? starTier(starTotal(prog)) : null;
     newBest = !prog.best[S.key] || G.score > prog.best[S.key];
     if (newBest) { prog.best[S.key] = G.score; if (API && runTok) { prog.runs = prog.runs || {}; prog.runs[S.key] = { stage: S.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now(), posted: false }; } } // the ticket is kept so the run can be posted later, for instance once a name is saved
   }
@@ -1853,6 +1920,7 @@ function renderEnd() {
   const S = G.stage, { won, endless, newBest, next } = G.end;
   if (next) $('nextBtn').textContent = tr('Next stage: {name}', { name: next.name });
   $('againBtn').textContent = tr(won ? 'Replay for stars' : 'Try again');
+  $('eBadge').hidden = !G.newTier; if (G.newTier) $('eBadge').innerHTML = tr('New badge earned:') + badgeHtml(starTotal());
   $('eTag').textContent = (G.daily ? tr('Daily challenge {d} · {name} · {mod}', { d: G.daily, name: S.name, mod: tr(G.mod.name) }) : tr('Stage {id} · {name}', { id: S.id, name: S.name })) + tr(won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell') + (G.continued ? tr(' · continued: score ×0.7, at most 2 stars') : '');
   { const { r, next, top, p } = roleFor(); $('roleBox').hidden = false; $('roleName').textContent = r.name; $('roleWhy').textContent = tr(r.text);
     const v = { s: p.stars, k: p.known };
@@ -1990,6 +2058,7 @@ function renderName() {
     const row = box.querySelector('.namein'), who = box.querySelector('.xwho'), xh = box.querySelector('.xh');
     row.hidden = !!p; who.hidden = !p; if (p) xh.textContent = '@' + p.handle;
   }
+  renderBadges();
 }
 async function registerName(h, lm) {
   h = cleanHandle(h);
@@ -2206,7 +2275,8 @@ function showStages() {
 function renderStages() {
   const prog = loadProg(), grid = $('sgrid'); grid.innerHTML = '';
   const total = Object.values(prog.stars).reduce((a, b) => a + b, 0);
-  $('ssStars').textContent = `${total} / ${T.STAGES.length * 3} ★`;
+  const nextTier = STAR_TIERS.find(t => t.at > total);
+  $('ssStars').innerHTML = `${total} / ${T.STAGES.length * 3} ★` + badgeHtml(total) + (nextTier ? `<span class="nextb">${tr('{n} ★ to {name}', { n: nextTier.at - total, name: tr(nextTier.name) })}</span>` : '');
   $('learnBtn').textContent = tr('Optimum knowledge {n} / {t}', { n: loadLearned().size, t: window.TD_QUIZ.Q.length });
   for (const st of T.STAGES) {
     const locked = st.id > prog.unlocked, th = themeOf(st);

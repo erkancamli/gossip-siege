@@ -59,6 +59,12 @@ Before each stage a three question briefing on that stage's topic pays starting 
 
 Each stage has its own leaderboard. Difficulty is tuned against three simulated players on the real engine: a casual one (random pads, one purchase per wave), a smart one (pads ranked by route coverage, upgrades the busiest hero first) and the smart one answering the quiz. The target ramp: Beginner stages are cleared by everyone, Intermediate stages cost the casual player lives, Advanced stages need smart placement, Expert stages need smart placement plus quiz boosts, and Mainnet needs level 4 specializations on top (`node src/bot.cjs [stage]` for the optimized bot).
 
+## Synergy lines and star badges
+
+Select a crew member (or hover one on an empty pad) and the map shows what works with what: cyan lines to the crew inside a Recoder aura, green lines to the crew a Throttle shields from Spam Bots, and dashed lines to every other crew member covering the same stretch of road, with a label counting how many independent shards a coded shield can collect there. A lone tower on a stretch is called out in red, because a coded shield never cracks from one source.
+
+Campaign stars add up to three cosmetic badges: Mesh Builder at 10, Mesh Keeper at 20, Perfect Mesh at 30. A badge shows next to the player name, tints the rim of every pad, and the stage select says how many stars the next one costs. Nothing in play changes.
+
 ## Crew upgrades
 
 Every crew member has four levels, the Kingdom Rush pattern. Levels 1 to 3 raise damage, fire rate and range, and the weapon visibly grows: bigger, brighter projectiles with longer trails, more shards per volley, shoulder pads, then a halo. At level 4 each crew member picks one of two specializations with a completely different weapon and gets a cape and crown in its colour.
