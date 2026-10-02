@@ -162,15 +162,23 @@ body.small .face { width: 52px; height: 52px; }
 
 /* screens */
 .screen { position: absolute; inset: 0; z-index: 12; display: grid; place-items: center; overflow-y: auto; background: var(--screen); }
-.title { width: 1180px; padding-block: 18px; display: grid; grid-template-columns: 1fr 360px; gap: 30px; align-items: center; }
+/* title: a normal scrolling page outside the game frame, so it lays out like a website on every screen */
+.page { position: fixed; inset: 0; z-index: 12; overflow-y: auto; background: var(--screen); -webkit-overflow-scrolling: touch; }
+.title { box-sizing: border-box; width: min(1180px, 100% - 48px); min-height: 100%; margin: 0 auto; padding: clamp(20px, 4vh, 48px) 0 32px; display: grid; grid-template-columns: 1fr 360px; gap: 30px; align-items: center; }
+@media (max-width: 980px) { .title { grid-template-columns: 1fr; gap: 20px; align-items: start; } .title .board { min-height: 0; max-height: none; } }
+@media (max-width: 520px) { .title { width: min(1180px, 100% - 32px); } }
+/* big monitors: the page grows in steps instead of staying at phone sized type */
+@media (min-width: 1700px) { .title { zoom: 1.2; } }
+@media (min-width: 2200px) { .title { zoom: 1.4; } }
 .tleft { display: grid; gap: 12px; }
 .tleft svg.logo { width: 150px; color: var(--paper); }
 .slogan { font-family: var(--mono); font-size: 13px; letter-spacing: 0.32em; color: var(--blue); }
-.big { margin: 0; padding-bottom: 0.08em; font-family: var(--display); font-weight: 700; font-size: 100px; line-height: 0.9; letter-spacing: -0.05em; background: linear-gradient(178deg, #ffffff 8%, #c9cfd6 38%, #5d646c 52%, #e6e9ec 68%, #8a9199 92%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.big { margin: 0; padding-bottom: 0.08em; font-family: var(--display); font-weight: 700; font-size: clamp(56px, 9vw, 112px); line-height: 0.9; letter-spacing: -0.05em; background: linear-gradient(178deg, #ffffff 8%, #c9cfd6 38%, #5d646c 52%, #e6e9ec 68%, #8a9199 92%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .lede { margin: 0; color: var(--soft); font-size: 17px; line-height: 1.55; max-width: 36em; }
+.title .lede { font-size: clamp(15px, 1.4vw, 19px); }
 .lede b { color: var(--paper); }
-#crewcv { width: 640px; height: 165px; }
-.tcta { display: flex; gap: 12px; align-items: center; }
+#crewcv { width: min(640px, 100%); height: auto; aspect-ratio: 1400 / 360; }
+.tcta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .fine { font-size: 11.5px; color: var(--dim); line-height: 1.6; max-width: 62em; }
 .fine a { color: var(--soft); }
 .board { border-radius: 16px; background: var(--glass); border: 1px solid var(--line); padding: 16px; display: grid; gap: 10px; align-content: start; min-height: 420px; max-height: 660px; overflow-y: auto; }
@@ -222,9 +230,6 @@ body.portrait .tip { width: 300px; }
 body.portrait .modal .card { grid-template-columns: 1fr; width: 640px; justify-items: center; text-align: center; }
 body.portrait .card .why { text-align: left; }
 body.portrait .screen { align-items: start; }
-body.portrait .title { width: 680px; grid-template-columns: 1fr; gap: 18px; padding-block: 24px; }
-body.portrait #crewcv { width: 100%; height: auto; }
-body.portrait .big { font-size: 84px; }
 body.portrait .board { min-height: 0; max-height: none; }
 body.portrait .stagesel { width: 680px; }
 body.portrait .sshead { flex-direction: column; align-items: flex-start; }
@@ -358,6 +363,31 @@ body.small .coach { font-size: 20px; }
 @media (prefers-reduced-motion: reduce) { .rbtn, .card { animation: none; } .sendbtn.go { animation: none; } }
 </style>
 
+<section class="page" id="titleScr">
+  <div class="title">
+    <div class="tleft">
+      <!--LOGO-->
+      <span class="slogan">SPEED IS MONEY</span>
+      <h1 class="big">Gossip<br>Siege</h1>
+      <p class="lede" data-t="lede">The Gossip Blob and its swarm of duplicates are marching on your validators. Hire the <b>Optimum crew</b>, crack coded armor with <b>independent shards</b>, and take the mesh from <b>Hoodi Testnet to Mainnet</b> across ten stages. Every second wave asks an <b>Optimum question</b>: learn the tech, earn boosts.</p>
+      <div class="tcta"><button class="chrome" id="playBtn" data-t="playBtn">Defend the mesh</button><button class="ghost" id="howBtn" data-t="howBtn">How it plays</button><button class="ghost" id="modeBtn2" title="Day or night mode">☀ Day</button><button class="ghost" id="langBtn" title="Language">TR</button><button class="ghost" id="fsBtn2" data-t="fsBtn" hidden>Full screen</button></div>
+      <canvas id="crewcv" width="1400" height="360" aria-label="The Optimum crew"></canvas>
+      <div class="community"><span class="label" data-t="community">Community</span>
+        <div class="cm"><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><div><b>Pegasus</b><span data-t="cmPegasus">Mumbassador. Your coach, asks the questions.</span></div></div>
+        <div class="cm"><canvas class="face" data-portrait="flash" data-mood="excited" width="84" height="84"></canvas><div><b>Flash</b><span data-t="cmFlash">Hands out the roles: Newbie to Chronicler.</span></div></div>
+      </div>
+      <p class="fine" data-t="fine">Fan made for the Optimum community by @ekinoks_26, not an official Optimum product. Crew designed after the community's Optimum mascot. Game numbers are for fun; the RLNC rule inside is real: a coded block only opens with enough independent shards. <a href="https://www.getoptimum.xyz" target="_blank" rel="noopener">getoptimum.xyz</a></p>
+    </div>
+    <aside class="board">
+      <h3 data-t="boardH3">Mesh leaderboard</h3>
+      <div class="tabs"></div>
+      <div class="lb" id="lbTitle"></div>
+      <div class="lbnote" id="lbNoteTitle"></div>
+      <div class="xauth" id="nameTitle"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="save" data-t="nameSave">Save name</button></div><div class="xwho" hidden><span class="xh"></span><button class="xout" data-n="change" data-t="nameChange">change name</button></div><div class="msg" id="nameMsgTitle"></div></div>
+    </aside>
+  </div>
+</section>
+
 <div id="stage">
   <div id="frame">
     <canvas id="cv" aria-label="Gossip Siege battlefield"></canvas>
@@ -377,6 +407,7 @@ body.small .coach { font-size: 20px; }
         <button class="ib" id="muteBtn" title="Sound">♪</button>
         <button class="ib" id="modeBtn" title="Day or night mode">☀</button>
         <button class="ib" id="langBtn2" title="Language">TR</button>
+        <button class="ib" id="homeBtn2" title="Main menu">⌂</button>
         <button class="ib" id="fsBtn" title="Full screen" hidden>⛶</button>
       </div>
     </div>
@@ -417,30 +448,6 @@ body.small .coach { font-size: 20px; }
       </div>
     </div>
 
-    <section class="screen" id="titleScr">
-      <div class="title">
-        <div class="tleft">
-          <!--LOGO-->
-          <span class="slogan">SPEED IS MONEY</span>
-          <h1 class="big">Gossip<br>Siege</h1>
-          <p class="lede" data-t="lede">The Gossip Blob and its swarm of duplicates are marching on your validators. Hire the <b>Optimum crew</b>, crack coded armor with <b>independent shards</b>, and take the mesh from <b>Hoodi Testnet to Mainnet</b> across ten stages. Every second wave asks an <b>Optimum question</b>: learn the tech, earn boosts.</p>
-          <div class="tcta"><button class="chrome" id="playBtn" data-t="playBtn">Defend the mesh</button><button class="ghost" id="howBtn" data-t="howBtn">How it plays</button><button class="ghost" id="modeBtn2" title="Day or night mode">☀ Day</button><button class="ghost" id="langBtn" title="Language">TR</button><button class="ghost" id="fsBtn2" data-t="fsBtn" hidden>Full screen</button></div>
-          <canvas id="crewcv" width="1400" height="360" aria-label="The Optimum crew"></canvas>
-          <div class="community"><span class="label" data-t="community">Community</span>
-            <div class="cm"><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><div><b>Pegasus</b><span data-t="cmPegasus">Mumbassador. Your coach, asks the questions.</span></div></div>
-            <div class="cm"><canvas class="face" data-portrait="flash" data-mood="excited" width="84" height="84"></canvas><div><b>Flash</b><span data-t="cmFlash">Hands out the roles: Newbie to Chronicler.</span></div></div>
-          </div>
-          <p class="fine" data-t="fine">Fan made for the Optimum community by @ekinoks_26, not an official Optimum product. Crew designed after the community's Optimum mascot. Game numbers are for fun; the RLNC rule inside is real: a coded block only opens with enough independent shards. <a href="https://www.getoptimum.xyz" target="_blank" rel="noopener">getoptimum.xyz</a></p>
-        </div>
-        <aside class="board">
-          <h3 data-t="boardH3">Mesh leaderboard</h3>
-          <div class="tabs"></div>
-          <div class="lb" id="lbTitle"></div>
-          <div class="lbnote" id="lbNoteTitle"></div>
-          <div class="xauth" id="nameTitle"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="save" data-t="nameSave">Save name</button></div><div class="xwho" hidden><span class="xh"></span><button class="xout" data-n="change" data-t="nameChange">change name</button></div><div class="msg" id="nameMsgTitle"></div></div>
-        </aside>
-      </div>
-    </section>
 
     <section class="screen" id="stagesScr" hidden>
       <div class="stagesel">
@@ -549,7 +556,7 @@ const UI_TR = {
   mOk: 'Anladım',
   // titles and placeholders
   'Coins': 'Coin', 'Validators still attesting': "Hâlâ ayakta olan validator'lar", 'Score': 'Skor', 'Campaign stage': 'Kampanya bölümü', 'Crew in your mesh': "Mesh'indeki ekip",
-  'Game speed': 'Oyun hızı', 'Pause': 'Duraklat', 'Sound': 'Ses', 'Day or night mode': 'Gündüz / gece modu', 'Full screen': 'Tam ekran', 'Language': 'Dil', 'Your handle': 'Kullanıcı adın', 'Pick a player name': 'Bir oyuncu adı seç',
+  'Game speed': 'Oyun hızı', 'Pause': 'Duraklat', 'Sound': 'Ses', 'Main menu': 'Ana menü', 'Leave this run and go back to the main menu?': 'Bu oyundan çıkıp ana menüye dönmek istiyor musun?', 'Day or night mode': 'Gündüz / gece modu', 'Full screen': 'Tam ekran', 'Language': 'Dil', 'Your handle': 'Kullanıcı adın', 'Pick a player name': 'Bir oyuncu adı seç',
   'Publish Burst: rain coded shards on an area (counts as an independent shard on every coded shield)': "Publish Burst: bir alana kodlu shard yağdırır (her kodlu kalkanda bağımsız bir shard sayılır)",
   'Flexnode Surge: every crew member fires 70% faster for 6 s': 'Flexnode Surge: bütün ekip 6 saniye boyunca %70 daha hızlı ateş eder',
   'Night': 'Gece', 'Day': 'Gündüz',
@@ -1270,7 +1277,7 @@ function queueCodex(kind, id, coded) {
   pending.push({ kind, id, coded }); if (!modalOpen && !quiz) nextCodex(); // cards wait while a quiz is open
 }
 function nextCodex() {
-  const m = pending.shift(); if (!m) { modalOpen = false; $('modal').hidden = true; return; }
+  const m = pending.shift(); if (!m) { modalOpen = false; $('modal').hidden = true; if (backToTitle) { backToTitle = false; $('titleScr').hidden = false; } return; }
   modalOpen = true; $('modal').hidden = false;
   const pc = $('cardPortrait'), pctx = pc.getContext('2d'); pctx.clearRect(0, 0, 300, 300);
   if (m.kind === 'stage') {
@@ -1658,6 +1665,7 @@ $('pauseBtn').onclick = togglePause;
 $('muteBtn').onclick = () => { muted = !muted; $('muteBtn').style.opacity = muted ? 0.4 : 1; };
 $('modeBtn').onclick = toggleMode; $('modeBtn2').onclick = toggleMode;
 $('langBtn').onclick = () => setLang(LANG === 'tr' ? 'en' : 'tr'); $('langBtn2').onclick = $('langBtn').onclick;
+$('homeBtn2').onclick = () => { if (G && !G.over && G.state !== 'victory' && !confirm(tr('Leave this run and go back to the main menu?'))) return; toTitle(); };
 // full screen where the browser allows it (Android, tablets, desktop); iPhones use Add to Home Screen instead
 const canFs = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
 function goFull() { const el = document.documentElement; const r = el.requestFullscreen ? el.requestFullscreen() : el.webkitRequestFullscreen && el.webkitRequestFullscreen(); Promise.resolve(r).then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {}); }
@@ -2135,7 +2143,8 @@ function toTitle() {
   G = null; closeRing(); ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = true); $('endScr').hidden = true; $('stagesScr').hidden = true; $('titleScr').hidden = false; $('coach').hidden = true; if (API) lbStage = 0; loadBoard();
 }
 $('playBtn').onclick = () => { audio(); showStages(); };
-$('howBtn').onclick = () => { pending.length = 0; ['spike', 'cyan', 'nova'].forEach(k => pending.push({ kind: 'crew', id: k })); pending.unshift({ kind: 'foe', id: 'lag', coded: true }); modalOpen = true; nextCodex(); };
+let backToTitle = false;
+$('howBtn').onclick = () => { backToTitle = true; $('titleScr').hidden = true; pending.length = 0; ['spike', 'cyan', 'nova'].forEach(k => pending.push({ kind: 'crew', id: k })); pending.unshift({ kind: 'foe', id: 'lag', coded: true }); modalOpen = true; nextCodex(); };
 // animated crew line-up on the title screen
 function drawCrewTitle(now) {
   const c = $('crewcv'), x = c.getContext('2d'); x.clearRect(0, 0, 1400, 360);
