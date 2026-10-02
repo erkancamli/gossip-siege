@@ -234,10 +234,11 @@
     return true;
   }
 
+  const MIN_PROGRESS = 0.3; // an enemy under fire always advances at least this share of its speed
   function spawn(g, type, k, d0, opt) {
     const F = FOES[type], m = type === 'boss' ? hpMult(g, g.wave) * 0.5 * (g.wave >= 25 ? 1.4 : g.wave >= 20 ? 1.2 : 1) : hpMult(g, g.wave);
     const e = { id: g.nextId++, type, hp: F.hp * m, maxhp: F.hp * m, spd: F.spd * (1 + Math.min(0.25, g.wave * 0.006)) * g.stage.speed, d: d0 || 0, path: opt && opt.path != null ? opt.path : (g.spawnCount++ % g.paths.length), x: 0, y: 0, armor: (F.armor || 0) * (1 + g.wave * 0.03), r: F.r,
-      shield: k ? { k, need: g.stage.threshold ? Math.ceil(k * g.stage.threshold) : k, got: new Set(), broken: false } : null, slowUntil: 0, slowF: 0, revealedUntil: 0, blinkT: F.blink ? F.blink * (0.6 + g.rng() * 0.6) : 0, hitFlash: 0, born: g.t, dotUntil: 0, dot: 0, bossNext: 0.88, knock: 0, markUntil: 0, markF: 0, stunUntil: 0 };
+      shield: k ? { k, need: g.stage.threshold ? Math.ceil(k * g.stage.threshold) : k, got: new Set(), broken: false } : null, slowUntil: 0, slowF: 0, dFloor: d0 || 0, revealedUntil: 0, blinkT: F.blink ? F.blink * (0.6 + g.rng() * 0.6) : 0, hitFlash: 0, born: g.t, dotUntil: 0, dot: 0, bossNext: 0.88, knock: 0, markUntil: 0, markF: 0, stunUntil: 0 };
     const p = posAt(g, e); e.x = p.x; e.y = p.y;
     g.foes.push(e);
     if (!g.seenFoes[type + (k ? '#' : '')]) { g.seenFoes[type + (k ? '#' : '')] = true; emit(g, { type: 'newFoe', foe: type, coded: !!k }); }
@@ -346,8 +347,11 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
       if (e.hp <= 0) continue;
       const F = FOES[e.type];
       let s = e.spd; if (g.t < e.slowUntil) s *= 1 - e.slowF; if (g.t < e.stunUntil) s = 0;
-      if (e.knock > 0) { const k = Math.min(e.knock, 120 * dt); e.d -= k; e.knock -= k; }
+      if (e.knock > 0) { const k = Math.min(e.knock, 120 * dt); e.d = Math.max(0, e.d - k); e.knock -= k; }
       e.d += s * dt;
+      // guaranteed progress: slows, stuns and knockback can hold an enemy to a crawl but never pin it in place.
+      // The floor creeps forward at a share of the enemy's own speed and the enemy is never behind it.
+      e.dFloor += e.spd * MIN_PROGRESS * dt; if (e.d < e.dFloor) e.d = e.dFloor;
       if (F.blink) { e.blinkT -= dt; if (e.blinkT <= 0) { e.blinkT = F.blink * (0.7 + g.rng() * 0.6); if (g.t >= e.slowUntil) { g.fx.push({ kind: 'blink', x: e.x, y: e.y, t: 0, life: 0.35 }); e.d += 70; } } }
       if (g.t < e.dotUntil) hit(g, e, e.dot * dt, e.dotSrc || null, { pierce: true, quiet: true });
       if (e.hp <= 0) continue;
@@ -461,7 +465,7 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
         s.done = true;
         if (s.kind === 'bomb' || s.kind === 'bomblet') {
           const bx = tx ?? s.x, by = ty ?? s.y;
-          for (const e of g.foes) if (e.hp > 0 && Math.hypot(e.x - bx, e.y - by) <= s.splash + e.r) { hit(g, e, s.dmg, s.src); if (s.knock) e.knock = s.knock; }
+          for (const e of g.foes) if (e.hp > 0 && Math.hypot(e.x - bx, e.y - by) <= s.splash + e.r) { hit(g, e, s.dmg, s.src); if (s.knock) e.knock = Math.max(e.knock, FOES[e.type].boss ? s.knock * 0.4 : s.knock); }
           g.fx.push({ kind: 'ring', x: bx, y: by, t: 0, life: 0.4, r: s.splash, color: s.fire ? '#ff9a3c' : '#ff5a4e', lvl: s.lvl });
           if (s.cluster) for (let i = 0; i < s.cluster; i++) { const a = i / s.cluster * Math.PI * 2 + g.rng(); g.shots.push({ kind: 'bomblet', x: bx, y: by, tx: bx + Math.cos(a) * 58, ty: by + Math.sin(a) * 40, spd: 260, dmg: s.dmg * 0.5, splash: 40, src: s.src, t0: g.t, lvl: s.lvl, spec: s.spec }); }
           if (s.fire) { g.zones.push({ x: bx, y: by, r: s.fire.r, dps: s.fire.dps, until: g.t + s.fire.dur, src: s.src, t0: g.t }); }

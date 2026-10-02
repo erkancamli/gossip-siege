@@ -1797,6 +1797,7 @@ $('endlessBtn').onclick = () => { G.endless = true; G.state = 'build'; G.won = f
 //  on the open web (Netlify): /api/scores?stage=n, keyed by X handle, runs signed by /api/run
 const API = (window.claude && window.claude.use) ? null : '/api';
 let DB = null, USER = null, myId = null, lbRows = [], boardOn = false, runTok = null, lbStage = 0, dbUnsub = null, lbSeq = 0; // lbStage 0 is the overall board (web only)
+const PLAYER_KEY = 'gs_player'; // declared before initBoard runs: loadPlayer() is called from it
 const cleanHandle = (v) => String(v || '').trim().replace(/^@+/, '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 15);
 const dbCol = (n) => ({ 1: 'scores', 4: 'scores_s2', 6: 'scores_s3', 10: 'scores_s4' })[n] || 'scores_' + (T.STAGES.find(x => x.id === n) || {}).key; // legacy names kept for the four stage campaign
 async function apiStartRun() {
@@ -1862,7 +1863,6 @@ function renderBoards() {
 // ---------- player names ----------
 // On the open web a player claims a name once on this server. The server hands back a key that stays on this
 // device (gs_player) and signs every score post, so nobody else can post under that name.
-const PLAYER_KEY = 'gs_player';
 function loadPlayer() { try { const p = JSON.parse(localStorage.getItem(PLAYER_KEY) || 'null'); return p && p.handle && p.key ? p : null; } catch (e) { return null; } }
 function savePlayer(p) { try { if (p) localStorage.setItem(PLAYER_KEY, JSON.stringify(p)); else localStorage.removeItem(PLAYER_KEY); } catch (e) {} }
 function renderName() {
