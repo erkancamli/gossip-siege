@@ -32,3 +32,14 @@ test('a daily game applies its modifier and keeps the stage paths', () => {
   const g2 = T.newGame(d.seed, d.stageId, d.mod);
   assert.equal(g.rng.a, g2.rng.a, 'same seed, same rng state');
 });
+
+test('a daily run survives a checkpoint snapshot and restore with its modifier', () => {
+  const d = T.dailyFor('2026-10-02');
+  const g = T.newGame(d.seed, d.stageId, d.mod); g.mod = d.mod; g.daily = d.day;
+  const snap = T.snapshot(g);
+  const r = T.restore(snap);
+  assert.equal(r.mod.key, d.mod.key);
+  assert.equal(r.stage.noKent, true);
+  assert.equal(r.daily, d.day);
+  assert.ok(Array.isArray(r.paths) && r.paths.length > 0);
+});

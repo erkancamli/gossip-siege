@@ -536,7 +536,9 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
   const starsFor = (g) => Math.min(g.continued ? 2 : 3, !g.won ? 0 : g.lives >= g.maxLives * 0.9 ? 3 : g.lives >= g.maxLives * 0.5 ? 2 : 1);
   // Checkpoints: a plain copy of the whole game between waves (structuredClone keeps the object graph, so towers,
   // pads and targets stay linked) with the rng state and the stage id instead of the live closures.
-  function snapshot(g) { const { rng, stage, paths, ...rest } = g; return structuredClone({ ...rest, rngA: rng.a, stageId: stage.id }); }
-  function restore(snap) { const s = structuredClone(snap); const stage = STAGES.find((x) => x.id === s.stageId) || STAGES[0]; const g = { ...s, stage, paths: COMPILED[STAGES.indexOf(stage)], rng: rng32(s.rngA) }; delete g.rngA; delete g.stageId; g.events = []; g.over = false; g.continued = (g.continued || 0) + 1; return g; }
+  // A daily run carries its modifier as g.mod (a MODS entry with a function), so the snapshot keeps only its key
+  // and restore re-applies it; structuredClone cannot copy functions.
+  function snapshot(g) { const { rng, stage, paths, mod, ...rest } = g; return structuredClone({ ...rest, rngA: rng.a, stageId: stage.id, modKey: mod ? mod.key : null }); }
+  function restore(snap) { const s = structuredClone(snap); const base = STAGES.find((x) => x.id === s.stageId) || STAGES[0], mod = s.modKey ? MODS.find((m) => m.key === s.modKey) : null; const stage = mod ? mod.apply(base) : base; const g = { ...s, stage, paths: COMPILED[STAGES.indexOf(base)], rng: rng32(s.rngA) }; if (mod) g.mod = mod; delete g.modKey; delete g.rngA; delete g.stageId; g.events = []; g.over = false; g.continued = (g.continued || 0) + 1; return g; }
   root.TD = { KENT_DILUTION, MODS, dailyFor, dayKeyOf, starsFor, snapshot, restore, inLoss, pastGateway, quizReward, QUIZ_REWARDS, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
 })(typeof window !== 'undefined' ? window : globalThis);
