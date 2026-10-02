@@ -33,7 +33,7 @@ const KEEP = 200;            // rows kept in the board document
 const SHOW = 50;             // rows returned to the page
 const MAX_WAVE = 200;
 const MIN_SECONDS_PER_WAVE = 4;   // the game needs about 18 game seconds per wave, 6 real seconds at 3x speed
-const MAX_RUN_HOURS = 8;
+const MAX_RUN_HOURS = 24 * 7; // a run kept on the device can be posted for a week, e.g. once the player saves a name
 const SUBMIT_GAP_MS = 8000;
 
 // Measured with the game engine: a strong run scores about 230 x wave^2. 650 x wave^2 leaves

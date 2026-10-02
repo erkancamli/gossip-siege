@@ -1716,7 +1716,9 @@ function finish(won) {
   const S = G.stage, endless = G.wave > G.finalWave, stars = won && !endless ? T.starsFor(G) : 0;
   const prog = loadProg(), next = T.STAGES.find(x => x.id === S.id + 1);
   if (stars) { prog.stars[S.key] = Math.max(prog.stars[S.key] || 0, stars); prog.cleared[S.key] = true; }
-  const newBest = !prog.best[S.key] || G.score > prog.best[S.key]; if (newBest) prog.best[S.key] = G.score; saveProg(prog);
+  const newBest = !prog.best[S.key] || G.score > prog.best[S.key];
+  if (newBest) { prog.best[S.key] = G.score; if (API && runTok) { prog.runs = prog.runs || {}; prog.runs[S.key] = { stage: S.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now(), posted: false }; } } // the ticket is kept so the run can be posted later, for instance once a name is saved
+  saveProg(prog);
   G.stars = stars; G.end = { won, endless, newBest, next };
   { const { r } = roleFor(); G.role = r.name; }
   $('endScr').hidden = false; $('endlessBtn').hidden = !(won && S.endless && !endless);
@@ -1733,7 +1735,7 @@ function finish(won) {
   $('submitBtn').disabled = false; renderName();
   $('lbMsg').textContent = ''; $('lbMsg').className = 'msg';
   lbStage = S.id; loadBoard();
-  if (API && loadPlayer() && runTok) postCurrent(); // registered players are posted automatically; the button stays for retries
+  if (API && loadPlayer() && runTok) postCurrent().then(() => postPending()); // registered players are posted automatically; the button stays for retries
 }
 // the end screen text in the current language; rerun when the language changes
 function renderEnd() {
@@ -1798,6 +1800,7 @@ $('endlessBtn').onclick = () => { G.endless = true; G.state = 'build'; G.won = f
 const API = (window.claude && window.claude.use) ? null : '/api';
 let DB = null, USER = null, myId = null, lbRows = [], boardOn = false, runTok = null, lbStage = 0, dbUnsub = null, lbSeq = 0; // lbStage 0 is the overall board (web only)
 const PLAYER_KEY = 'gs_player'; // declared before initBoard runs: loadPlayer() is called from it
+let pendingBusy = false;
 const cleanHandle = (v) => String(v || '').trim().replace(/^@+/, '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 15);
 const dbCol = (n) => ({ 1: 'scores', 4: 'scores_s2', 6: 'scores_s3', 10: 'scores_s4' })[n] || 'scores_' + (T.STAGES.find(x => x.id === n) || {}).key; // legacy names kept for the four stage campaign
 async function apiStartRun() {
@@ -1822,7 +1825,7 @@ async function loadBoard() {
     $('saveImg').hidden = false;
     try { const h = cleanHandle(localStorage.getItem('gs_handle')); if (h) myId = 'h:' + h.toLowerCase(); } catch (e) {}
     loadBoard();
-    renderName();
+    renderName(); postPending();
     setInterval(() => { if (!document.hidden && (!$('titleScr').hidden || !$('endScr').hidden || !$('stagesScr').hidden)) loadBoard(); }, 30000);
     return;
   }
@@ -1885,7 +1888,7 @@ async function registerName(h, lm) {
     return p;
   } catch (e) { lm.textContent = tr('Could not reach the board. Try again in a moment.'); return null; }
 }
-async function postScore(run) {
+async function postScore(run, quiet) {
   const p = loadPlayer();
   if (!p) return { ok: false, error: tr('Pick a player name first.') };
   if (!run.run) return { ok: false, error: tr('This run was not registered with the board (offline at start). Play another run to post.') };
@@ -1893,7 +1896,7 @@ async function postScore(run) {
     const r = await fetch(API + '/scores', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handle: p.handle, key: p.key, stage: run.stage, score: run.score, wave: run.wave, lives: run.lives, decoded: run.decoded, kills: run.kills, run: run.run }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) return { ok: false, error: tr(j.error || 'The board refused this run.') };
-    lbStage = run.stage; loadBoard();
+    if (!quiet) lbStage = run.stage; loadBoard();
     return { ok: true, rank: j.rank, improved: j.improved, best: j.best, handle: j.handle };
   } catch (e) { return { ok: false, error: tr('Could not reach the board. Try again in a moment.') }; }
 }
@@ -1902,11 +1905,28 @@ async function postCurrent() {
   if (submitting || !G) return; submitting = true; const lm = $('lbMsg'); lm.className = 'msg'; lm.textContent = tr('Posting...');
   const res = await postScore({ stage: G.stage.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok });
   lm.textContent = res.ok ? (res.improved ? tr('On the {name} board at #{r} as @{h}.', { name: G.stage.name, r: res.rank, h: res.handle }) : tr('Your best ({s}) is already on the board, #{r}.', { s: Number(res.best).toLocaleString('en-US'), r: res.rank })) : res.error; lm.className = 'msg' + (res.ok ? ' ok' : '');
+  if (res.ok) markPosted(G.stage.key);
   submitting = false;
+}
+function markPosted(key) { const prog = loadProg(); if (prog.runs && prog.runs[key]) { prog.runs[key].posted = true; saveProg(prog); } }
+// best runs kept on this device that never reached the board (played before a name was saved, or offline): post them now
+async function postPending() {
+  if (!API || pendingBusy || !loadPlayer()) return; pendingBusy = true;
+  try {
+    const prog = loadProg(), runs = prog.runs || {};
+    for (const key of Object.keys(runs)) {
+      const r = runs[key]; if (r.posted || !r.run) continue;
+      if (Date.now() - r.at > 6 * 24 * 3600 * 1000) { markPosted(key); continue; } // tickets expire on the server after a week
+      const res = await postScore(r, true);
+      if (res.ok || /valid|old|faster|higher|another handle|registered/.test(res.error || '')) markPosted(key); // posted, or refused for good: stop retrying
+      else break; // network trouble: try again next time
+      await new Promise(r => setTimeout(r, 9000)); // the board accepts one post per client every 8 seconds
+    }
+  } finally { pendingBusy = false; }
 }
 document.querySelectorAll('[data-n]').forEach(b => { b.onclick = async () => {
   const k = b.dataset.n, box = b.closest('.xauth'), fromEnd = box.id === 'nameEnd', lm = fromEnd ? $('lbMsg') : $('nameMsgTitle');
-  if (k === 'save' || k === 'savepost') { const p = await registerName(box.querySelector('.nameIn').value, lm); if (p && k === 'savepost') postCurrent(); return; }
+  if (k === 'save' || k === 'savepost') { const p = await registerName(box.querySelector('.nameIn').value, lm); if (!p) return; if (k === 'savepost') postCurrent().then(() => postPending()); else postPending(); return; }
   if (k === 'submit') return postCurrent();
   if (k === 'change') { const p = loadPlayer(); if (p && !confirm(tr('Change name? Your scores stay on the board under @{h}; the new name starts fresh.', { h: p.handle }))) return; savePlayer(null); renderName(); renderBoards(); for (const el of document.querySelectorAll('.nameIn')) el.value = ''; lm.textContent = ''; }
 }; });
