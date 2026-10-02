@@ -695,6 +695,9 @@ function crewT(k) { const C = T.CREW[k], c = CT(), t = c && c.crew[k]; if (!t) r
 function foeT(k) { const F = T.FOES[k], c = CT(), t = c && c.foes[k]; return t ? { ...F, name: t.name, blurb: t.blurb } : F; }
 function whyT(k) { const c = CT(); return (c && c.why[k]) || WHY[k]; }
 function coachT() { const c = CT(); return (c && c.coach) || COACH; }
+// The quiz bank (English and Turkish, about 500 questions) ships as its own async script so the title paints before it lands.
+const QZ = () => window.TD_QUIZ || { Q: [], SRC: {}, VERIFIED: '' };
+window.__quizReady = () => { if (!$('stagesScr').hidden) renderStages(); if (!$('learnScr').hidden) renderLearn(); };
 function qT(q) { const t = LANG === 'tr' && window.TD_QUIZ_TR && window.TD_QUIZ_TR[q.id]; return t ? { ...q, q: t.q, a: t.a, why: t.why } : q; }
 function applyLang() {
   document.documentElement.lang = LANG;
@@ -2148,13 +2151,13 @@ function loadSrs() {
   return s;
 }
 function saveSrs(s) { try { localStorage.setItem('gs_srs', JSON.stringify(s)); } catch (e) {} }
-function loadLearned() { const s = loadSrs(), ids = new Set(window.TD_QUIZ.Q.map(q => q.id)); return new Set(Object.keys(s.items).filter(id => ids.has(id) && s.items[id].box >= 1)); }
+function loadLearned() { const s = loadSrs(), ids = new Set(QZ().Q.map(q => q.id)); return new Set(Object.keys(s.items).filter(id => ids.has(id) && s.items[id].box >= 1)); }
 function recordAnswer(id, ok) {
   const s = loadSrs(); s.turn++; const it = s.items[id] || { box: 0, due: 0 };
   it.box = ok ? Math.min(BOX_GAP.length - 1, it.box + 1) : 0; it.due = s.turn + BOX_GAP[it.box]; s.items[id] = it; saveSrs(s);
 }
 function pickQuestion(briefing) {
-  const srs = loadSrs(), key = G.stage.key, Q = window.TD_QUIZ.Q;
+  const srs = loadSrs(), key = G.stage.key, Q = QZ().Q;
   // order: questions missed before (due again) first, then questions never seen, then known ones that are due,
   // then the rest. The stage's own topic moves ahead inside each group, so a fresh question of any topic still
   // beats a repeat, and a player sees all 100 before the bank starts cycling.
@@ -2170,6 +2173,7 @@ function rewardFor(briefing) {
   return { k, label: (x > 1 ? tr('streak ×2 · ') : '') + tr('right answer: ') + label };
 }
 function openQuiz(briefing) {
+  if (!QZ().Q.length) { if (briefing && G) G.briefLeft = 0; return; } // bank still loading: skip rather than stall
   const item = pickQuestion(briefing); askedRun.add(item.id);
   const opts = item.a.map((t, i) => ({ i, right: i === 0 })).sort(() => Math.random() - 0.5);
   quiz = { item, opts, el: 0, done: false, shown: 0, briefing: !!briefing, reward: rewardFor(briefing) };
@@ -2204,7 +2208,7 @@ function answerQuiz(i) {
   const q = qT(quiz.item);
   if (!ok) { const a = document.createElement('b'); a.textContent = q.a[0] + '. '; why.appendChild(a); }
   why.append(q.why + ' ');
-  const src = window.TD_QUIZ.SRC[quiz.item.src]; if (src) { const l = document.createElement('a'); l.href = src.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = tr('Source: ') + src.label; why.appendChild(l); }
+  const src = QZ().SRC[quiz.item.src]; if (src) { const l = document.createElement('a'); l.href = src.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = tr('Source: ') + src.label; why.appendChild(l); }
   why.hidden = false; $('qClose').hidden = false; $('qHint').hidden = true; updateHud(true);
 }
 function closeQuiz() { const was = quiz; quiz = null; $('quiz').hidden = true; if (was && was.briefing && G) { G.briefLeft--; if (G.briefLeft > 0) { openQuiz(true); return; } } if (pending.length && !modalOpen) nextCodex(); }
@@ -2221,7 +2225,7 @@ window.addEventListener('keydown', (e) => { if (quiz && !quiz.done && /^[1-4]$/.
 
 // ---------- knowledge: every learned question with its answer and source ----------
 function showLearn() {
-  const L = loadLearned(), Q = window.TD_QUIZ.Q, grid = $('lgrid'); grid.innerHTML = '';
+  const L = loadLearned(), Q = QZ().Q, grid = $('lgrid'); grid.innerHTML = '';
   $('learnTitle').textContent = tr('What you have learned · {n} of {t}', { n: L.size, t: Q.length });
   const srs = loadSrs(), mast = $('lmastery'); mast.innerHTML = '';
   for (const st of T.STAGES) {
@@ -2233,7 +2237,7 @@ function showLearn() {
     const ct = document.createElement('span'); ct.className = 'num'; ct.textContent = `${l}/${qs.length}`;
     row.append(nm, bar, ct); mast.appendChild(row);
   }
-  $('lverified').textContent = tr('Question bank checked against its sources on {d}. Questions you miss come back sooner; ones you know come back later.', { d: window.TD_QUIZ.VERIFIED });
+  $('lverified').textContent = tr('Question bank checked against its sources on {d}. Questions you miss come back sooner; ones you know come back later.', { d: QZ().VERIFIED });
   const order = T.STAGES.map(st => st.key);
   const items = Q.slice().sort((a, b) => (L.has(b.id) - L.has(a.id)) || order.indexOf(a.tag) - order.indexOf(b.tag));
   for (const q0 of items) {
@@ -2242,7 +2246,7 @@ function showLearn() {
     const lq = document.createElement('div'); lq.className = 'lq'; lq.textContent = q.q; c.appendChild(lq);
     if (known) {
       const la = document.createElement('div'); la.className = 'la'; la.textContent = q.a[0]; c.appendChild(la);
-      const lw = document.createElement('div'); lw.className = 'lw'; lw.append(q.why + ' '); const src = window.TD_QUIZ.SRC[q.src]; if (src) { const a = document.createElement('a'); a.href = src.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = src.label; lw.appendChild(a); } c.appendChild(lw);
+      const lw = document.createElement('div'); lw.className = 'lw'; lw.append(q.why + ' '); const src = QZ().SRC[q.src]; if (src) { const a = document.createElement('a'); a.href = src.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = src.label; lw.appendChild(a); } c.appendChild(lw);
     } else { const lw = document.createElement('div'); lw.className = 'lw'; lw.textContent = tr('Answer it right in a run to unlock the explanation.'); c.appendChild(lw); }
     grid.appendChild(c);
   }
@@ -2277,7 +2281,7 @@ function renderStages() {
   const total = Object.values(prog.stars).reduce((a, b) => a + b, 0);
   const nextTier = STAR_TIERS.find(t => t.at > total);
   $('ssStars').innerHTML = `${total} / ${T.STAGES.length * 3} ★` + badgeHtml(total) + (nextTier ? `<span class="nextb">${tr('{n} ★ to {name}', { n: nextTier.at - total, name: tr(nextTier.name) })}</span>` : '');
-  $('learnBtn').textContent = tr('Optimum knowledge {n} / {t}', { n: loadLearned().size, t: window.TD_QUIZ.Q.length });
+  $('learnBtn').textContent = tr('Optimum knowledge {n} / {t}', { n: loadLearned().size, t: QZ().Q.length });
   for (const st of T.STAGES) {
     const locked = st.id > prog.unlocked, th = themeOf(st);
     const card = document.createElement('button'); card.className = 'scard' + (locked ? ' locked' : '') + (st.id === viewStage ? ' sel' : ''); card.style.setProperty('--acc', th.acc);

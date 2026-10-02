@@ -16,7 +16,7 @@ let body = game
   .replace('<!--LOGO-->', logoSvg.replace('<svg ', '<svg class="logo" aria-label="Optimum" role="img" '))
   .replaceAll('__MARKPATH__', paths[0])
   .replaceAll('__LOGOPATHALL__', paths.join(' '))
-  .replace('/*__CORE__*/', () => [stages, quiz, quizTr, contentTr, core].join('\n')); // stages.js defines the campaign before the engine reads it; the Turkish text rides along
+  .replace('/*__CORE__*/', () => [stages, contentTr, core].join('\n')); // stages.js defines the campaign before the engine reads it; the Turkish text rides along
 
 const cut = body.indexOf('</style>') + '</style>'.length;
 const headPart = body.slice(0, cut), bodyPart = body.slice(cut);
@@ -63,6 +63,12 @@ const hash = createHash('sha256').update(js).digest('hex').slice(0, 10);
 const jsName = `game-${hash}.js`;
 let shipped = page.replace(bodyPart, bodyPart.replace(/<script>[\s\S]*?<\/script>\s*/g, '').replace('</div>\n\n\n', `</div>\n<script src="/${jsName}" defer></script>\n`));
 if (!shipped.includes(jsName)) shipped = page.replace(bodyPart, bodyPart.replace(/<script>[\s\S]*?<\/script>\s*/g, '') + `\n<script src="/${jsName}" defer></script>`);
+// The quiz bank rides in its own immutable file, loaded async: the title is interactive before it arrives, and
+// a quiz change does not invalidate the cached game code (nor the other way round).
+const quizJs = [quiz, quizTr, 'if (window.__quizReady) window.__quizReady();'].join('\n;\n');
+const quizName = `quiz-${createHash('sha256').update(quizJs).digest('hex').slice(0, 10)}.js`;
+shipped = shipped.replace(`<script src="/${jsName}" defer></script>`, `<script src="/${jsName}" defer></script>\n<script src="/${quizName}" async></script>`);
 await writeFile('dist/' + jsName, js);
+await writeFile('dist/' + quizName, quizJs);
 await writeFile('dist/index.html', shipped);
-console.log(`built dist/index.html (${(shipped.length / 1024).toFixed(0)} KB) + ${jsName} (${(js.length / 1024).toFixed(0)} KB) for ${site || 'relative URLs'}`);
+console.log(`built dist/index.html (${(shipped.length / 1024).toFixed(0)} KB) + ${jsName} (${(js.length / 1024).toFixed(0)} KB) + ${quizName} (${(quizJs.length / 1024).toFixed(0)} KB) for ${site || 'relative URLs'}`);
