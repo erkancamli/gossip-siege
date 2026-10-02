@@ -126,7 +126,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 .rbtn.prio b { font-family: var(--display); font-size: 13px; }
 
 /* modal cards */
-.modal { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; background: var(--shade); }
+.modal { position: absolute; inset: 0; z-index: 14; display: grid; place-items: center; background: var(--shade); }
 .card { width: 560px; max-width: calc(100% - 40px); border-radius: 18px; background: var(--card); border: 1px solid var(--line2); box-shadow: 0 30px 80px rgba(0,0,0,0.6); padding: 22px; display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: center; animation: pop .22s; }
 .card canvas { width: 150px; height: 150px; border-radius: 14px; background: radial-gradient(circle at 50% 40%, #23262c, #0e0f12 75%); }
 .card .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--blue); }
@@ -1113,6 +1113,8 @@ function nextCodex() {
   $('mOk').focus();
 }
 $('mOk').onclick = () => nextCodex();
+window.addEventListener('keydown', (e) => { if (modalOpen && (e.key === 'Escape' || e.key === 'Enter')) { e.preventDefault(); e.stopPropagation(); nextCodex(); } }, true);
+$('modal').addEventListener('click', (e) => { if (e.target === $('modal')) nextCodex(); }); // tapping the dark backdrop also closes the card
 
 // ---------- stage minimap: the route, pads and vault of a stage in its own colors ----------
 function drawMini(c, st, w, h) {
