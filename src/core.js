@@ -33,7 +33,7 @@
   const inLoss = (g, e) => { const L = g.paths[e.path || 0].lossy; return L.length > 0 && L.some(([a, b]) => e.d >= a && e.d < b); };
   const posAt = (g, e) => pathPos(g.paths[e.path || 0], e.d);
 
-  function rng32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function rng32(a) { const f = function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; Object.defineProperty(f, 'a', { get: () => a, set: (v) => { a = v | 0; } }); return f; } // the state is exposed so a checkpoint can store and restore it
 
   // ---------- crew (towers) ----------
   // Levels 1 to 3 are linear (lv[0..2]). At level 4 each crew member specializes into one of
@@ -500,6 +500,11 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
     }
   }
 
-  const starsFor = (g) => (!g.won ? 0 : g.lives >= g.maxLives * 0.9 ? 3 : g.lives >= g.maxLives * 0.5 ? 2 : 1);
-  root.TD = { starsFor, inLoss, pastGateway, quizReward, QUIZ_REWARDS, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
+  // a run that continued from a checkpoint earns at most two stars
+  const starsFor = (g) => Math.min(g.continued ? 2 : 3, !g.won ? 0 : g.lives >= g.maxLives * 0.9 ? 3 : g.lives >= g.maxLives * 0.5 ? 2 : 1);
+  // Checkpoints: a plain copy of the whole game between waves (structuredClone keeps the object graph, so towers,
+  // pads and targets stay linked) with the rng state and the stage id instead of the live closures.
+  function snapshot(g) { const { rng, stage, paths, ...rest } = g; return structuredClone({ ...rest, rngA: rng.a, stageId: stage.id }); }
+  function restore(snap) { const s = structuredClone(snap); const stage = STAGES.find((x) => x.id === s.stageId) || STAGES[0]; const g = { ...s, stage, paths: COMPILED[STAGES.indexOf(stage)], rng: rng32(s.rngA) }; delete g.rngA; delete g.stageId; g.events = []; g.over = false; g.continued = (g.continued || 0) + 1; return g; }
+  root.TD = { starsFor, snapshot, restore, inLoss, pastGateway, quizReward, QUIZ_REWARDS, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
 })(typeof window !== 'undefined' ? window : globalThis);

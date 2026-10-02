@@ -497,6 +497,7 @@ body.small .coach { font-size: 20px; }
             <button class="btn" id="copyTxt" data-t="copyTxt">Copy text</button>
             <span class="msg" id="shareMsg"></span>
           </div>
+          <div class="row full" id="contRow" hidden></div>
           <div class="row full"><button class="chrome" id="nextBtn" hidden>Next stage</button><button class="ghost" id="againBtn">Play again</button><button class="ghost" id="endlessBtn" data-t="endlessBtn" hidden>Keep going: endless</button><button class="ghost" id="homeBtn" data-t="homeBtn">All stages</button></div>
         </div>
         <aside class="board">
@@ -615,7 +616,7 @@ const UI_TR = {
   'Next: Optimized or Chronicler at 21 stars and 25 answers ({s} stars, {k} answers). Stars lean Optimized, knowledge leans Chronicler.': "Sırada Optimized ya da Chronicler var: 21 yıldız ve 25 cevap gerekiyor (şu an {s} yıldız, {k} cevap). Yıldızlar ağır basarsa Optimized, bilgi ağır basarsa Chronicler olursun.",
   '{s} / 30 stars, {k} / 100 answers learned': '{s} / 30 yıldız, {k} / 100 öğrenilen cevap',
   // end screen
-  'Next stage: {name}': 'Sonraki bölüm: {name}', 'Replay for stars': 'Yıldız için tekrar oyna', 'Try again': 'Tekrar dene', 'Stage {id} · {name}': 'Bölüm {id} · {name}',
+  'Next stage: {name}': 'Sonraki bölüm: {name}', 'Continue from wave {n}': '{n}. dalgadan devam et', 'Continued from wave {n}': '{n}. dalgadan devam', ' · continued: score ×0.7, at most 2 stars': ' · devam edildi: skor ×0,7, en fazla 2 yıldız', 'Replay for stars': 'Yıldız için tekrar oyna', 'Try again': 'Tekrar dene', 'Stage {id} · {name}': 'Bölüm {id} · {name}',
   ' · the mesh held': ' · mesh dayandı', ' · the mesh fell': ' · mesh düştü', 'Endless on {name}: wave {w}': '{name} sonsuz modu: {w}. dalga',
   '{name} cleared, {l} of 20 validators standing': "{name} tamamlandı, 20 validator'dan {l} tanesi ayakta", '. {name} unlocked': '. {name} açıldı', '. Campaign complete': '. Kampanya tamamlandı',
   'Overrun on wave {w} of {f}': '{f} dalganın {w}. dalgasında mesh düştü', 'Score · new best': 'Skor · yeni rekor', 'Wave': 'Dalga', 'Validators': 'Validator', 'Grade': 'Not', 'Kills': 'Öldürme',
@@ -1192,13 +1193,14 @@ function mulberry(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; le
 // GAME STATE + LOOP
 // =====================================================================
 let G = null, speed = 1, paused = false, sel = null, aimBurst = false, floaters = [], shake = 0, vaultHit = 0, lastTs = 0, acc = 0, modalOpen = false, coach = null;
+let checkpoints = []; // snapshots taken at every wave clear, newest last; a lost run can continue from one of the last three
 const pending = []; // modal queue
 const seenCodex = {};
 
 function newRun(stageId) {
   stageId = stageId || viewStage || 1; viewStage = stageId;
   pending.length = 0; modalOpen = false; $('modal').hidden = true; quiz = null; $('quiz').hidden = true; askedRun = new Set();
-  G = T.newGame(Math.floor(Math.random() * 1e9), stageId); G.briefLeft = BRIEF_N;
+  G = T.newGame(Math.floor(Math.random() * 1e9), stageId); G.briefLeft = BRIEF_N; checkpoints = [];
   apiStartRun();
   $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`;
   $('stagesScr').hidden = true;
@@ -1240,7 +1242,7 @@ function handleEvents() {
       case 'execute': floater(e.e.x, e.e.y - 22, tr('decoded early'), '#ffffff', 12, 0.7); break;
       case 'early': floater(1100, 600, `Speed is money +${e.bonus}`, '#ffd23f', 18, 1.6); sfx('coin'); break;
       case 'wave': if (G.wave >= 2 && G.wave % 2 === 0) G.quizAt = G.t + 4 + Math.random() * 5; sfx('wave'); renderWave(); if (G.wave === 10 || G.wave === 20 || G.wave === G.finalWave) setTimeout(() => sfx('boss'), 400); break;
-      case 'waveClear': for (const t of G.towers) if (t.kind === 'sunny') { const S = T.stat(t); floater(t.x, t.y - 70, tr('+{n} rent', { n: S.income }), '#ffd23f', 16, 1.6); t.mood = 'happy'; t.moodT = 1.2; } floater(640, 120, tr(e.perfect ? 'Wave {w} clear · every block on time' : 'Wave {w} clear', { w: e.wave }), '#e5e7eb', 22, 2.0); if (e.income) floater(640, 150, tr('Flexnode rent +{n}', { n: e.income }), '#ffd23f', 16, 2.0); sfx('clear'); renderWave(); if (coach && coach.step === 3) { coach.step = 4; renderCoach(); } break;
+      case 'waveClear': for (const t of G.towers) if (t.kind === 'sunny') { const S = T.stat(t); floater(t.x, t.y - 70, tr('+{n} rent', { n: S.income }), '#ffd23f', 16, 1.6); t.mood = 'happy'; t.moodT = 1.2; } floater(640, 120, tr(e.perfect ? 'Wave {w} clear · every block on time' : 'Wave {w} clear', { w: e.wave }), '#e5e7eb', 22, 2.0); if (e.income) floater(640, 150, tr('Flexnode rent +{n}', { n: e.income }), '#ffd23f', 16, 2.0); sfx('clear'); renderWave(); if (coach && coach.step === 3) { coach.step = 4; renderCoach(); } if (!G.endless) { checkpoints.push(T.snapshot(G)); if (checkpoints.length > 3) checkpoints.shift(); } break;
       case 'newFoe': queueCodex('foe', e.foe, e.coded); break;
       case 'unlock': e.kinds.forEach(k => queueCodex('crew', k)); break;
       case 'burst': sfx('boom'); break;
@@ -1736,8 +1738,10 @@ const starStr = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 function finish(won) {
   pending.length = 0; modalOpen = false; $('modal').hidden = true; closeQuiz();
   ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = true); closeRing(); $('coach').hidden = true;
+  if (G.continued) G.score = Math.round(G.score * 0.7); // a continued run keeps 70% of its score (the checkpoint itself holds the raw score)
   const S = G.stage, endless = G.wave > G.finalWave, stars = won && !endless ? T.starsFor(G) : 0;
   const prog = loadProg(), next = T.STAGES.find(x => x.id === S.id + 1);
+  renderContinue(won || endless ? [] : checkpoints);
   if (stars) { prog.stars[S.key] = Math.max(prog.stars[S.key] || 0, stars); prog.cleared[S.key] = true; }
   const newBest = !prog.best[S.key] || G.score > prog.best[S.key];
   if (newBest) { prog.best[S.key] = G.score; if (API && runTok) { prog.runs = prog.runs || {}; prog.runs[S.key] = { stage: S.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now(), posted: false }; } } // the ticket is kept so the run can be posted later, for instance once a name is saved
@@ -1761,11 +1765,24 @@ function finish(won) {
   if (API && loadPlayer() && runTok) postCurrent().then(() => postPending()); // registered players are posted automatically; the button stays for retries
 }
 // the end screen text in the current language; rerun when the language changes
+// continue from one of the last checkpoints after a defeat
+function renderContinue(cps) {
+  const row = $('contRow'); row.innerHTML = ''; row.hidden = !cps.length;
+  cps.slice().reverse().forEach((cp, i) => { const b = document.createElement('button'); b.className = i === 0 ? 'chrome' : 'ghost'; b.textContent = tr('Continue from wave {n}', { n: cp.wave }); b.onclick = () => continueFrom(cp); row.appendChild(b); });
+}
+function continueFrom(cp) {
+  pending.length = 0; modalOpen = false; $('modal').hidden = true; closeQuiz();
+  G = T.restore(cp); checkpoints = checkpoints.filter(c => c.wave <= cp.wave);
+  floaters = []; sel = null; aimBurst = false; speed = 1; paused = false; $('speedBtn').textContent = '1×'; $('pauseBtn').textContent = 'II'; closeRing();
+  ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = false); $('endScr').hidden = true;
+  $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`; renderWave(); updateHud(true);
+  floater(640, 150, tr('Continued from wave {n}', { n: cp.wave }), '#4da3ff', 20, 2.0);
+}
 function renderEnd() {
   const S = G.stage, { won, endless, newBest, next } = G.end;
   if (next) $('nextBtn').textContent = tr('Next stage: {name}', { name: next.name });
   $('againBtn').textContent = tr(won ? 'Replay for stars' : 'Try again');
-  $('eTag').textContent = tr('Stage {id} · {name}', { id: S.id, name: S.name }) + tr(won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell');
+  $('eTag').textContent = tr('Stage {id} · {name}', { id: S.id, name: S.name }) + tr(won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell') + (G.continued ? tr(' · continued: score ×0.7, at most 2 stars') : '');
   { const { r, next, top, p } = roleFor(); $('roleBox').hidden = false; $('roleName').textContent = r.name; $('roleWhy').textContent = tr(r.text);
     const v = { s: p.stars, k: p.known };
     $('roleNext').textContent = next ? tr(next.name === 'Observer' ? 'Next role Observer: {s} / 3 stars, {k} / 3 answers learned' : 'Next role Refined: {s} / 9 stars, {k} / 10 answers learned', v) : top ? tr('Next: Optimized or Chronicler at 21 stars and 25 answers ({s} stars, {k} answers). Stars lean Optimized, knowledge leans Chronicler.', v) : tr('{s} / 30 stars, {k} / 100 answers learned', v); }
