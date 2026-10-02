@@ -1,6 +1,7 @@
 // Builds dist/ from src/: inlines the game engine and the Optimum logo into one HTML page,
 // adds the head (meta, social preview tags) and copies the static files from public/.
 import { cp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 
 const site = (process.env.URL || '').replace(/\/+$/, '');
 const [game, stages, quiz, core, logo, quizTr, contentTr] = await Promise.all(['src/game.html', 'src/stages.js', 'src/quiz.js', 'src/core.js', 'src/logo.svg', 'src/i18n-quiz-tr.js', 'src/i18n-content-tr.js'].map((f) => readFile(f, 'utf8')));
@@ -52,5 +53,16 @@ await rm('dist', { recursive: true, force: true });
 await mkdir('dist', { recursive: true });
 await cp('public', 'dist', { recursive: true });
 for (const ph of ['__MARKPATH__', '__LOGOPATHALL__', '<!--MARK-->', '<!--LOGO-->', '/*__CORE__*/']) if (page.includes(ph)) { console.error('Build stopped: placeholder left in page: ' + ph); process.exit(1); }
-await writeFile('dist/index.html', page);
-console.log(`built dist/index.html (${(page.length / 1024).toFixed(0)} KB) for ${site || 'relative URLs'}`);
+
+// The game code ships as one external, content hashed, immutable file: the HTML stays small (the title shows
+// at once) and a reload reuses the cached script instead of downloading 350 KB again. The body's inline scripts
+// are concatenated in order; the tiny head script (day or night before paint) stays inline.
+const scripts = [...bodyPart.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+const js = scripts.join('\n;\n');
+const hash = createHash('sha256').update(js).digest('hex').slice(0, 10);
+const jsName = `game-${hash}.js`;
+let shipped = page.replace(bodyPart, bodyPart.replace(/<script>[\s\S]*?<\/script>\s*/g, '').replace('</div>\n\n\n', `</div>\n<script src="/${jsName}" defer></script>\n`));
+if (!shipped.includes(jsName)) shipped = page.replace(bodyPart, bodyPart.replace(/<script>[\s\S]*?<\/script>\s*/g, '') + `\n<script src="/${jsName}" defer></script>`);
+await writeFile('dist/' + jsName, js);
+await writeFile('dist/index.html', shipped);
+console.log(`built dist/index.html (${(shipped.length / 1024).toFixed(0)} KB) + ${jsName} (${(js.length / 1024).toFixed(0)} KB) for ${site || 'relative URLs'}`);

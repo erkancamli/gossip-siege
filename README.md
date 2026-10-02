@@ -77,7 +77,7 @@ src/game.html                 rendering, UI, audio, leaderboard client
 src/bot.cjs                   balance bot: node src/bot.cjs
 public/                       static files (favicon, link preview image)
 netlify/functions/leaderboard.mjs   leaderboard API on Netlify Functions + Netlify Blobs
-scripts/build.mjs             builds dist/index.html from src/ and checks every script parses
+scripts/build.mjs             builds dist/index.html plus a content hashed game-<hash>.js from src/ and checks every script parses
 test/                         API tests and a local dev server
 ```
 

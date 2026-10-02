@@ -17,8 +17,8 @@ http.createServer(async (req, res) => {
   const file = url.pathname === '/' ? 'dist/index.html' : 'dist' + url.pathname;
   try {
     let data = await readFile(file);
-    if (debug && file.endsWith('index.html')) data = Buffer.from(data.toString().replace('fit(); toTitle();', 'window.__dbg = { get G() { return G; }, T, finish, newRun, showStages, get modalOpen(){return modalOpen;}, pickQuestion, recordAnswer, get askedRun(){return askedRun;}, get quiz(){return quiz;}, toScreen }; window.__draw = { drawMascot, markAt }; fit(); toTitle();'));
-    const type = file.endsWith('.html') ? 'text/html' : file.endsWith('.svg') ? 'image/svg+xml' : file.endsWith('.png') ? 'image/png' : 'application/octet-stream';
+    if (debug && file.endsWith('.js')) data = Buffer.from(data.toString().replace('fit(); toTitle();', 'window.__dbg = { get G() { return G; }, T, finish, newRun, showStages, get modalOpen(){return modalOpen;}, pickQuestion, recordAnswer, get askedRun(){return askedRun;}, get quiz(){return quiz;}, toScreen }; window.__draw = { drawMascot, markAt }; fit(); toTitle();'));
+    const type = file.endsWith('.html') ? 'text/html' : file.endsWith('.js') ? 'application/javascript' : file.endsWith('.svg') ? 'image/svg+xml' : file.endsWith('.png') ? 'image/png' : 'application/octet-stream';
     res.writeHead(200, { 'content-type': type }); res.end(data);
   } catch { res.writeHead(404); res.end('not found'); }
 }).listen(8787, () => console.log('dev server on 8787'));
