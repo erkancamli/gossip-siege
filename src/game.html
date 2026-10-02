@@ -1472,11 +1472,12 @@ $('coachSkip').onclick = () => { coach = { step: 4 }; renderCoach(); };
 // =====================================================================
 // Flash hands out roles in the Optimum Discord. In the game Flash grades the whole campaign: stars across
 // stages and Optimum knowledge decide the role, so the role on the share card says how far someone has come.
-// Discord roles, in order: Observer, Refined, then Optimized (the active ones) or Chronicler (the creative ones).
+// Discord roles, in order: Optimum Newbie, Observer, Refined, then Optimized (the active ones) or Chronicler (the creative ones).
 // In the game the campaign decides: Observer to start, Refined once stars and knowledge add up, and at the top
 // the branch follows what the player leaned on: stars across stages means Optimized, learned answers means Chronicler.
 const ROLES = [
-  { name: 'Observer', need: (p) => true, text: 'You are watching the mesh from the inside now. Every stage and every right answer counts toward Refined.' },
+  { name: 'Optimum Newbie', need: (p) => true, text: 'Everyone starts here. Clear a stage with stars and learn a few answers, and Flash moves you up.' },
+  { name: 'Observer', need: (p) => p.stars >= 3 && p.known >= 3, text: 'You are watching the mesh from the inside now. Every stage and every right answer counts toward Refined.' },
   { name: 'Refined', need: (p) => p.stars >= 9 && p.known >= 10, text: 'Three stages starred and the first ten Optimum answers learned. Flash sees you.' },
   { name: 'Optimized', need: (p) => p.stars >= 21 && p.known >= 25 && p.stars / 30 >= p.known / 100, text: 'Seven stages starred. You play fast and clean, so Flash put you with the Optimized.', top: true },
   { name: 'Chronicler', need: (p) => p.stars >= 21 && p.known >= 25 && p.stars / 30 < p.known / 100, text: 'Seven stages starred and the knowledge bank is your thing. Flash put you with the Chroniclers.', top: true },
@@ -1484,7 +1485,7 @@ const ROLES = [
 function roleFor() {
   const prog = loadProg(), p = { stars: Object.values(prog.stars).reduce((a, b) => a + b, 0), known: loadLearned().size };
   let r = ROLES[0]; for (const R of ROLES) if (R.need(p)) r = R;
-  const next = r.top ? null : r === ROLES[0] ? ROLES[1] : null, top = r === ROLES[1];
+  const idx = ROLES.indexOf(r), next = r.top ? null : idx < 2 ? ROLES[idx + 1] : null, top = idx === 2;
   return { r, next, top, p };
 }
 function grade() { const w = G.wave, l = G.lives; if (G.won || w > G.finalWave) return l >= 18 ? 'S' : l >= 10 ? 'A' : 'B'; return w >= G.finalWave * 0.8 ? 'C' : 'D'; }
@@ -1520,7 +1521,7 @@ function finish(won) {
   $('eTag').textContent = `Stage ${S.id} · ${S.name}` + (won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell');
   $('eStars').textContent = won && !endless ? starStr(stars) : ''; $('eStars').hidden = !(won && !endless);
   { const { r, next, top, p } = roleFor(); $('roleBox').hidden = false; $('roleName').textContent = r.name; $('roleWhy').textContent = r.text; G.role = r.name;
-    $('roleNext').textContent = next ? `Next role Refined: ${p.stars} / 9 stars, ${p.known} / 10 answers learned` : top ? `Next: Optimized or Chronicler at 21 stars and 25 answers (${p.stars} stars, ${p.known} answers). Stars lean Optimized, knowledge leans Chronicler.` : `${p.stars} / 30 stars, ${p.known} / 100 answers learned`; }
+    $('roleNext').textContent = next ? (next.name === 'Observer' ? `Next role Observer: ${p.stars} / 3 stars, ${p.known} / 3 answers learned` : `Next role Refined: ${p.stars} / 9 stars, ${p.known} / 10 answers learned`) : top ? `Next: Optimized or Chronicler at 21 stars and 25 answers (${p.stars} stars, ${p.known} answers). Stars lean Optimized, knowledge leans Chronicler.` : `${p.stars} / 30 stars, ${p.known} / 100 answers learned`; }
   $('eTitle').textContent = endless ? `Endless on ${S.name}: wave ${G.wave}` : won ? `${S.name} cleared, ${G.lives} of 20 validators standing` + (next ? `. ${next.name} unlocked` : '. Campaign complete') : `Overrun on wave ${G.wave} of ${G.finalWave}`;
   const st = [[newBest ? 'Score · new best' : 'Score', G.score.toLocaleString('en-US')], ['Wave', G.wave + ' / ' + G.finalWave], ['Validators', G.lives + '/20'], ['Grade', grade()], ['Kills', G.stats.kills], ['Shields decoded', G.stats.decoded], ['Speed bonus', '+' + G.stats.early], ['Optimum quiz', `${G.quiz.right} / ${G.quiz.asked} right`]];
   $('eStats').innerHTML = ''; st.forEach(([k, v]) => { const d = document.createElement('div'); const l = document.createElement('span'); l.className = 'label'; l.textContent = k; const b = document.createElement('span'); b.className = 'v'; b.textContent = v; d.append(l, b); $('eStats').appendChild(d); });
@@ -1782,7 +1783,7 @@ $('learnBtn').onclick = () => showLearn();
   const add = (label, text) => { const p = document.createElement('div'); const b = document.createElement('b'); b.textContent = label + ' '; p.append(b, text); el.appendChild(p); };
   add('Crew, named after the Optimum team:', crew + '. Hover a crew member to see who.');
   add('Stage guides:', guides + '.');
-  add('Community:', 'Pegasus, the Discord mumbassador, is your coach and asks the questions. Flash, who hands out roles in the Discord, grades your campaign and assigns your role: Observer, Refined, then Optimized or Chronicler.');
+  add('Community:', 'Pegasus, the Discord mumbassador, is your coach and asks the questions. Flash, who hands out roles in the Discord, grades your campaign and assigns your role: Optimum Newbie, Observer, Refined, then Optimized or Chronicler.');
   add('Also in Optimum\'s public research and code:', 'Slobodan Sudaric-Hefner (co-author of the staking revenue study), Chris Fuka (Gateway commits) and Walentyn (optimum-common SDK commits).');
   add('Sources:', 'getoptimum.xyz/team, getoptimum.xyz/blog, the OptimumP2P paper (arXiv 2508.04833) and the public getoptimum GitHub repos. Fan made, not an official Optimum product.');
 })();
