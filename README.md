@@ -39,7 +39,7 @@ The seven heroes are named after the Optimum team, and every stage has a guide f
 | Sajida | Flexnode Bank | Sajida Zouarhi, author of the PBS hot path research, co-author of the staking revenue study |
 | Sriram | Decoder | Prof. Sriram Viswanath, advisor |
 
-Community: Pegasus, the Discord mumbassador, is the in game coach and quiz host. Flash, who assigns roles in the Discord, grades the campaign and assigns one of five roles (Gossip Recruit, Shard Runner, Flexnode Operator, Mesh Validator, Mumbassador) from stars and learned answers; the role goes on the share card.
+Community: Pegasus, the Discord mumbassador, is the in game coach and quiz host. Flash, who assigns roles in the Discord, grades the campaign and assigns the Discord roles from stars and learned answers: Observer, Refined (9 stars and 10 answers), then at 21 stars and 25 answers either Optimized (stars lead, the active players) or Chronicler (knowledge leads, the creative ones); the role goes on the share card.
 
 Stage guides: Nicolas Nicolaou (Hoodi Testnet), Aayush Rajasekaran (Copy Storm), Onyeka Obi (Shard Threshold), Aleksandr Bezobchuk (Blob Season), Har Preet Singh (Mesh Limits), Santiago Paiva (Subsea Cable), Michael Meier (Flexnode Grid), Alejandro Bergasov (The Gateway), Prof. Sriram Viswanath (Stress Test), Moritz Grundei (Mainnet).
 
