@@ -1880,7 +1880,9 @@ async function xSignIn(fromEnd) {
     }
     lm.textContent = tr('Opening X...');
     const p = await loadPrivy();
-    const url = await p.auth.oauth.generateURL('twitter', location.origin + location.pathname);
+    const res = await p.auth.oauth.generateURL('twitter', location.origin + location.pathname); // the SDK answers { url }
+    const url = res && typeof res === 'object' ? res.url : res;
+    if (typeof url !== 'string' || !/^https?:\/\//.test(url)) throw new Error('bad oauth url');
     location.assign(url);
   } catch (e) { lm.textContent = tr(e.message === 'not configured' ? 'Sign in with X is being set up. Your best run stays on this device.' : 'Could not open X sign in. Try again in a moment.'); }
 }
@@ -1890,7 +1892,7 @@ async function xHandleReturn() {
   const q = new URLSearchParams(location.search), code = q.get('privy_oauth_code'), state = q.get('privy_oauth_state');
   if (!code) return;
   history.replaceState(null, '', location.pathname);
-  try { const p = await loadPrivy(); await p.auth.oauth.loginWithCode(code, state); } catch (e) { $('xMsgTitle').textContent = tr('X sign in did not complete. Try again.'); return; }
+  try { const p = await loadPrivy(); await p.auth.oauth.loginWithCode(code, state, 'twitter'); } catch (e) { $('xMsgTitle').textContent = tr('X sign in did not complete. Try again.'); return; }
   await xRefresh();
   let pending = null; try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (e) {}
   if (pending && Date.now() - pending.at < 2 * 3600 * 1000) { const res = await postScore(pending); $('xMsgTitle').textContent = res.ok ? tr('Your {name} run ({s}) is on the board at #{r}.', { name: pending.name, s: Number(pending.score).toLocaleString('en-US'), r: res.rank }) : res.error; $('xMsgTitle').className = 'msg' + (res.ok ? ' ok' : ''); }
