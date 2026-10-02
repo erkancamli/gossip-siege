@@ -4,6 +4,9 @@
 //   POST /api/register -> { handle, key }   claims a player name; the key stays on the player's device and signs their posts
 //   GET  /api/scores?stage=n -> { rows: [...] }   top 50 of that campaign stage, best score per player name
 //   GET  /api/scores?stage=all -> { rows: [...] }  overall board: best score per stage added up, with the stage count
+//   GET  /api/scores?stage=daily[&day=YYYY-MM-DD] -> today's daily challenge board (stage and modifier set by the UTC day)
+//   GET  /api/scores?stage=week -> this week's board: best per stage since Monday (UTC) added up
+//   POST /api/scores with stage 'daily' and day -> a daily challenge run (today or yesterday, UTC)
 //   POST /api/scores   -> { ok, improved, rank, best }   needs handle + key from /api/register
 //
 // Player names live on this server: a name is claimed once, the device that claimed it gets a secret key, and
@@ -29,6 +32,15 @@ export const STAGES = {
   10: { key: 'board/s4', waves: 25, mult: 2.0, endless: true },     // Mainnet (kept)
 };
 const stageOf = (v) => STAGES[int(v)] ? int(v) : 1;
+// daily challenge: the UTC day picks the stage (2 to 10), the same rule the page uses (src/core.js dailyFor)
+const dayKeyOf = (ms) => new Date(ms).toISOString().slice(0, 10);
+const dayIndex = (d) => Math.floor(Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)) / 86400000);
+// Stage range per daily modifier, in rotation order. Mirrors MODS and dailyFor in src/core.js.
+const DAILY_RANGES = [[2, 10], [2, 10], [2, 8], [2, 7], [2, 7], [2, 8], [2, 9]];
+const dailyStage = (d) => { const i = dayIndex(d), [lo, hi] = DAILY_RANGES[i % DAILY_RANGES.length]; return lo + ((i % DAILY_RANGES.length + 5 * Math.floor(i / DAILY_RANGES.length)) % (hi - lo + 1)); };
+const isDay = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) && Number.isFinite(dayIndex(d));
+// week boards reset on Monday 00:00 UTC; the key is that Monday's date
+const weekKeyOf = (ms) => { const d = new Date(ms); const back = (d.getUTCDay() + 6) % 7; return dayKeyOf(ms - back * 86400000); };
 const KEEP = 200;            // rows kept in the board document
 const SHOW = 50;             // rows returned to the page
 const MAX_WAVE = 200;
@@ -54,8 +66,8 @@ const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(
 const int = (v) => (Number.isFinite(Number(v)) ? Math.floor(Number(v)) : NaN);
 
 // Overall board: every player's best score on each stage added up, plus how many stages they have a score on.
-export async function overall(store) {
-  const boards = await Promise.all(Object.values(STAGES).map((S) => readBoard(store, S.key)));
+export async function overall(store, keyOf = (S) => S.key) {
+  const boards = await Promise.all(Object.entries(STAGES).map(([id, S]) => readBoard(store, keyOf(S, id))));
   const by = new Map();
   boards.forEach((b, i) => { for (const r of b.rows) { const k = r.handle.toLowerCase(); const o = by.get(k) || { handle: r.handle, score: 0, stages: 0, wave: 0, at: r.at }; o.score += r.score; o.stages += 1; o.wave = Math.max(o.wave, r.wave); if (r.at > o.at) o.at = r.at; by.set(k, o); } });
   return [...by.values()].sort((x, y) => y.score - x.score || y.stages - x.stages || x.at.localeCompare(y.at));
@@ -103,7 +115,10 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   if (!path.endsWith('/api/scores')) return json({ error: 'Not found.' }, 404);
 
   if (req.method === 'GET') {
-    if (url.searchParams.get('stage') === 'all') return json({ stage: 'all', rows: (await overall(store)).slice(0, SHOW) }, 200, { 'cache-control': 'no-store' });
+    const which = url.searchParams.get('stage');
+    if (which === 'all') return json({ stage: 'all', rows: (await overall(store)).slice(0, SHOW) }, 200, { 'cache-control': 'no-store' });
+    if (which === 'daily') { const day = isDay(url.searchParams.get('day')) ? url.searchParams.get('day') : dayKeyOf(now); const b = await readBoard(store, `board/daily/${day}`); return json({ stage: 'daily', day, dailyStage: dailyStage(day), rows: b.rows.slice(0, SHOW) }, 200, { 'cache-control': 'no-store' }); }
+    if (which === 'week') { const wk = weekKeyOf(now); return json({ stage: 'week', week: wk, rows: (await overall(store, (S, id) => `board/week/${wk}/${id}`)).slice(0, SHOW) }, 200, { 'cache-control': 'no-store' }); }
     const st = stageOf(url.searchParams.get('stage'));
     const b = await readBoard(store, STAGES[st].key);
     return json({ stage: st, rows: b.rows.slice(0, SHOW) }, 200, { 'cache-control': 'no-store' });
@@ -122,7 +137,11 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   const handle = user.handle; // the board shows the name as it was claimed
   const score = int(body.score), wave = int(body.wave), lives = int(body.lives);
   const decoded = Math.max(0, int(body.decoded) || 0), kills = Math.max(0, int(body.kills) || 0);
-  const st = stageOf(body.stage), S = STAGES[st];
+  // daily challenge runs go to that day's board; the day must be today or yesterday (UTC) so a late post still lands
+  const daily = body.stage === 'daily';
+  let day = null;
+  if (daily) { day = body.day; const today = dayKeyOf(now), yesterday = dayKeyOf(now - 86400000); if (!isDay(day) || (day !== today && day !== yesterday)) return json({ error: 'That daily challenge is over. Play today\'s.' }, 400); }
+  const st = daily ? dailyStage(day) : stageOf(body.stage), S = STAGES[st];
   const maxWave = S.endless ? MAX_WAVE : S.waves;
   if (!(score >= 0 && wave >= 1 && wave <= maxWave && lives >= 0 && lives <= 20)) return json({ error: 'That run does not look valid.' }, 400);
 
@@ -149,23 +168,27 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
   if (used && used.handle !== handle.toLowerCase()) return json({ error: 'This run was already submitted under another handle.' }, 409);
   if (!used) await store.setJSON(runKey, { handle: handle.toLowerCase(), at: now });
 
-  // best per handle
-  const b = await readBoard(store, S.key);
-  const key = handle.toLowerCase();
-  const i = b.rows.findIndex((r) => r.handle.toLowerCase() === key);
-  const prev = i >= 0 ? b.rows[i] : null;
+  // best per handle on the board this run belongs to; campaign runs also count for this week's board
+  const row = { handle, score, wave, lives, decoded, kills, at: new Date(now).toISOString() };
+  const boardKey = daily ? `board/daily/${day}` : S.key;
+  const res = await upsertBest(store, boardKey, row);
+  if (!daily) await upsertBest(store, `board/week/${weekKeyOf(now)}/${st}`, row);
+  return json({ ok: true, stage: daily ? 'daily' : st, day, handle, improved: res.improved, rank: res.rank || null, best: res.best });
+}
+// keeps one row per name, the best score; returns the rank on that board
+async function upsertBest(store, boardKey, row) {
+  const b = await readBoard(store, boardKey), key = row.handle.toLowerCase();
+  const i = b.rows.findIndex((r) => r.handle.toLowerCase() === key), prev = i >= 0 ? b.rows[i] : null;
   let improved = false;
-  if (!prev || score > prev.score) {
-    const row = { handle, score, wave, lives, decoded, kills, at: new Date(now).toISOString() };
+  if (!prev || row.score > prev.score) {
     if (i >= 0) b.rows[i] = row; else b.rows.push(row);
     b.rows.sort((x, y) => y.score - x.score || y.wave - x.wave || x.at.localeCompare(y.at));
     b.rows = b.rows.slice(0, KEEP);
-    await store.setJSON(S.key, b);
+    await store.setJSON(boardKey, b);
     improved = true;
   }
   const rank = b.rows.findIndex((r) => r.handle.toLowerCase() === key) + 1;
-  const best = rank ? b.rows[rank - 1].score : score;
-  return json({ ok: true, stage: st, handle, improved, rank: rank || null, best });
+  return { improved, rank, best: rank ? b.rows[rank - 1].score : row.score };
 }
 
 // The signing secret comes from RUN_SECRET when it is set. Otherwise one is generated on first use

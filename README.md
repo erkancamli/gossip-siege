@@ -29,6 +29,12 @@ Ten stages. Clearing one unlocks the next. Each stage has its own map and look a
 | 9 | Stress Test | 22 | the route is the Optimum infinity mark; twice the enemies, lighter, half bounty | about 10x lower latency under high traffic and zero loss in A/B tests |
 | 10 | Mainnet | 25, then endless | leaks cost coins, early waves pay double | speed is money |
 
+## Daily challenge and weekly board
+
+Every day at 00:00 UTC the title screen offers one daily challenge: a fixed stage, a fixed seed (same waves for everyone) and one modifier that changes a rule for that run only. The modifier rotates through seven: Copy flood (dupe swarms doubled), No bank (Kent is unavailable, kills are the only income), Thin wallet (starting coins at 60%), Fast lane (enemies 12% faster), Ten validators (ten lives), All coded (3 shard shields on everyone from wave 3) and Heavy traffic (half again as many enemies, each lighter). Each modifier only visits the stages where the simulated players still clear it, so no daily is a wall. Daily runs give no stars and do not unlock stages; they have their own board that resets with the day and can be played again as often as you like, best score counts.
+
+The weekly board adds up each player's best score per campaign stage since Monday 00:00 UTC, so a new player can top it with one strong week.
+
 ## The crew
 
 The seven heroes are named after the Optimum team, and every stage has a guide from the team. Sources: getoptimum.xyz/team, getoptimum.xyz/blog, the OptimumP2P paper (arXiv 2508.04833) and the public getoptimum GitHub repos. The game only states public facts about them and invents no quotes.
@@ -92,7 +98,9 @@ test/                         API tests and a local dev server
 | `/api/run` | POST | Signed run ticket, requested when a run starts |
 | `/api/scores?stage=n` | GET | Top 50 of a stage (1 to 10), best score per player name |
 | `/api/scores?stage=all` | GET | Overall board: each player's best score per stage added up, with the number of stages scored |
-| `/api/scores` | POST | Submit a finished run (with its stage); needs the player's name and device key |
+| `/api/scores?stage=daily[&day=YYYY-MM-DD]` | GET | Today's (or a given day's) challenge board with the stage it ran on |
+| `/api/scores?stage=week` | GET | This week's board: best per campaign stage since Monday 00:00 UTC, added up |
+| `/api/scores` | POST | Submit a finished run (with its stage, or `stage: "daily"` plus its `day`); needs the player's name and device key |
 | `/api/register` | POST | Claim a player name; returns the device key that signs that name's posts |
 
 Player names live on the game's own server: a name is claimed once (3 to 15 letters, digits or underscores), the device that claimed it gets a secret key kept in its local storage, and only posts carrying that key count for that name. A player who changes device picks a new name; the old scores stay on the board. Once a name is saved every finished run is posted automatically, and the Overall tab adds up each player's best per stage. On top of that: a server signed ticket per run, a minimum real play time per wave, a score ceiling derived from the game's own scoring, one ticket per run, and a short rate limit per client for posts and registrations.

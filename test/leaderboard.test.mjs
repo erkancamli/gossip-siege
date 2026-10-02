@@ -133,3 +133,24 @@ test('overall board adds up the best score per stage for each name', async () =>
   assert.equal(all.stage, 'all');
   assert.deepEqual(all.rows.map((r) => [r.handle, r.score, r.stages]), [['ada', 70000, 2], ['bob', 50000, 1]]);
 });
+
+test('daily challenge board and the weekly board', async () => {
+  const env = { store: memStore(), ip: '1.1.1.10', secret: SECRET };
+  const T0 = Date.UTC(2026, 9, 2, 12); // Friday 2026-10-02 12:00 UTC; the daily stage that day is 3 (dayIndex % 9)
+  const a = await ticket(env, T0), b = await ticket(env, T0), c = await ticket(env, T0);
+  const d1 = await submit(env, { handle: 'ada', stage: 'daily', day: '2026-10-02', score: 20000, wave: 15, lives: 20, run: a }, T0 + 1_200_000);
+  assert.equal(d1.status, 200); assert.equal(d1.body.stage, 'daily'); assert.equal(d1.body.day, '2026-10-02');
+  const old = await submit(env, { handle: 'ada', stage: 'daily', day: '2026-09-20', score: 100, wave: 2, lives: 20, run: b }, T0 + 1_300_000);
+  assert.equal(old.status, 400);
+  const tooHigh = await submit(env, { handle: 'ada', stage: 'daily', day: '2026-10-02', score: 9_000_000, wave: 15, lives: 20, run: b }, T0 + 1_400_000);
+  assert.equal(tooHigh.status, 400); // the day's stage sets the ceiling
+  const daily = await (await handle(req('GET', '/api/scores?stage=daily'), { ...env, now: T0 + 2_000_000 })).json();
+  assert.equal(daily.day, '2026-10-02'); assert.equal(daily.dailyStage, 3); assert.deepEqual(daily.rows.map((r) => r.handle), ['ada']);
+  // a campaign run counts for the week (Monday 2026-09-28), a daily run does not
+  assert.equal((await submit(env, { handle: 'bob', stage: 2, score: 30000, wave: 14, lives: 20, run: c }, T0 + 1_500_000)).status, 200);
+  const week = await (await handle(req('GET', '/api/scores?stage=week'), { ...env, now: T0 + 2_100_000 })).json();
+  assert.equal(week.week, '2026-09-28'); assert.deepEqual(week.rows.map((r) => [r.handle, r.score]), [['bob', 30000]]);
+  // next Monday the week board starts empty
+  const next = await (await handle(req('GET', '/api/scores?stage=week'), { ...env, now: Date.UTC(2026, 9, 5, 1) })).json();
+  assert.equal(next.week, '2026-10-05'); assert.equal(next.rows.length, 0);
+});

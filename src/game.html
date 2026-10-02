@@ -170,6 +170,14 @@ body.small .face { width: 52px; height: 52px; }
 .title { box-sizing: border-box; width: min(1180px, 100% - 48px); min-height: 100%; margin: 0 auto; padding: clamp(20px, 4vh, 48px) 0 32px; display: grid; grid-template-columns: 1fr 360px; gap: 30px; align-items: center; }
 @media (max-width: 980px) { .title { grid-template-columns: 1fr; gap: 20px; align-items: start; } .title .board { min-height: 0; max-height: none; } }
 @media (max-width: 520px) { .title { width: min(1180px, 100% - 32px); } }
+.daily { border: 1px solid rgba(255,210,63,0.45); background: rgba(255,210,63,0.07); border-radius: 14px; padding: 12px 14px; display: grid; gap: 8px; max-width: 640px; }
+.daily .dtop { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.daily .label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+.daily .dreset { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.daily .dmain { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.daily .dmain > div { display: grid; gap: 2px; font-size: 13px; color: var(--soft); }
+.daily b { font-family: var(--display); font-size: 17px; color: var(--paper); }
+.daily .dbest { font-family: var(--mono); font-size: 11.5px; color: var(--dim); }
 .foot { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 8px; }
 .lgroup { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12.5px; }
 .lgroup .label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); margin-right: 4px; }
@@ -379,6 +387,7 @@ body.small .coach { font-size: 20px; }
       <h1 class="big">Gossip<br>Siege</h1>
       <p class="lede" data-t="lede">The Gossip Blob and its swarm of duplicates are marching on your validators. Hire the <b>Optimum crew</b>, crack coded armor with <b>independent shards</b>, and take the mesh from <b>Hoodi Testnet to Mainnet</b> across ten stages. Every second wave asks an <b>Optimum question</b>: learn the tech, earn boosts.</p>
       <div class="tcta"><button class="chrome" id="playBtn" data-t="playBtn">Defend the mesh</button><button class="ghost" id="howBtn" data-t="howBtn">How it plays</button><button class="ghost" id="modeBtn2" title="Day or night mode">☀ Day</button><button class="ghost" id="langBtn" title="Language">TR</button><button class="ghost" id="fsBtn2" data-t="fsBtn" hidden>Full screen</button></div>
+      <div class="daily" id="dailyCard"><div class="dtop"><span class="label" data-t="dailyLabel">Daily challenge</span><span class="dreset" id="dailyReset"></span></div><div class="dmain"><div><b id="dailyStage"></b><span id="dailyMod"></span><span class="dbest" id="dailyBest"></span></div><button class="chrome" id="dailyBtn" data-t="dailyBtn">Play today's challenge</button></div></div>
       <canvas id="crewcv" width="1400" height="360" aria-label="The Optimum crew"></canvas>
       <div class="community"><span class="label" data-t="community">Community</span>
         <div class="cm"><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><div><b>Pegasus</b><span data-t="cmPegasus">Mumbassador. Your coach, asks the questions.</span></div></div>
@@ -536,7 +545,15 @@ const UI_TR = {
   howBtn: 'Nasıl oynanır?',
   fsBtn: 'Tam ekran',
   fine: "Optimum topluluğu için @ekinoks_26 tarafından hazırlanmış bir hayran yapımıdır; resmi bir Optimum ürünü değildir. Ekip, topluluğun Optimum maskotundan esinlenerek tasarlandı. Oyundaki sayılar eğlence içindir; ama içindeki RLNC kuralı gerçek: kodlu bir blok ancak yeterli sayıda bağımsız shard ile açılır. <a href=\"https://www.getoptimum.xyz\" target=\"_blank\" rel=\"noopener\">getoptimum.xyz</a>",
-  boardH3: 'Mesh sıralaması',
+  boardH3: 'Mesh sıralaması', dailyLabel: 'Günün meydan okuması', dailyBtn: 'Bugünün meydan okumasını oyna',
+  'Daily': 'Günlük', 'This week': 'Bu hafta', "Today's challenge, same board for everyone": 'Bugünün meydan okuması, herkes için aynı tablo', 'Best per stage since Monday, added up': "Pazartesiden beri bölüm başına en iyi skorların toplamı",
+  'Nobody has posted today. Be the first.': 'Bugün henüz kimse skor göndermedi. İlk sen ol.', 'Today: {name} · {mod}': 'Bugün: {name} · {mod}', 'Your best today: {s}': 'Bugünkü en iyi skorun: {s}',
+  'Best per stage since Monday, added up. Resets Monday 00:00 UTC.': 'Pazartesiden beri bölüm başına en iyi skorların toplamı. Pazartesi 00:00 UTC\'de sıfırlanır.', 'New challenge in {h}h {m}m': 'Yeni meydan okuma {h} sa {m} dk sonra',
+  'Same waves, same rule for everyone today. One board, resets at midnight UTC.': 'Bugün herkes için aynı dalgalar, aynı kural. Tek tablo, gece yarısı UTC\'de sıfırlanır.', 'Daily challenge {d} · {name} · {mod}': 'Günün meydan okuması {d} · {name} · {mod}',
+  'Copy flood': 'Kopya seli', 'Dupe swarms are doubled. Gossipsub on a bad day.': "Dupe sürüleri iki kat. Gossipsub'ın kötü günü.", 'No bank': 'Banka yok', 'Kent is out of town: no rent this run. Kills are the only income.': 'Kent şehir dışında: bu oyunda kira yok. Tek gelir öldürmeler.',
+  'Thin wallet': 'İnce cüzdan', 'Starting coins cut to 60%. Call waves early for the speed bonus.': "Başlangıç coin'i %60'a indi. Hız bonusu için dalgaları erken çağır.", 'Fast lane': 'Hızlı şerit', 'Every enemy moves 12% faster. Slows and stuns earn their keep.': 'Her düşman %12 daha hızlı. Yavaşlatma ve dondurma burada değerini gösterir.',
+  'Ten validators': 'On validator', 'Only ten validators to lose. Nothing leaks.': "Kaybedecek sadece on validator var. Hiçbir şey kaçmasın.", 'All coded': 'Hepsi kodlu', 'From wave 3 every enemy wears a 3 shard shield. Three different crew members on every stretch.': "3. dalgadan itibaren her düşmanda 3 shard'lık kalkan var. Her hatta üç farklı ekip üyesi.",
+  'Heavy traffic': 'Yoğun trafik', 'Half again as many enemies, each a little lighter. Splash wins.': 'Yüzde elli daha fazla düşman, her biri biraz daha hafif. Alan hasarı kazanır.',
   lkSite: 'Web sitesi', lkDocs: 'Dokümanlar', lkPaper: 'OptimumP2P makalesi', lkMaker: '@ekinoks_26 yaptı', lkSource: 'Kaynak kodu',
   nameSave: 'Adı kaydet',
   nameChange: 'adı değiştir',
@@ -678,8 +695,8 @@ function applyLang() {
 }
 function setLang(l) {
   LANG = l; try { localStorage.setItem('gs_lang', l); } catch (e) {}
-  applyLang(); renderCredits(); renderCoach(); renderBoards();
-  if (G) { $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`; renderWave(); updateHud(true); if (quiz) renderQuizText(true); if (!$('endScr').hidden) renderEnd(); if (hintOn) $('coachText').textContent = stT(G.stage).hint; }
+  applyLang(); renderCredits(); renderCoach(); renderTabs(); renderBoards(); renderDaily();
+  if (G) { $('stageChip').textContent = stageChipText(); renderWave(); updateHud(true); if (quiz) renderQuizText(true); if (!$('endScr').hidden) renderEnd(); if (hintOn) $('coachText').textContent = G.daily ? tr(G.mod.name) + ': ' + tr(G.mod.text) : stT(G.stage).hint; }
   if (!$('stagesScr').hidden) renderStages();
   if (!$('learnScr').hidden) showLearn();
 }
@@ -1225,12 +1242,13 @@ let checkpoints = []; // snapshots taken at every wave clear, newest last; a los
 const pending = []; // modal queue
 const seenCodex = {};
 
-function newRun(stageId) {
-  stageId = stageId || viewStage || 1; viewStage = stageId;
+function newRun(stageId, daily) {
+  stageId = daily ? daily.stageId : (stageId || viewStage || 1); if (!daily) viewStage = stageId;
   pending.length = 0; modalOpen = false; $('modal').hidden = true; quiz = null; $('quiz').hidden = true; askedRun = new Set();
-  G = T.newGame(Math.floor(Math.random() * 1e9), stageId); G.briefLeft = BRIEF_N; checkpoints = [];
+  G = daily ? T.newGame(daily.seed, stageId, daily.mod) : T.newGame(Math.floor(Math.random() * 1e9), stageId); G.briefLeft = BRIEF_N; checkpoints = [];
+  if (daily) { G.daily = daily.day; G.mod = daily.mod; }
   apiStartRun();
-  $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`;
+  $('stageChip').textContent = stageChipText();
   $('stagesScr').hidden = true;
   floaters = []; sel = null; aimBurst = false; speed = 1; paused = false; $('speedBtn').textContent = '1×'; $('pauseBtn').textContent = 'II';
   closeRing();
@@ -1240,9 +1258,11 @@ function newRun(stageId) {
   coach = tut && stageId === 1 ? { step: 0 } : null; renderCoach();
   if (coach) G.briefLeft = 0; // Pegasus walks a first time player through the basics first; briefings start on the next run
   hintOn = false; showHint();
+  if (daily) { hintOn = true; $('coachText').textContent = tr(daily.mod.name) + ': ' + tr(daily.mod.text); $('coach').hidden = false; }
   renderWave(); updateHud(true);
   if (G.stage.rule) { delete seenCodex['stage' + stageId]; queueCodex('stage', stageId); }
 }
+const stageChipText = () => (G.daily ? tr('Daily') + ' · ' : `${G.stage.id} · `) + G.stage.name;
 function frameLoop(ts) {
   const dt = Math.min(0.05, (ts - lastTs) / 1000 || 0); lastTs = ts;
   if (G && !paused && !modalOpen && !G.over && G.state !== 'victory') {
@@ -1785,26 +1805,34 @@ function finish(won) {
   const S = G.stage, endless = G.wave > G.finalWave, stars = won && !endless ? T.starsFor(G) : 0;
   const prog = loadProg(), next = T.STAGES.find(x => x.id === S.id + 1);
   renderContinue(won || endless ? [] : checkpoints);
-  if (stars) { prog.stars[S.key] = Math.max(prog.stars[S.key] || 0, stars); prog.cleared[S.key] = true; }
-  const newBest = !prog.best[S.key] || G.score > prog.best[S.key];
-  if (newBest) { prog.best[S.key] = G.score; if (API && runTok) { prog.runs = prog.runs || {}; prog.runs[S.key] = { stage: S.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now(), posted: false }; } } // the ticket is kept so the run can be posted later, for instance once a name is saved
+  let newBest;
+  if (G.daily) { // a daily run: its own best per day, never campaign stars
+    prog.daily = prog.daily || {}; newBest = !prog.daily[G.daily] || G.score > prog.daily[G.daily];
+    if (newBest) { prog.daily[G.daily] = G.score; if (API && runTok) { prog.runs = prog.runs || {}; prog.runs['daily:' + G.daily] = { stage: 'daily', day: G.daily, name: S.name, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now(), posted: false }; } }
+  } else {
+    if (stars) { prog.stars[S.key] = Math.max(prog.stars[S.key] || 0, stars); prog.cleared[S.key] = true; }
+    newBest = !prog.best[S.key] || G.score > prog.best[S.key];
+    if (newBest) { prog.best[S.key] = G.score; if (API && runTok) { prog.runs = prog.runs || {}; prog.runs[S.key] = { stage: S.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now(), posted: false }; } } // the ticket is kept so the run can be posted later, for instance once a name is saved
+  }
   saveProg(prog);
   G.stars = stars; G.end = { won, endless, newBest, next };
   { const { r } = roleFor(); G.role = r.name; }
-  $('endScr').hidden = false; $('endlessBtn').hidden = !(won && S.endless && !endless);
-  $('nextBtn').hidden = !(won && next);
+  $('endScr').hidden = false; $('endlessBtn').hidden = !(won && S.endless && !endless && !G.daily);
+  $('nextBtn').hidden = !(won && next && !G.daily); $('eStars').hidden = true;
   $('againBtn').className = won && next ? 'ghost' : 'chrome';
-  $('eStars').textContent = won && !endless ? starStr(stars) : ''; $('eStars').hidden = !(won && !endless);
+  $('eStars').textContent = won && !endless ? starStr(stars) : ''; $('eStars').hidden = !(won && !endless) || !!G.daily;
   renderEnd();
   drawCard();
-  const text = won && !endless
+  const text = G.daily
+    ? `gMum. Daily challenge ${G.daily} in Gossip Siege: ${S.name} with ${G.mod.name}, wave ${G.wave}/${G.finalWave}, ${G.lives}/${G.maxLives} validators, score ${G.score.toLocaleString('en-US')}. Same board for everyone today. Speed is money. @get_optimum`
+    : won && !endless
     ? `gMum. I cleared ${S.name} in Gossip Siege ${starStr(stars)}: ${G.lives}/20 validators on time, ${G.stats.decoded} coded shields cracked, ${G.quiz.right}/${G.quiz.asked} Optimum questions right. Score ${G.score.toLocaleString('en-US')}. Flash says I am a ${G.role}. Speed is money. @get_optimum`
     : `gMum. Gossip Siege, ${S.name}: wave ${G.wave}, ${G.stats.decoded} coded shields cracked with independent shards. Score ${G.score.toLocaleString('en-US')}, grade ${grade()}. Speed is money. @get_optimum`;
   $('shareX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text); $('shareX').dataset.text = text;
   let h = ''; try { h = localStorage.getItem('gs_handle') || ''; } catch (e) {} $('handleIn').value = h;
   $('submitBtn').disabled = false; renderName();
   $('lbMsg').textContent = ''; $('lbMsg').className = 'msg';
-  lbStage = S.id; loadBoard();
+  lbStage = G.daily ? 'daily' : S.id; loadBoard();
   if (API && loadPlayer() && runTok) postCurrent().then(() => postPending()); // registered players are posted automatically; the button stays for retries
 }
 // the end screen text in the current language; rerun when the language changes
@@ -1818,14 +1846,14 @@ function continueFrom(cp) {
   G = T.restore(cp); checkpoints = checkpoints.filter(c => c.wave <= cp.wave);
   floaters = []; sel = null; aimBurst = false; speed = 1; paused = false; $('speedBtn').textContent = '1×'; $('pauseBtn').textContent = 'II'; closeRing();
   ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = false); $('endScr').hidden = true;
-  $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`; renderWave(); updateHud(true);
+  $('stageChip').textContent = stageChipText(); renderWave(); updateHud(true);
   floater(640, 150, tr('Continued from wave {n}', { n: cp.wave }), '#4da3ff', 20, 2.0);
 }
 function renderEnd() {
   const S = G.stage, { won, endless, newBest, next } = G.end;
   if (next) $('nextBtn').textContent = tr('Next stage: {name}', { name: next.name });
   $('againBtn').textContent = tr(won ? 'Replay for stars' : 'Try again');
-  $('eTag').textContent = tr('Stage {id} · {name}', { id: S.id, name: S.name }) + tr(won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell') + (G.continued ? tr(' · continued: score ×0.7, at most 2 stars') : '');
+  $('eTag').textContent = (G.daily ? tr('Daily challenge {d} · {name} · {mod}', { d: G.daily, name: S.name, mod: tr(G.mod.name) }) : tr('Stage {id} · {name}', { id: S.id, name: S.name })) + tr(won ? ' · the mesh held' : endless ? ' · endless' : ' · the mesh fell') + (G.continued ? tr(' · continued: score ×0.7, at most 2 stars') : '');
   { const { r, next, top, p } = roleFor(); $('roleBox').hidden = false; $('roleName').textContent = r.name; $('roleWhy').textContent = tr(r.text);
     const v = { s: p.stars, k: p.known };
     $('roleNext').textContent = next ? tr(next.name === 'Observer' ? 'Next role Observer: {s} / 3 stars, {k} / 3 answers learned' : 'Next role Refined: {s} / 9 stars, {k} / 10 answers learned', v) : top ? tr('Next: Optimized or Chronicler at 21 stars and 25 answers ({s} stars, {k} answers). Stars lean Optimized, knowledge leans Chronicler.', v) : tr('{s} / 30 stars, {k} / 100 answers learned', v); }
@@ -1872,7 +1900,7 @@ $('saveImg').onclick = async () => {
   } catch (e) { msg(tr('Save cancelled.')); }
 };
 function msg(t, ok) { $('shareMsg').textContent = t; $('shareMsg').className = 'msg' + (ok ? ' ok' : ''); }
-$('againBtn').onclick = () => newRun(G ? G.stage.id : viewStage);
+$('againBtn').onclick = () => (G && G.daily ? newRun(0, T.dailyFor(G.daily)) : newRun(G ? G.stage.id : viewStage));
 $('nextBtn').onclick = () => newRun(G.stage.id + 1);
 $('homeBtn').onclick = () => showStages();
 $('endlessBtn').onclick = () => { G.endless = true; G.state = 'build'; G.won = false; G.countdown = 18; ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = false); $('endScr').hidden = true; renderWave(); };
@@ -1884,6 +1912,7 @@ const API = (window.claude && window.claude.use) ? null : '/api';
 let DB = null, USER = null, myId = null, lbRows = [], boardOn = false, runTok = null, lbStage = 0, dbUnsub = null, lbSeq = 0; // lbStage 0 is the overall board (web only)
 const PLAYER_KEY = 'gs_player'; // declared before initBoard runs: loadPlayer() is called from it
 let pendingBusy = false;
+let lbMeta = {}; // what the server said about the board that is showing (day, week)
 const cleanHandle = (v) => String(v || '').trim().replace(/^@+/, '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 15);
 const dbCol = (n) => ({ 1: 'scores', 4: 'scores_s2', 6: 'scores_s3', 10: 'scores_s4' })[n] || 'scores_' + (T.STAGES.find(x => x.id === n) || {}).key; // legacy names kept for the four stage campaign
 async function apiStartRun() {
@@ -1893,6 +1922,8 @@ async function apiStartRun() {
 async function loadBoard() {
   const want = lbStage, seq = ++lbSeq; renderTabs();
   if (API) {
+    try { const r = await fetch(API + '/scores?stage=' + (want === 0 ? 'all' : want), { cache: 'no-store' });
+      if (!r.ok) throw 0; const j = await r.json(); if (seq !== lbSeq) return; lbMeta = j; lbRows = (j.rows || []).map(x => ({ ...x, id: 'h:' + String(x.handle || '').toLowerCase() })); boardOn = true; renderBoards(); return; } catch (e) { if (seq !== lbSeq) return; boardOn = false; lbRows = []; renderBoards(); return; }
     try { const r = await fetch(API + '/scores?stage=' + (want === 0 ? 'all' : want), { cache: 'no-store' }); if (!r.ok) throw 0; const j = await r.json(); if (seq !== lbSeq) return; lbRows = (j.rows || []).map(x => ({ ...x, id: 'h:' + String(x.handle || '').toLowerCase() })); boardOn = true; }
     catch (e) { if (seq !== lbSeq) return; boardOn = false; lbRows = []; }
     renderBoards(); return;
@@ -1924,24 +1955,26 @@ async function loadBoard() {
 function renderTabs() {
   for (const el of document.querySelectorAll('.tabs')) {
     el.innerHTML = '';
-    if (API) { const b = document.createElement('button'); b.className = 'tab all' + (lbStage === 0 ? ' on' : ''); b.textContent = tr('Overall'); b.title = tr('Every stage added up'); b.onclick = () => { if (lbStage !== 0) { lbStage = 0; loadBoard(); } }; el.appendChild(b); }
+    if (API) for (const [id, label, title] of [[0, 'Overall', 'Every stage added up'], ['daily', 'Daily', "Today's challenge, same board for everyone"], ['week', 'This week', 'Best per stage since Monday, added up']]) { const b = document.createElement('button'); b.className = 'tab all' + (lbStage === id ? ' on' : ''); b.textContent = tr(label); b.title = tr(title); b.onclick = () => { if (lbStage !== id) { lbStage = id; loadBoard(); } }; el.appendChild(b); }
     for (const st of T.STAGES) { const b = document.createElement('button'); b.className = 'tab' + (st.id === lbStage ? ' on' : ''); b.textContent = st.name; b.title = tr('Stage {id} board', { id: st.id }); b.onclick = () => { if (lbStage !== st.id) { lbStage = st.id; loadBoard(); } }; el.appendChild(b); }
   }
 }
 function renderBoards() {
   for (const id of ['lbTitle', 'lbEnd', 'lbStages']) {
     const el = $(id); if (!el) continue; el.innerHTML = '';
-    if (!lbRows.length) { const p = document.createElement('div'); p.className = 'lbnote'; p.textContent = tr(!boardOn ? 'The shared leaderboard is not reachable right now. Your best runs are kept on this device.' : lbStage === 0 ? 'No scores yet. Save a name and finish a stage.' : 'No scores on this stage yet. Be the first to hold the mesh.'); el.appendChild(p); }
+    if (!lbRows.length) { const p = document.createElement('div'); p.className = 'lbnote'; p.textContent = tr(!boardOn ? 'The shared leaderboard is not reachable right now. Your best runs are kept on this device.' : lbStage === 0 || lbStage === 'week' ? 'No scores yet. Save a name and finish a stage.' : lbStage === 'daily' ? 'Nobody has posted today. Be the first.' : 'No scores on this stage yet. Be the first to hold the mesh.'); el.appendChild(p); }
     lbRows.slice(0, id === 'lbEnd' ? 12 : 10).forEach((r, i) => {
       const row = document.createElement('div'); row.className = 'lbr' + (r.id === myId ? ' me' : '');
       const rk = document.createElement('span'); rk.className = 'rk'; rk.textContent = i + 1;
       const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (API ? '@' : '') + String(r.handle || 'anon').slice(0, 24);
-      const wv = document.createElement('span'); wv.className = 'wv'; wv.textContent = lbStage === 0 ? (r.stages || 0) + '/' + T.STAGES.length : 'w' + (r.wave || 0);
+      const wv = document.createElement('span'); wv.className = 'wv'; wv.textContent = lbStage === 0 || lbStage === 'week' ? (r.stages || 0) + '/' + T.STAGES.length : 'w' + (r.wave || 0);
       const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = Number(r.score || 0).toLocaleString('en-US');
       row.append(rk, nm, wv, sc); el.appendChild(row);
     });
   }
   const pr = loadProg();
+  if (lbStage === 'daily') { const d = T.dailyFor(T.dayKeyOf(Date.now())), st = T.STAGES.find(x => x.id === d.stageId), b = (pr.daily || {})[d.day]; $('lbNoteTitle').textContent = tr('Today: {name} · {mod}', { name: st.name, mod: tr(d.mod.name) }) + (b ? ' · ' + tr('Your best today: {s}', { s: b.toLocaleString('en-US') }) : ''); return; }
+  if (lbStage === 'week') { $('lbNoteTitle').textContent = tr('Best per stage since Monday, added up. Resets Monday 00:00 UTC.'); return; }
   if (lbStage === 0) { const tot = Object.values(pr.best).reduce((a, b) => a + b, 0), n = Object.keys(pr.best).length; $('lbNoteTitle').textContent = tot ? tr('Your total on this device: {s} across {n} stages', { s: tot.toLocaleString('en-US'), n }) : tr('Every stage added up. Save a name and your runs are posted automatically.'); return; }
   const lk = (T.STAGES.find(x => x.id === lbStage) || T.STAGES[0]).key, b = pr.best[lk], stars = pr.stars[lk] || 0;
   $('lbNoteTitle').textContent = b ? tr('Your best on this device: {s}', { s: b.toLocaleString('en-US') }) + (stars ? '  ' + starStr(stars) : '') : '';
@@ -1976,22 +2009,23 @@ async function postScore(run, quiet) {
   if (!p) return { ok: false, error: tr('Pick a player name first.') };
   if (!run.run) return { ok: false, error: tr('This run was not registered with the board (offline at start). Play another run to post.') };
   try {
-    const r = await fetch(API + '/scores', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handle: p.handle, key: p.key, stage: run.stage, score: run.score, wave: run.wave, lives: run.lives, decoded: run.decoded, kills: run.kills, run: run.run }) });
+    const r = await fetch(API + '/scores', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handle: p.handle, key: p.key, stage: run.stage, day: run.day, score: run.score, wave: run.wave, lives: run.lives, decoded: run.decoded, kills: run.kills, run: run.run }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) return { ok: false, error: tr(j.error || 'The board refused this run.') };
-    if (!quiet) lbStage = run.stage; loadBoard();
+    if (!quiet) lbStage = run.stage === 'daily' ? 'daily' : run.stage; loadBoard();
     return { ok: true, rank: j.rank, improved: j.improved, best: j.best, handle: j.handle };
   } catch (e) { return { ok: false, error: tr('Could not reach the board. Try again in a moment.') }; }
 }
 let submitting = false;
 async function postCurrent() {
   if (submitting || !G) return; submitting = true; const lm = $('lbMsg'); lm.className = 'msg'; lm.textContent = tr('Posting...');
-  const res = await postScore({ stage: G.stage.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok });
-  lm.textContent = res.ok ? (res.improved ? tr('On the {name} board at #{r} as @{h}.', { name: G.stage.name, r: res.rank, h: res.handle }) : tr('Your best ({s}) is already on the board, #{r}.', { s: Number(res.best).toLocaleString('en-US'), r: res.rank })) : res.error; lm.className = 'msg' + (res.ok ? ' ok' : '');
-  if (res.ok) markPosted(G.stage.key);
+  const res = await postScore({ stage: G.daily ? 'daily' : G.stage.id, day: G.daily, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok });
+  lm.textContent = res.ok ? (res.improved ? tr('On the {name} board at #{r} as @{h}.', { name: G.daily ? tr('Daily') : G.stage.name, r: res.rank, h: res.handle }) : tr('Your best ({s}) is already on the board, #{r}.', { s: Number(res.best).toLocaleString('en-US'), r: res.rank })) : res.error; lm.className = 'msg' + (res.ok ? ' ok' : '');
+  if (res.ok) markPosted(runKeyOf(G));
   submitting = false;
 }
 function markPosted(key) { const prog = loadProg(); if (prog.runs && prog.runs[key]) { prog.runs[key].posted = true; saveProg(prog); } }
+const runKeyOf = (G) => (G.daily ? 'daily:' + G.daily : G.stage.key);
 // best runs kept on this device that never reached the board (played before a name was saved, or offline): post them now
 async function postPending() {
   if (!API || pendingBusy || !loadPlayer()) return; pendingBusy = true;
@@ -2001,7 +2035,7 @@ async function postPending() {
       const r = runs[key]; if (r.posted || !r.run) continue;
       if (Date.now() - r.at > 6 * 24 * 3600 * 1000) { markPosted(key); continue; } // tickets expire on the server after a week
       const res = await postScore(r, true);
-      if (res.ok || /valid|old|faster|higher|another handle|registered/.test(res.error || '')) markPosted(key); // posted, or refused for good: stop retrying
+      if (res.ok || /valid|old|faster|higher|another handle|registered|over/.test(res.error || '')) markPosted(key); // posted, or refused for good: stop retrying
       else break; // network trouble: try again next time
       await new Promise(r => setTimeout(r, 9000)); // the board accepts one post per client every 8 seconds
     }
@@ -2213,9 +2247,20 @@ $('ssBack').onclick = () => toTitle();
 // ---------- title ----------
 function toTitle() {
   pending.length = 0; modalOpen = false; $('modal').hidden = true; closeQuiz(); $('learnScr').hidden = true;
-  G = null; closeRing(); ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = true); $('endScr').hidden = true; $('stagesScr').hidden = true; $('titleScr').hidden = false; $('coach').hidden = true; if (API) lbStage = 0; loadBoard();
+  G = null; closeRing(); ['hud', 'wavebox', 'abil'].forEach(id => $(id).hidden = true); $('endScr').hidden = true; $('stagesScr').hidden = true; $('titleScr').hidden = false; $('coach').hidden = true; if (API) lbStage = 0; loadBoard(); renderDaily();
 }
 $('playBtn').onclick = () => { audio(); showStages(); };
+// daily challenge card: today's stage and modifier, the device's best, time to the next one
+function renderDaily() {
+  const card = $('dailyCard'); if (!API) { card.hidden = true; return; }
+  const now = Date.now(), d = T.dailyFor(T.dayKeyOf(now)), st = T.STAGES.find(x => x.id === d.stageId), best = (loadProg().daily || {})[d.day];
+  $('dailyStage').textContent = st.name + ' · ' + tr(d.mod.name); $('dailyMod').textContent = tr(d.mod.text);
+  $('dailyBest').textContent = best ? tr('Your best today: {s}', { s: best.toLocaleString('en-US') }) : tr('Same waves, same rule for everyone today. One board, resets at midnight UTC.');
+  const left = 86400000 - (now % 86400000), h = Math.floor(left / 3600000), m = Math.floor((left % 3600000) / 60000);
+  $('dailyReset').textContent = tr('New challenge in {h}h {m}m', { h, m });
+}
+$('dailyBtn').onclick = () => { audio(); const d = T.dailyFor(T.dayKeyOf(Date.now())); newRun(0, d); };
+setInterval(() => { if (!$('titleScr').hidden) renderDaily(); }, 60000);
 let backToTitle = false;
 $('howBtn').onclick = () => { backToTitle = true; $('titleScr').hidden = true; pending.length = 0; ['spike', 'cyan', 'nova'].forEach(k => pending.push({ kind: 'crew', id: k })); pending.unshift({ kind: 'foe', id: 'lag', coded: true }); modalOpen = true; nextCodex(); };
 // animated crew line-up on the title screen

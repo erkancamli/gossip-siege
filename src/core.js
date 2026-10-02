@@ -174,10 +174,26 @@
   }
 
   // ---------- game ----------
-  function newGame(seed, stageId) {
-    const stage = STAGES.find((s) => s.id === stageId) || STAGES[0];
+  // Daily challenge: the UTC day picks the stage and one modifier; everyone plays the same board that day.
+  const MODS = [
+    { key: 'copyflood', stages: [2, 10], name: 'Copy flood', text: 'Dupe swarms are doubled. Gossipsub on a bad day.', apply: (st) => ({ ...st, dupeX: Math.max(st.dupeX || 1, 2) }) },
+    { key: 'nobank', stages: [2, 10], name: 'No bank', text: 'Kent is out of town: no rent this run. Kills are the only income.', apply: (st) => ({ ...st, noKent: true }) },
+    { key: 'thinwallet', stages: [2, 8], name: 'Thin wallet', text: 'Starting coins cut to 60%. Call waves early for the speed bonus.', apply: (st) => ({ ...st, coins: Math.round(st.coins * 0.6) }) },
+    { key: 'fastlane', stages: [2, 7], name: 'Fast lane', text: 'Every enemy moves 12% faster. Slows and stuns earn their keep.', apply: (st) => ({ ...st, speed: (st.speed || 1) * 1.12 }) },
+    { key: 'tenvalidators', stages: [2, 7], name: 'Ten validators', text: 'Only ten validators to lose. Nothing leaks.', apply: (st) => ({ ...st, lives: 10 }) },
+    { key: 'allcoded', stages: [2, 8], name: 'All coded', text: 'From wave 3 every enemy wears a 3 shard shield. Three different crew members on every stretch.', apply: (st) => ({ ...st, allCoded: Math.max(st.allCoded || 0, 3), codedFrom: 3 }) },
+    { key: 'heavytraffic', stages: [2, 9], name: 'Heavy traffic', text: 'Half again as many enemies, each a little lighter. Splash wins.', apply: (st) => ({ ...st, countX: Math.max(st.countX || 1, 1.5) }) },
+  ];
+  const dayIndex = (dayKey) => Math.floor(Date.UTC(+dayKey.slice(0, 4), +dayKey.slice(5, 7) - 1, +dayKey.slice(8, 10)) / 86400000);
+  const dayKeyOf = (ms) => new Date(ms).toISOString().slice(0, 10);
+  // stage 1 is the tutorial, so the daily cycles through stages 2 to 10 with a modifier that never repeats on the same stage two cycles in a row
+  // The modifier rotates daily; each one only visits the stages where bot sweeps still clear it, so no daily is a wall. Mirrored in netlify/functions/leaderboard.mjs.
+  function dailyFor(dayKey) { const i = dayIndex(dayKey); const mod = MODS[i % MODS.length], [lo, hi] = mod.stages; const stageId = lo + ((i % MODS.length + 5 * Math.floor(i / MODS.length)) % (hi - lo + 1)); return { day: dayKey, stageId, mod, seed: (i * 2654435761) >>> 0 }; }
+  function newGame(seed, stageId, mod) {
+    const base = STAGES.find((s) => s.id === stageId) || STAGES[0], paths = COMPILED[STAGES.indexOf(base)];
+    const stage = mod ? mod.apply(base) : base;
     const g = {
-      stage, paths: COMPILED[STAGES.indexOf(stage)], finalWave: stage.waves, spawnCount: 0,
+      stage, paths, finalWave: stage.waves, spawnCount: 0,
       seed, rng: rng32(seed || 1), t: 0, coins: stage.coins, lives: stage.lives, maxLives: stage.lives, wave: 0, score: 0, state: 'build',
       towers: [], foes: [], shots: [], fx: [], events: [], zones: [], pads: stage.pads.map((p, i) => ({ i, x: p[0], y: p[1], tower: null, flex: (stage.flexPads || []).includes(i) })), quiz: { asked: 0, right: 0, streak: 0 },
       spawnQ: [], waveActive: false, countdown: null, nextId: 1, tokenSeq: 0, leaksThisWave: 0, stats: { kills: 0, leaks: 0, early: 0, decoded: 0, bossKills: 0, spent: 0 },
@@ -228,7 +244,7 @@
     let bonus = 0;
     if (early && g.countdown != null && g.countdown > 0) { bonus = Math.ceil(g.countdown) * 2 * (g.stage.earlyX || 1); g.coins += bonus; g.score += bonus * 5; g.stats.early += bonus; emit(g, { type: 'early', bonus }); }
     g.wave++; g.countdown = null; g.waveActive = true; g.leaksThisWave = 0;
-    if (g.wave === 5) { g.unlocked.cyan = true; g.unlocked.sunny = true; emit(g, { type: 'unlock', kinds: ['cyan', 'sunny'] }); }
+    if (g.wave === 5) { g.unlocked.cyan = true; if (!g.stage.noKent) g.unlocked.sunny = true; emit(g, { type: 'unlock', kinds: g.stage.noKent ? ['cyan'] : ['cyan', 'sunny'] }); }
     if (g.wave === 8) { g.unlocked.nova = true; emit(g, { type: 'unlock', kinds: ['nova'] }); }
     const groups = waveGroups(g, g.wave);
     if (g.wave > g.finalWave && g.wave % 5 === 0 && !groups.some(x => x[0] === 'boss')) groups.push(['boss', 1, 1, 6, 4]);
@@ -522,5 +538,5 @@ const visible = (g, e) => !FOES[e.type].invis || g.t < e.revealedUntil || ((g.t 
   // pads and targets stay linked) with the rng state and the stage id instead of the live closures.
   function snapshot(g) { const { rng, stage, paths, ...rest } = g; return structuredClone({ ...rest, rngA: rng.a, stageId: stage.id }); }
   function restore(snap) { const s = structuredClone(snap); const stage = STAGES.find((x) => x.id === s.stageId) || STAGES[0]; const g = { ...s, stage, paths: COMPILED[STAGES.indexOf(stage)], rng: rng32(s.rngA) }; delete g.rngA; delete g.stageId; g.events = []; g.over = false; g.continued = (g.continued || 0) + 1; return g; }
-  root.TD = { KENT_DILUTION, starsFor, snapshot, restore, inLoss, pastGateway, quizReward, QUIZ_REWARDS, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
+  root.TD = { KENT_DILUTION, MODS, dailyFor, dayKeyOf, starsFor, snapshot, restore, inLoss, pastGateway, quizReward, QUIZ_REWARDS, W, H, STAGES, COMPILED, pathPos, CREW, CREW_ORDER, FOES, WAVES, FINAL_WAVE, newGame, update, build, upgrade, sell, setPrio, startWave, previewWave, useBurst, useSurge, buildCost, nextCost, stat, statAt, MAX_LVL, PRIOS, inAura, rateMult, visible };
 })(typeof window !== 'undefined' ? window : globalThis);
