@@ -1,16 +1,16 @@
 // Gossip Siege leaderboard API (Netlify Functions v2 + Netlify Blobs).
 //
-//   POST /api/run     -> { id, ts, sig }   signed run ticket, requested when a run starts
-//   GET  /api/scores?stage=n -> { rows: [...] }   top 50 of that campaign stage, best score per X handle
-//   POST /api/scores  -> { ok, improved, rank, best }   needs a Privy access token (X login); the handle comes from X
-//   GET  /api/privy   -> { appId, clientId }   public sign in config, empty when sign in is not configured
+//   POST /api/run      -> { id, ts, sig }   signed run ticket, requested when a run starts
+//   POST /api/register -> { handle, key }   claims a player name; the key stays on the player's device and signs their posts
+//   GET  /api/scores?stage=n -> { rows: [...] }   top 50 of that campaign stage, best score per player name
+//   POST /api/scores   -> { ok, improved, rank, best }   needs handle + key from /api/register
 //
-// There are no accounts, so a determined cheater can still forge a score. The checks below
-// stop the easy ways: a ticket signed by the server, a minimum real play time per wave,
-// a score ceiling derived from the game's own scoring, one ticket per run, and a rate limit.
+// Player names live on this server: a name is claimed once, the device that claimed it gets a secret key, and
+// only posts carrying that key count for that name. The other checks stop the easy ways to forge a score:
+// a ticket signed by the server, a minimum real play time per wave, a score ceiling derived from the game's
+// own scoring, one ticket per run, and a rate limit.
 import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
-import * as jose from 'jose';
 
 // Campaign stages: waves to clear and the score multiplier the game applies (src/stages.js).
 // Hoodi, Blob Season, Subsea Cable and Mainnet keep their earlier board keys so scores stay.
@@ -57,38 +57,34 @@ async function readBoard(store, key) {
   return b && Array.isArray(b.rows) ? b : { rows: [] };
 }
 
-// Sign in: players log in with X through Privy. The page sends the Privy access token (an ES256 JWT), the server
-// checks its signature with the app's verification key and reads the X username from Privy's user API, so the
-// handle on the board is always the real X account. `privy` is injected so tests can stub it.
-export function privyFromEnv(env) {
-  const appId = env.PRIVY_APP_ID, appSecret = env.PRIVY_APP_SECRET, key = env.PRIVY_VERIFICATION_KEY;
-  if (!appId || !appSecret || !key) return null;
-  const pem = key.includes('BEGIN') ? key.replace(/\\n/g, '\n') : `-----BEGIN PUBLIC KEY-----\n${key.replace(/\s+/g, '').match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----`;
-  let pub = null;
-  return {
-    appId, clientId: env.PRIVY_CLIENT_ID || '',
-    async verify(token) {
-      pub = pub || await jose.importSPKI(pem, 'ES256');
-      const { payload } = await jose.jwtVerify(token, pub, { issuer: 'privy.io', audience: appId });
-      return payload.sub;
-    },
-    async xHandle(did) {
-      const r = await fetch(`https://auth.privy.io/api/v1/users/${encodeURIComponent(did)}`, { headers: { Authorization: 'Basic ' + Buffer.from(`${appId}:${appSecret}`).toString('base64'), 'privy-app-id': appId } });
-      if (!r.ok) throw new Error('privy user lookup failed: ' + r.status);
-      const u = await r.json();
-      const tw = (u.linked_accounts || []).find((a) => a.type === 'twitter_oauth');
-      return tw && tw.username ? tw.username : null;
-    },
-  };
-}
-const HANDLE_CACHE_MS = 24 * 3600 * 1000;
+// Player accounts: user/<name> holds the hash of the device key handed out at registration.
+const MIN_HANDLE = 3;
+const hashKey = (k) => crypto.createHash('sha256').update(String(k)).digest('base64url');
+const RESERVED = new Set(['anon', 'admin', 'optimum', 'pegasus', 'flash']);
 
 // Core handler, separated from Netlify specifics so it can be tested locally.
-export async function handle(req, { store, ip, secret, privy = null, now = Date.now() }) {
+export async function handle(req, { store, ip, secret, now = Date.now() }) {
   const url = new URL(req.url);
   const path = url.pathname.replace(/\/+$/, '');
 
-  if (path.endsWith('/api/privy')) return json(privy ? { appId: privy.appId, clientId: privy.clientId } : {}, 200, { 'cache-control': 'public, max-age=300' });
+  if (path.endsWith('/api/register')) {
+    if (req.method !== 'POST') return json({ error: 'Use POST.' }, 405);
+    let body; try { body = await req.json(); } catch { return json({ error: 'Bad request.' }, 400); }
+    const handle = cleanHandle(body.handle);
+    if (handle.length < MIN_HANDLE) return json({ error: 'Names need 3 to 15 letters, digits or underscores.' }, 400);
+    if (RESERVED.has(handle.toLowerCase())) return json({ error: 'That name is reserved. Pick another.' }, 409);
+    const rlKey = `rl/reg/${hashIp(secret, ip)}`;
+    const last = await store.get(rlKey, { type: 'json' });
+    if (last && now - last.at < SUBMIT_GAP_MS) return json({ error: 'Slow down a little, then try again.' }, 429);
+    await store.setJSON(rlKey, { at: now });
+    const uKey = `user/${handle.toLowerCase()}`;
+    if (await store.get(uKey, { type: 'json' })) return json({ error: 'That name is taken. Pick another.' }, 409);
+    const key = crypto.randomBytes(24).toString('base64url');
+    await store.setJSON(uKey, { handle, keyHash: hashKey(key), at: now });
+    const again = await store.get(uKey, { type: 'json' }); // two players claiming the same name at once: only the write that landed wins
+    if (!again || !safeEqual(again.keyHash, hashKey(key))) return json({ error: 'That name is taken. Pick another.' }, 409);
+    return json({ ok: true, handle, key });
+  }
 
   if (path.endsWith('/api/run')) {
     if (req.method !== 'POST') return json({ error: 'Use POST.' }, 405);
@@ -108,22 +104,13 @@ export async function handle(req, { store, ip, secret, privy = null, now = Date.
   let body;
   try { body = await req.json(); } catch { return json({ error: 'Bad request.' }, 400); }
 
-  // who is posting: the X account behind the Privy token
-  if (!privy) return json({ error: 'Sign in with X is not set up on this board yet.' }, 503);
-  const auth = req.headers.get('authorization') || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!token) return json({ error: 'Sign in with X to post your score.' }, 401);
-  let did;
-  try { did = await privy.verify(token); } catch { return json({ error: 'Your sign in expired. Sign in with X again.' }, 401); }
-  const hKey = `privy/${crypto.createHash('sha256').update(did).digest('base64url').slice(0, 24)}`;
-  let cached = await store.get(hKey, { type: 'json' });
-  if (!cached || now - cached.at > HANDLE_CACHE_MS) {
-    let h = null;
-    try { h = await privy.xHandle(did); } catch { if (cached) h = cached.handle; else return json({ error: 'Could not read your X account. Try again in a moment.' }, 502); }
-    cached = { handle: h, at: now }; await store.setJSON(hKey, cached);
-  }
-  const handle = cleanHandle(cached.handle);
-  if (!handle) return json({ error: 'Connect an X account to post scores.' }, 403);
+  // who is posting: a registered name plus the key its device got at registration
+  const asked = cleanHandle(body.handle);
+  if (asked.length < MIN_HANDLE) return json({ error: 'Pick a player name first.' }, 401);
+  const user = await store.get(`user/${asked.toLowerCase()}`, { type: 'json' });
+  if (!user) return json({ error: 'That name is not registered. Save a name first.' }, 401);
+  if (!body.key || !safeEqual(user.keyHash, hashKey(body.key))) return json({ error: 'That name belongs to another player. Pick a different one.' }, 403);
+  const handle = user.handle; // the board shows the name as it was claimed
   const score = int(body.score), wave = int(body.wave), lives = int(body.lives);
   const decoded = Math.max(0, int(body.decoded) || 0), kills = Math.max(0, int(body.kills) || 0);
   const st = stageOf(body.stage), S = STAGES[st];
@@ -191,12 +178,11 @@ export default async (req, context) => {
   try {
     const env = (k) => (globalThis.Netlify && Netlify.env.get(k)) || process.env[k];
     const secret = await resolveSecret(store, env('RUN_SECRET'));
-    const privy = privyFromEnv({ PRIVY_APP_ID: env('PRIVY_APP_ID'), PRIVY_APP_SECRET: env('PRIVY_APP_SECRET'), PRIVY_VERIFICATION_KEY: env('PRIVY_VERIFICATION_KEY'), PRIVY_CLIENT_ID: env('PRIVY_CLIENT_ID') });
-    return await handle(req, { store, ip: context.ip, secret, privy });
+    return await handle(req, { store, ip: context.ip, secret });
   } catch (e) {
     console.error(e);
     return json({ error: 'The board hit an error. Try again in a moment.' }, 500);
   }
 };
 
-export const config = { path: ['/api/run', '/api/scores', '/api/privy'] };
+export const config = { path: ['/api/run', '/api/scores', '/api/register'] };

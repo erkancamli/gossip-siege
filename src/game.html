@@ -201,7 +201,8 @@ body.small .face { width: 52px; height: 52px; }
 .msg { font-size: 12.5px; color: var(--dim); min-height: 18px; }
 .msg.ok { color: var(--green); }
 .xauth { display: grid; gap: 8px; }
-.xbtn { background: var(--paper); color: var(--ink); border-color: var(--paper); font-weight: 700; }
+.xbtn { background: var(--paper); color: var(--ink); border-color: var(--paper); font-weight: 700; white-space: nowrap; }
+.namein input { font-size: 14px; }
 .xbtn:hover { background: var(--paper); opacity: 0.9; }
 .xwho { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .xwho .xh { font-family: var(--mono); font-size: 13px; color: var(--paper); }
@@ -434,7 +435,7 @@ body.small .coach { font-size: 20px; }
           <div class="tabs"></div>
           <div class="lb" id="lbTitle"></div>
           <div class="lbnote" id="lbNoteTitle"></div>
-          <div class="xauth" id="xauthTitle"><button class="btn xbtn" data-x="in" data-t="xin">Sign in with X</button><div class="xwho" hidden><span class="xh"></span><button class="xout" data-x="out" data-t="xout">sign out</button></div><div class="msg" id="xMsgTitle"></div></div>
+          <div class="xauth" id="nameTitle"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="save" data-t="nameSave">Save name</button></div><div class="xwho" hidden><span class="xh"></span><button class="xout" data-n="change" data-t="nameChange">change name</button></div><div class="msg" id="nameMsgTitle"></div></div>
         </aside>
       </div>
     </section>
@@ -481,7 +482,7 @@ body.small .coach { font-size: 20px; }
           <h3 data-t="boardH3">Mesh leaderboard</h3>
           <div class="tabs"></div>
           <div class="handle" id="handleRow" hidden><input id="handleIn" maxlength="24" placeholder="Your handle" aria-label="Your handle"><button class="btn" id="submitBtn" data-t="submitBtn">Submit</button></div>
-          <div class="xauth" id="xauthEnd"><button class="btn xbtn" data-x="in" data-t="xinEnd">Sign in with X to post your score</button><div class="xwho" hidden><span class="xh"></span><button class="btn" data-x="submit" data-t="xsubmit">Post score</button><button class="xout" data-x="out" data-t="xout">sign out</button></div></div>
+          <div class="xauth" id="nameEnd"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="savepost" data-t="nameSavePost">Save and post score</button></div><div class="xwho" hidden><span class="xh"></span><button class="btn xbtn" data-n="submit" data-t="namePost">Post score</button><button class="xout" data-n="change" data-t="nameChange">change name</button></div></div>
           <div class="msg" id="lbMsg"></div>
           <div class="lb" id="lbEnd"></div>
         </aside>
@@ -514,10 +515,10 @@ const UI_TR = {
   fsBtn: 'Tam ekran',
   fine: "Optimum topluluğu için @ekinoks_26 tarafından yapılmış hayran işi, resmi bir Optimum ürünü değildir. Ekip, topluluğun Optimum maskotundan esinlenerek tasarlandı. Oyundaki sayılar eğlence içindir; içindeki RLNC kuralı gerçek: kodlu bir blok ancak yeterli sayıda bağımsız shard ile açılır. <a href=\"https://www.getoptimum.xyz\" target=\"_blank\" rel=\"noopener\">getoptimum.xyz</a>",
   boardH3: 'Mesh sıralaması',
-  xin: 'X ile giriş yap',
-  xout: 'çıkış',
-  xinEnd: 'Skorunu göndermek için X ile giriş yap',
-  xsubmit: 'Skoru gönder',
+  nameSave: 'Adı kaydet',
+  nameChange: 'adı değiştir',
+  nameSavePost: 'Kaydet ve skoru gönder',
+  namePost: 'Skoru gönder',
   // campaign and knowledge screens
   campSlogan: 'KAMPANYA',
   campH2: "Testnet'ten mainnet'e",
@@ -546,7 +547,7 @@ const UI_TR = {
   mOk: 'Anladım',
   // titles and placeholders
   'Coins': 'Coin', 'Validators still attesting': "Hâlâ attest eden validator'lar", 'Score': 'Skor', 'Campaign stage': 'Kampanya bölümü', 'Crew in your mesh': "Mesh'indeki ekip",
-  'Game speed': 'Oyun hızı', 'Pause': 'Duraklat', 'Sound': 'Ses', 'Day or night mode': 'Gündüz ya da gece modu', 'Full screen': 'Tam ekran', 'Language': 'Dil', 'Your handle': 'Kullanıcı adın',
+  'Game speed': 'Oyun hızı', 'Pause': 'Duraklat', 'Sound': 'Ses', 'Day or night mode': 'Gündüz ya da gece modu', 'Full screen': 'Tam ekran', 'Language': 'Dil', 'Your handle': 'Kullanıcı adın', 'Pick a player name': 'Bir oyuncu adı seç',
   'Publish Burst: rain coded shards on an area (counts as an independent shard on every coded shield)': "Publish Burst: bir alana kodlu shard yağdırır (her kodlu kalkanda bağımsız bir shard sayılır)",
   'Flexnode Surge: every crew member fires 70% faster for 6 s': 'Flexnode Surge: her ekip üyesi 6 saniye boyunca %70 daha hızlı ateş eder',
   'Night': 'Gece', 'Day': 'Gündüz',
@@ -602,11 +603,12 @@ const UI_TR = {
   // leaderboard and X
   'Stage {id} board': '{id}. bölüm tablosu', 'No scores on this stage yet. Be the first to hold the mesh.': "Bu bölümde henüz skor yok. Mesh'i tutan ilk kişi ol.",
   'The shared leaderboard is not reachable right now. Your best runs are kept on this device.': 'Ortak sıralamaya şu anda ulaşılamıyor. En iyi koşuların bu cihazda saklanıyor.',
-  'Your best on this device: {s}': 'Bu cihazdaki en iyin: {s}', 'Connect X to post scores': 'Skor göndermek için X bağla', 'Opening X...': 'X açılıyor...',
-  'Sign in with X is being set up. Your best run stays on this device.': 'X ile giriş hazırlanıyor. En iyi koşun bu cihazda kalıyor.', 'Could not open X sign in. Try again in a moment.': 'X girişi açılamadı. Birazdan tekrar dene.',
-  'X sign in did not complete. Try again.': 'X girişi tamamlanmadı. Tekrar dene.', 'Your {name} run ({s}) is on the board at #{r}.': '{name} koşun ({s}) tabloda #{r} sırada.',
+  'Your best on this device: {s}': 'Bu cihazdaki en iyi skorun: {s}',
+  'Names need 3 to 15 letters, digits or underscores.': 'Ad 3 ile 15 karakter arası olmalı: harf, rakam ve alt çizgi.', 'Saving...': 'Kaydediliyor...', 'Saved. You post scores as @{h}.': 'Kaydedildi. Skorların @{h} adıyla tabloya girecek.',
+  'That name is taken. Pick another.': 'Bu ad alınmış. Başka bir ad seç.', 'That name is reserved. Pick another.': 'Bu ad ayrılmış. Başka bir ad seç.', 'Could not reach the board. Try again in a moment.': 'Tabloya ulaşılamadı. Birazdan tekrar dene.',
+  'Change name? Your scores stay on the board under @{h}; the new name starts fresh.': 'Adı değiştirmek istiyor musun? Eski skorların tabloda @{h} adıyla kalır, yeni ad sıfırdan başlar.',
   'This run was not registered with the board (offline at start). Play another run to post.': 'Bu koşu tabloya kaydedilmedi (başlangıçta çevrimdışıydı). Göndermek için yeni bir koşu oyna.',
-  'Sign in with X to post your score.': 'Skorunu göndermek için X ile giriş yap.', 'The board refused this run.': 'Tablo bu koşuyu reddetti.', 'Could not reach the board. Try again in a moment.': 'Tabloya ulaşılamadı. Birazdan tekrar dene.',
+  'Pick a player name first.': 'Önce bir oyuncu adı seç.', 'The board refused this run.': 'Tablo bu koşuyu reddetti.',
   'Posting...': 'Gönderiliyor...', 'On the {name} board at #{r} as @{h}.': '{name} tablosunda @{h} olarak #{r} sırada.', 'Your best ({s}) is already on the board, #{r}.': 'En iyin ({s}) zaten tabloda, #{r}.',
   'Type a handle first.': 'Önce bir kullanıcı adı yaz.', 'Your best ({s}) is already on the board.': 'En iyin ({s}) zaten tabloda.', 'On the board.': 'Tabloda.',
   'Submitting needs a signed in view with access to this page. Your best is saved on this device.': 'Göndermek için bu sayfaya erişimi olan, giriş yapılmış bir görünüm gerekir. En iyin bu cihazda kayıtlı.',
@@ -654,12 +656,15 @@ function setLang(l) {
 const MARK = new Path2D('__MARKPATH__'); // official Optimum mark, box 36.5 x 20 starting at y 7.4
 const cv = $('cv'), ctx = cv.getContext('2d');
 let DPR = 1, SCALE = 1, PORTRAIT = false, FW = 1280, FH = 720;
+// portrait viewport: the world is scaled by WS and offset by WX, WY so the field sits between the top bar and the bottom thumb zone instead of under them
+let WS = 1, WX = 0, WY = 0;
+const PT_TOP = 118, PT_BOTTOM = 180; // frame px kept clear for the HUD chips and for the wave box plus abilities
 // Portrait: the 1280x720 world is turned a quarter turn so the route runs top to bottom, like portrait
 // tower defense games (Rush Royale, Grow Castle). Sprites and labels are drawn upright, the HUD moves to the
 // top bar and the bottom thumb zone. toScreen/toWorld map between the two spaces.
-const toScreen = (x, y) => (PORTRAIT ? { x: 720 - y, y: x } : { x, y });
-const toWorld = (x, y) => (PORTRAIT ? { x: y, y: 720 - x } : { x, y });
-function setWorld(c) { if (PORTRAIT) c.setTransform(0, DPR, -DPR, 0, 720 * DPR, 0); else c.setTransform(DPR, 0, 0, DPR, 0, 0); }
+const toScreen = (x, y) => (PORTRAIT ? { x: WX + (720 - y) * WS, y: WY + x * WS } : { x, y });
+const toWorld = (x, y) => (PORTRAIT ? { x: (y - WY) / WS, y: 720 - (x - WX) / WS } : { x, y });
+function setWorld(c) { if (PORTRAIT) c.setTransform(0, DPR * WS, -DPR * WS, 0, (WX + 720 * WS) * DPR, WY * DPR); else c.setTransform(DPR, 0, 0, DPR, 0, 0); }
 // draw something upright at a world point even when the world is rotated
 // ground ellipses are flattened along screen y; in portrait that means rotating them a quarter turn
 let GR = 0;
@@ -669,6 +674,7 @@ function upright(c, x, y, fn) { if (!PORTRAIT) { fn(x, y); return; } c.save(); c
 function fit() {
   const vw = window.innerWidth, vh = window.innerHeight;
   PORTRAIT = vh > vw * 1.05; FW = PORTRAIT ? 720 : 1280; FH = PORTRAIT ? 1280 : 720; GR = PORTRAIT ? Math.PI / 2 : 0;
+  if (PORTRAIT) { WS = (1280 - PT_TOP - PT_BOTTOM) / 1280; WY = PT_TOP; WX = (720 - 720 * WS) / 2; } else { WS = 1; WX = 0; WY = 0; }
   document.body.classList.toggle('portrait', PORTRAIT);
   $('frame').style.width = FW + 'px'; $('frame').style.height = FH + 'px';
   SCALE = Math.min(vw / FW, vh / FH);
@@ -1003,7 +1009,9 @@ const curPaths = () => (G ? G.paths : T.COMPILED[T.STAGES.indexOf(curStage())]);
 const vaultPos = () => { const P = curPaths()[0].pts; return P[P.length - 1]; };
 function buildBg() {
   const st = curStage(), th = themeOf(st), R = th.rgb;
-  const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d'); setWorld(g);
+  const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d');
+  if (PORTRAIT) { g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = th.bg1; g.fillRect(0, 0, c.width, c.height); } // the margins around the scaled field
+  setWorld(g);
   const bg = g.createRadialGradient(640, 360, 100, 640, 360, 820); bg.addColorStop(0, th.bg0); bg.addColorStop(1, th.bg1); g.fillStyle = bg; g.fillRect(0, 0, 1280, 720);
   const rnd = mulberry(7 + st.id);
   if (st.theme === 'hoodi') {
@@ -1495,7 +1503,7 @@ function drawAbilityCds() {
 // ---------- input ----------
 let pointer = null;
 function toLocal(ev) { const r = cv.getBoundingClientRect(); return toWorld((ev.clientX - r.left) / r.width * FW, (ev.clientY - r.top) / r.height * FH); }
-function hoverPad() { if (!pointer || !G) return -1; for (const p of G.pads) if ((PORTRAIT ? Math.hypot(pointer.x - p.x, (pointer.y - p.y) / 1.4) : Math.hypot((pointer.x - p.x) / 1.4, pointer.y - p.y)) < 32) return p.i; return -1; }
+function hoverPad() { if (!pointer || !G) return -1; const r = PORTRAIT ? 42 : 32; for (const p of G.pads) if ((PORTRAIT ? Math.hypot(pointer.x - p.x, (pointer.y - p.y) / 1.4) : Math.hypot((pointer.x - p.x) / 1.4, pointer.y - p.y)) < r) return p.i; return -1; } // bigger touch target where the field is scaled down
 cv.addEventListener('pointermove', (ev) => { pointer = toLocal(ev); });
 cv.addEventListener('pointerleave', () => { pointer = null; });
 cv.addEventListener('pointerdown', (ev) => {
@@ -1713,7 +1721,7 @@ function finish(won) {
     : `gMum. Gossip Siege, ${S.name}: wave ${G.wave}, ${G.stats.decoded} coded shields cracked with independent shards. Score ${G.score.toLocaleString('en-US')}, grade ${grade()}. Speed is money. @get_optimum`;
   $('shareX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(text); $('shareX').dataset.text = text;
   let h = ''; try { h = localStorage.getItem('gs_handle') || ''; } catch (e) {} $('handleIn').value = h;
-  $('submitBtn').disabled = false; renderXAuth();
+  $('submitBtn').disabled = false; renderName();
   $('lbMsg').textContent = ''; $('lbMsg').className = 'msg';
   lbStage = S.id; loadBoard();
 }
@@ -1779,8 +1787,6 @@ $('endlessBtn').onclick = () => { G.endless = true; G.state = 'build'; G.won = f
 //  on the open web (Netlify): /api/scores?stage=n, keyed by X handle, runs signed by /api/run
 const API = (window.claude && window.claude.use) ? null : '/api';
 let DB = null, USER = null, myId = null, lbRows = [], boardOn = false, runTok = null, lbStage = 1, dbUnsub = null, lbSeq = 0;
-let PRIVY = null, privyCfg = null, xUser = null, privyLoading = null;
-const PENDING_KEY = 'gs_pending';
 const cleanHandle = (v) => String(v || '').trim().replace(/^@+/, '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 15);
 const dbCol = (n) => ({ 1: 'scores', 4: 'scores_s2', 6: 'scores_s3', 10: 'scores_s4' })[n] || 'scores_' + (T.STAGES.find(x => x.id === n) || {}).key; // legacy names kept for the four stage campaign
 async function apiStartRun() {
@@ -1804,9 +1810,8 @@ async function loadBoard() {
     $('saveImg').hidden = false;
     try { const h = cleanHandle(localStorage.getItem('gs_handle')); if (h) myId = 'h:' + h.toLowerCase(); } catch (e) {}
     loadBoard();
-    renderXAuth();
-    let had = false; try { had = localStorage.getItem('gs_x') === '1'; } catch (e) {}
-    if (location.search.includes('privy_oauth_code')) xHandleReturn(); else if (had) xRefresh(); setInterval(() => { if (!document.hidden && (!$('titleScr').hidden || !$('endScr').hidden || !$('stagesScr').hidden)) loadBoard(); }, 30000);
+    renderName();
+    setInterval(() => { if (!document.hidden && (!$('titleScr').hidden || !$('endScr').hidden || !$('stagesScr').hidden)) loadBoard(); }, 30000);
     return;
   }
   try {
@@ -1840,89 +1845,58 @@ function renderBoards() {
   const lk = (T.STAGES.find(x => x.id === lbStage) || T.STAGES[0]).key, pr = loadProg(), b = pr.best[lk], stars = pr.stars[lk] || 0;
   $('lbNoteTitle').textContent = b ? tr('Your best on this device: {s}', { s: b.toLocaleString('en-US') }) + (stars ? '  ' + starStr(stars) : '') : '';
 }
-// ---------- sign in with X (Privy) ----------
-// On the open web the board only accepts scores from a signed in X account. The Privy SDK (dist/privy.js, 800 KB)
-// is loaded only when needed: when the player taps sign in, comes back from X, or had a session on this device.
-function xHandleOf(user) { const accts = (user && (user.linked_accounts || user.linkedAccounts)) || []; const tw = accts.find(a => a.type === 'twitter_oauth' || a.type === 'twitter'); return tw ? (tw.username || tw.name || '') : ''; }
-async function privyConfig() { if (privyCfg) return privyCfg; try { const r = await fetch(API + '/privy', { cache: 'no-store' }); privyCfg = r.ok ? await r.json() : {}; } catch (e) { privyCfg = {}; } return privyCfg; }
-async function loadPrivy() {
-  if (PRIVY) return PRIVY;
-  if (privyLoading) return privyLoading;
-  privyLoading = (async () => {
-    const cfg = await privyConfig(); if (!cfg.appId) throw new Error('not configured');
-    if (!window.PrivyCore) await new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = '/privy.js'; sc.onload = res; sc.onerror = () => rej(new Error('privy.js failed to load')); document.head.appendChild(sc); });
-    const { Privy, LocalStorage } = window.PrivyCore;
-    PRIVY = new Privy({ appId: cfg.appId, ...(cfg.clientId ? { clientId: cfg.clientId } : {}), storage: new LocalStorage() });
-    await PRIVY.initialize();
-    return PRIVY;
-  })();
-  try { return await privyLoading; } finally { privyLoading = null; }
-}
-async function xRefresh() {
-  try { const p = await loadPrivy(); const { user } = await p.user.get(); xUser = user ? { id: user.id, handle: xHandleOf(user) } : null; }
-  catch (e) { xUser = null; }
-  if (xUser && xUser.handle) { myId = 'h:' + xUser.handle.toLowerCase(); try { localStorage.setItem('gs_handle', xUser.handle); localStorage.setItem('gs_x', '1'); } catch (e) {} }
-  renderXAuth(); return xUser;
-}
-function renderXAuth() {
+// ---------- player names ----------
+// On the open web a player claims a name once on this server. The server hands back a key that stays on this
+// device (gs_player) and signs every score post, so nobody else can post under that name.
+const PLAYER_KEY = 'gs_player';
+function loadPlayer() { try { const p = JSON.parse(localStorage.getItem(PLAYER_KEY) || 'null'); return p && p.handle && p.key ? p : null; } catch (e) { return null; } }
+function savePlayer(p) { try { if (p) localStorage.setItem(PLAYER_KEY, JSON.stringify(p)); else localStorage.removeItem(PLAYER_KEY); } catch (e) {} }
+function renderName() {
+  const p = loadPlayer(); myId = p ? 'h:' + p.handle.toLowerCase() : null;
   for (const box of document.querySelectorAll('.xauth')) {
-    const inBtn = box.querySelector('[data-x="in"]'), who = box.querySelector('.xwho'), xh = box.querySelector('.xh');
-    const on = !!(xUser && xUser.handle);
-    inBtn.hidden = on; who.hidden = !on; if (on) xh.textContent = '@' + xUser.handle;
-    if (xUser && !xUser.handle) { inBtn.hidden = false; inBtn.textContent = tr('Connect X to post scores'); } else if (inBtn.dataset.en != null) inBtn.innerHTML = LANG === 'tr' ? UI_TR[inBtn.dataset.t] : inBtn.dataset.en;
+    const row = box.querySelector('.namein'), who = box.querySelector('.xwho'), xh = box.querySelector('.xh');
+    row.hidden = !!p; who.hidden = !p; if (p) xh.textContent = '@' + p.handle;
   }
 }
-async function xSignIn(fromEnd) {
-  const lm = fromEnd ? $('lbMsg') : $('xMsgTitle'); lm.className = 'msg';
+async function registerName(h, lm) {
+  h = cleanHandle(h);
+  if (h.length < 3) { lm.className = 'msg'; lm.textContent = tr('Names need 3 to 15 letters, digits or underscores.'); return null; }
+  lm.className = 'msg'; lm.textContent = tr('Saving...');
   try {
-    if (fromEnd && G) { // keep the finished run so it can be posted after the round trip to X
-      try { localStorage.setItem(PENDING_KEY, JSON.stringify({ stage: G.stage.id, name: G.stage.name, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok, at: Date.now() })); } catch (e) {}
-    }
-    lm.textContent = tr('Opening X...');
-    const p = await loadPrivy();
-    const res = await p.auth.oauth.generateURL('twitter', location.origin + location.pathname); // the SDK answers { url }
-    const url = res && typeof res === 'object' ? res.url : res;
-    if (typeof url !== 'string' || !/^https?:\/\//.test(url)) throw new Error('bad oauth url');
-    location.assign(url);
-  } catch (e) { lm.textContent = tr(e.message === 'not configured' ? 'Sign in with X is being set up. Your best run stays on this device.' : 'Could not open X sign in. Try again in a moment.'); }
-}
-async function xSignOut() { try { const p = await loadPrivy(); const { user } = await p.user.get(); if (user) await p.auth.logout({ userId: user.id }); } catch (e) {} xUser = null; myId = null; try { localStorage.removeItem('gs_x'); } catch (e) {} renderXAuth(); }
-// returning from X: finish the login, clean the URL, post any run that was waiting
-async function xHandleReturn() {
-  const q = new URLSearchParams(location.search), code = q.get('privy_oauth_code'), state = q.get('privy_oauth_state');
-  if (!code) return;
-  history.replaceState(null, '', location.pathname);
-  try { const p = await loadPrivy(); await p.auth.oauth.loginWithCode(code, state, 'twitter'); } catch (e) { $('xMsgTitle').textContent = tr('X sign in did not complete. Try again.'); return; }
-  await xRefresh();
-  let pending = null; try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (e) {}
-  if (pending && Date.now() - pending.at < 2 * 3600 * 1000) { const res = await postScore(pending); $('xMsgTitle').textContent = res.ok ? tr('Your {name} run ({s}) is on the board at #{r}.', { name: pending.name, s: Number(pending.score).toLocaleString('en-US'), r: res.rank }) : res.error; $('xMsgTitle').className = 'msg' + (res.ok ? ' ok' : ''); }
-  try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+    const r = await fetch(API + '/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handle: h }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { lm.textContent = tr(j.error || 'The board refused this run.'); return null; }
+    const p = { handle: j.handle, key: j.key }; savePlayer(p); try { localStorage.setItem('gs_handle', j.handle); } catch (e) {}
+    renderName(); lm.className = 'msg ok'; lm.textContent = tr('Saved. You post scores as @{h}.', { h: j.handle }); renderBoards();
+    return p;
+  } catch (e) { lm.textContent = tr('Could not reach the board. Try again in a moment.'); return null; }
 }
 async function postScore(run) {
+  const p = loadPlayer();
+  if (!p) return { ok: false, error: tr('Pick a player name first.') };
   if (!run.run) return { ok: false, error: tr('This run was not registered with the board (offline at start). Play another run to post.') };
   try {
-    const p = await loadPrivy(); const token = await p.getAccessToken();
-    if (!token) return { ok: false, error: tr('Sign in with X to post your score.') };
-    const r = await fetch(API + '/scores', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify({ stage: run.stage, score: run.score, wave: run.wave, lives: run.lives, decoded: run.decoded, kills: run.kills, run: run.run }) });
+    const r = await fetch(API + '/scores', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handle: p.handle, key: p.key, stage: run.stage, score: run.score, wave: run.wave, lives: run.lives, decoded: run.decoded, kills: run.kills, run: run.run }) });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) { if (r.status === 401) { xUser = null; renderXAuth(); } return { ok: false, error: j.error || tr('The board refused this run.') }; }
-    if (j.handle) { xUser = { ...(xUser || {}), handle: j.handle }; myId = 'h:' + j.handle.toLowerCase(); renderXAuth(); }
+    if (!r.ok) return { ok: false, error: tr(j.error || 'The board refused this run.') };
     lbStage = run.stage; loadBoard();
     return { ok: true, rank: j.rank, improved: j.improved, best: j.best, handle: j.handle };
   } catch (e) { return { ok: false, error: tr('Could not reach the board. Try again in a moment.') }; }
 }
 let submitting = false;
-document.querySelectorAll('[data-x]').forEach(b => { b.onclick = async () => {
-  const k = b.dataset.x, fromEnd = !!b.closest('#xauthEnd');
-  if (k === 'in') return xSignIn(fromEnd);
-  if (k === 'out') return xSignOut();
-  if (k === 'submit') {
-    if (submitting || !G) return; submitting = true; const lm = $('lbMsg'); lm.className = 'msg'; lm.textContent = tr('Posting...');
-    const res = await postScore({ stage: G.stage.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok });
-    lm.textContent = res.ok ? (res.improved ? tr('On the {name} board at #{r} as @{h}.', { name: G.stage.name, r: res.rank, h: res.handle }) : tr('Your best ({s}) is already on the board, #{r}.', { s: Number(res.best).toLocaleString('en-US'), r: res.rank })) : res.error; lm.className = 'msg' + (res.ok ? ' ok' : '');
-    submitting = false;
-  }
+async function postCurrent() {
+  if (submitting || !G) return; submitting = true; const lm = $('lbMsg'); lm.className = 'msg'; lm.textContent = tr('Posting...');
+  const res = await postScore({ stage: G.stage.id, score: G.score, wave: G.wave, lives: G.lives, decoded: G.stats.decoded, kills: G.stats.kills, run: runTok });
+  lm.textContent = res.ok ? (res.improved ? tr('On the {name} board at #{r} as @{h}.', { name: G.stage.name, r: res.rank, h: res.handle }) : tr('Your best ({s}) is already on the board, #{r}.', { s: Number(res.best).toLocaleString('en-US'), r: res.rank })) : res.error; lm.className = 'msg' + (res.ok ? ' ok' : '');
+  submitting = false;
+}
+document.querySelectorAll('[data-n]').forEach(b => { b.onclick = async () => {
+  const k = b.dataset.n, box = b.closest('.xauth'), fromEnd = box.id === 'nameEnd', lm = fromEnd ? $('lbMsg') : $('nameMsgTitle');
+  if (k === 'save' || k === 'savepost') { const p = await registerName(box.querySelector('.nameIn').value, lm); if (p && k === 'savepost') postCurrent(); return; }
+  if (k === 'submit') return postCurrent();
+  if (k === 'change') { const p = loadPlayer(); if (p && !confirm(tr('Change name? Your scores stay on the board under @{h}; the new name starts fresh.', { h: p.handle }))) return; savePlayer(null); renderName(); renderBoards(); for (const el of document.querySelectorAll('.nameIn')) el.value = ''; lm.textContent = ''; }
 }; });
+for (const el of document.querySelectorAll('.nameIn')) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const b = el.parentElement.querySelector('[data-n]'); b && b.click(); } });
 // claude.ai artifact view keeps the typed handle path
 $('submitBtn').onclick = async () => {
   if (submitting || !G) return;

@@ -2,8 +2,7 @@
 // Run: node --test test/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { handle, cleanHandle, resolveSecret, privyFromEnv } from '../netlify/functions/leaderboard.mjs';
-import * as jose from 'jose';
+import { handle, cleanHandle, resolveSecret } from '../netlify/functions/leaderboard.mjs';
 
 const memStore = () => {
   const m = new Map();
@@ -13,13 +12,22 @@ const memStore = () => {
   };
 };
 const SECRET = 'test-secret-0123456789abcdef';
-// stand in for Privy: the bearer token is "did:<handle>", the X lookup returns that handle (null for "did:nox")
-const fakePrivy = { appId: 'app', clientId: 'client', async verify(t) { if (!t.startsWith('did:')) throw new Error('bad'); return t; }, async xHandle(did) { const h = did.slice(4); return h === 'nox' ? null : h; } };
-const req = (method, path, body, token) => new Request('https://x.test' + path, { method, headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: body ? JSON.stringify(body) : undefined });
+const req = (method, path, body) => new Request('https://x.test' + path, { method, headers: { 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
 
 async function ticket(env, now) { const r = await handle(req('POST', '/api/run'), { ...env, now }); return r.json(); }
-// submit as the X user named in body.handle (the stub turns it into a token); privy defaults to the stub
-async function submit(env, body, now) { const { handle: h, ...rest } = body; const r = await handle(req('POST', '/api/scores', rest, 'did:' + cleanHandle(h)), { privy: fakePrivy, ...env, now }); return { status: r.status, body: await r.json() }; }
+// names are registered on first use per test store; the device key comes back from /api/register
+const keys = new WeakMap();
+async function register(env, h, now) {
+  const r = await handle(req('POST', '/api/register', { handle: h }), { ...env, ip: env.ip + ':' + h, now }); const j = await r.json();
+  if (r.status === 200) { const m = keys.get(env.store) || {}; m[j.handle.toLowerCase()] = j.key; keys.set(env.store, m); }
+  return { status: r.status, body: j };
+}
+// submit as a registered name (registering it first when the store has not seen it)
+async function submit(env, body, now) {
+  const h = cleanHandle(body.handle); let m = keys.get(env.store) || {};
+  if (!m[h.toLowerCase()]) { await register(env, h, now - 60_000); m = keys.get(env.store) || {}; }
+  const r = await handle(req('POST', '/api/scores', { ...body, handle: h, key: m[h.toLowerCase()] }), { ...env, now }); return { status: r.status, body: await r.json() };
+}
 
 test('handle cleaning', () => {
   assert.equal(cleanHandle('@ekinoks_26'), 'ekinoks_26');
@@ -40,7 +48,7 @@ test('valid run lands on the board and ranks', async () => {
 test('forged ticket is refused', async () => {
   const env = { store: memStore(), ip: '1.1.1.2', secret: SECRET };
   const run = await ticket(env, 0);
-  const r = await submit(env, { handle: 'x', score: 100, wave: 1, lives: 20, run: { ...run, ts: run.ts - 999999 } }, 600_000);
+  const r = await submit(env, { handle: 'xyz', score: 100, wave: 1, lives: 20, run: { ...run, ts: run.ts - 999999 } }, 600_000);
   assert.equal(r.status, 400);
 });
 
@@ -90,30 +98,27 @@ test('each campaign stage has its own board and wave cap', async () => {
   assert.equal(legacy.stage, 1);
 });
 
-test('scores need an X sign in through Privy', async () => {
+test('names are claimed once and posts need the device key', async () => {
   const env = { store: memStore(), ip: '1.1.1.7', secret: SECRET };
+  const a = await register(env, '@Ekinoks_26', 0);
+  assert.equal(a.status, 200); assert.equal(a.body.handle, 'Ekinoks_26'); assert.ok(a.body.key.length > 20);
+  assert.equal((await register(env, 'ekinoks_26', 1)).status, 409); // same name, any case
+  assert.equal((await register(env, 'ab', 2)).status, 400);         // too short
+  assert.equal((await register(env, 'admin', 3)).status, 409);      // reserved
   const run = await ticket(env, 0);
-  const noAuth = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }), { ...env, privy: fakePrivy, now: 600_000 });
-  assert.equal(noAuth.status, 401);
-  const badTok = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }, 'garbage'), { ...env, privy: fakePrivy, now: 600_000 });
-  assert.equal(badTok.status, 401);
-  const noX = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }, 'did:nox'), { ...env, privy: fakePrivy, now: 600_000 });
-  assert.equal(noX.status, 403);
-  const notSetUp = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }, 'did:ok'), { ...env, privy: null, now: 600_000 });
-  assert.equal(notSetUp.status, 503);
-  const ok = await submit(env, { handle: 'ekinoks_26', stage: 1, score: 100, wave: 2, lives: 20, run }, 700_000);
-  assert.equal(ok.status, 200); assert.equal(ok.body.handle, 'ekinoks_26');
-  const cfg = await (await handle(req('GET', '/api/privy'), { ...env, privy: fakePrivy })).json();
-  assert.deepEqual(cfg, { appId: 'app', clientId: 'client' });
+  const noName = await handle(req('POST', '/api/scores', { stage: 1, score: 100, wave: 2, lives: 20, run }), { ...env, now: 600_000 });
+  assert.equal(noName.status, 401);
+  const unknown = await handle(req('POST', '/api/scores', { handle: 'nobody', key: 'x', stage: 1, score: 100, wave: 2, lives: 20, run }), { ...env, now: 600_000 });
+  assert.equal(unknown.status, 401);
+  const wrongKey = await handle(req('POST', '/api/scores', { handle: 'ekinoks_26', key: 'not-the-key', stage: 1, score: 100, wave: 2, lives: 20, run }), { ...env, now: 600_000 });
+  assert.equal(wrongKey.status, 403);
+  const ok = await handle(req('POST', '/api/scores', { handle: 'ekinoks_26', key: a.body.key, stage: 1, score: 100, wave: 2, lives: 20, run }), { ...env, now: 700_000 });
+  assert.equal(ok.status, 200); assert.equal((await ok.json()).handle, 'Ekinoks_26'); // the board shows the name as it was claimed
 });
 
-test('real Privy style tokens verify with the ES256 key and reject the wrong app', async () => {
-  const { publicKey, privateKey } = await jose.generateKeyPair('ES256');
-  const spki = await jose.exportSPKI(publicKey);
-  const calls = [];
-  const privy = privyFromEnv({ PRIVY_APP_ID: 'app123', PRIVY_APP_SECRET: 'sec', PRIVY_VERIFICATION_KEY: spki, PRIVY_CLIENT_ID: 'c1' });
-  const mint = (aud) => new jose.SignJWT({ sid: 's' }).setProtectedHeader({ alg: 'ES256' }).setIssuer('privy.io').setAudience(aud).setSubject('did:privy:abc').setIssuedAt().setExpirationTime('1h').sign(privateKey);
-  assert.equal(await privy.verify(await mint('app123')), 'did:privy:abc');
-  await assert.rejects(privy.verify(await mint('other-app')));
-  assert.equal(privyFromEnv({}), null);
+test('registration is rate limited per client', async () => {
+  const env = { store: memStore(), ip: '1.1.1.8', secret: SECRET };
+  assert.equal((await handle(req('POST', '/api/register', { handle: 'first' }), { ...env, now: 0 })).status, 200);
+  assert.equal((await handle(req('POST', '/api/register', { handle: 'second' }), { ...env, now: 1000 })).status, 429);
+  assert.equal((await handle(req('POST', '/api/register', { handle: 'second' }), { ...env, now: 20_000 })).status, 200);
 });

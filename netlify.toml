@@ -7,11 +7,6 @@
   node_bundler = "esbuild"
 
 [[headers]]
-  for = "/privy.js"
-  [headers.values]
-    Cache-Control = "public, max-age=3600"
-
-[[headers]]
   for = "/og.png"
   [headers.values]
     Cache-Control = "public, max-age=86400"
@@ -23,4 +18,4 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://auth.privy.io https://*.privy.io; frame-ancestors 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'self'"

@@ -20,7 +20,7 @@
       rule: null,
       optimum: "Optimum picked Ethereum's Hoodi testnet to roll out its network with validator teams, and says blocks there arrive in about 150 ms on average.",
       paths: [[[-40, 170], [260, 170], [260, 500], [520, 500], [520, 250], [800, 250], [800, 560], [1060, 560], [1060, 330], [1215, 330]]],
-      pads: [[700, 455], [170, 262], [352, 300], [170, 430], [390, 592], [390, 410], [430, 250], [640, 160], [610, 380], [930, 640], [890, 430], [970, 330], [1150, 450], [1170, 245], [710, 560], [1230, 420]],
+      pads: [[700, 455], [170, 262], [352, 300], [170, 430], [390, 592], [390, 410], [430, 250], [640, 160], [610, 380], [790, 640], [890, 430], [970, 330], [1150, 450], [1170, 245], [710, 560], [1230, 420]],
     },
     {
       id: 2, key: 'flood', name: 'Copy Storm', guide: { name: 'Aayush Rajasekaran', note: "co-author of 'Comparing the Performance of OptimumP2P and Gossipsub' and of the OptimumP2P paper" }, sub: 'Why Gossipsub wastes bandwidth', tier: 'Beginner', theme: 'flood',
@@ -115,7 +115,8 @@
   // Pads for stages without hand placed ones: candidates beside the path, ranked by how much
   // path they cover, kept clear of the path, the HUD and each other. Deterministic.
   // HUD boxes in frame pixels: top chips, top right controls, wave panel, ability buttons
-  const HUD = [[0, 0, 700, 64], [1130, 0, 1280, 64], [960, 548, 1280, 720], [0, 626, 200, 720]];
+  // screen furniture pads must stay clear of, in world px, sized for phones in landscape where the wave box and abilities scale up 1.25x
+  const HUD = [[0, 0, 700, 64], [1130, 0, 1280, 64], [854, 532, 1280, 720], [0, 625, 211, 720]];
   const segs = (paths) => paths.flatMap((p) => p.slice(1).map((b, i) => [p[i], b]));
   function distSeg(x, y, a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy || 1, u = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L)); return Math.hypot(x - a[0] - u * dx, y - a[1] - u * dy); }
   function autoPads(stage, n = 17) {

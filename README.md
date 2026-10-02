@@ -86,18 +86,17 @@ test/                         API tests and a local dev server
 | Route | Method | Purpose |
 | --- | --- | --- |
 | `/api/run` | POST | Signed run ticket, requested when a run starts |
-| `/api/scores?stage=n` | GET | Top 50 of a stage (1 to 10), best score per X handle |
-| `/api/scores` | POST | Submit a finished run (with its stage); needs a Privy access token from an X login |
-| `/api/privy` | GET | The Privy app id the page uses for sign in with X |
+| `/api/scores?stage=n` | GET | Top 50 of a stage (1 to 10), best score per player name |
+| `/api/scores` | POST | Submit a finished run (with its stage); needs the player's name and device key |
+| `/api/register` | POST | Claim a player name; returns the device key that signs that name's posts |
 
-Scores on the shared board belong to X accounts: the page signs the player in with X through Privy, sends the Privy access token with the run, and the function verifies the token (ES256, `PRIVY_VERIFICATION_KEY`) and reads the X username from Privy, so the handle on the board is the real one. On top of that: a server signed ticket per run, a minimum real play time per wave, a score ceiling derived from the game's own scoring, one ticket per handle, and a short rate limit per client. Until the Privy variables are set the board is read only and the page says sign in is being set up.
+Player names live on the game's own server: a name is claimed once (3 to 15 letters, digits or underscores), the device that claimed it gets a secret key kept in its local storage, and only posts carrying that key count for that name. A player who changes device picks a new name; the old scores stay on the board. On top of that: a server signed ticket per run, a minimum real play time per wave, a score ceiling derived from the game's own scoring, one ticket per run, and a short rate limit per client for posts and registrations.
 
 ## Deploy on Netlify
 
 1. Import this repository in Netlify (Add new site, Import an existing project, GitHub).
 2. Build settings are read from `netlify.toml`; nothing to change.
 3. Deploy. Netlify Blobs needs no setup, and the leaderboard generates its own signing secret on first use. Setting `RUN_SECRET` (16+ random characters) in the environment variables is optional and overrides it.
-4. Sign in with X: create an app at dashboard.privy.io, enable Twitter (X) as a login method, add the site's URL under allowed origins, and set these environment variables in Netlify: `PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_VERIFICATION_KEY` (the app's verification key from the Privy dashboard, PEM) and, if the app has a web client, `PRIVY_CLIENT_ID`. Redeploy afterwards.
 
 ## Local checks
 
