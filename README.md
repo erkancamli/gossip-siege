@@ -27,23 +27,25 @@ Ten stages. Clearing one unlocks the next. Each stage has its own map and look a
 
 ## The crew
 
-The seven heroes are named after the Optimum team and community (getoptimum.xyz/team). The game only states public facts about them and invents no quotes.
+The seven heroes are named after the Optimum team, and every stage has a guide from the team. Sources: getoptimum.xyz/team, getoptimum.xyz/blog, the OptimumP2P paper (arXiv 2508.04833) and the public getoptimum GitHub repos. The game only states public facts about them and invents no quotes.
 
 | Hero | Role | Named after |
 | --- | --- | --- |
 | Kishori | Encoder | Dr. Kishori Konwar, co-founder |
 | Jeff | Flood Breaker | Jeff (@blockchainjeff), community manager |
 | Nancy | Throttle | Prof. Nancy Lynch, advisor |
-| Gmum | Long Haul | GMUM, the community greeting |
+| Swarna | Long Haul | Swarnabha Sinha, OptimumP2P paper co-author, author of the Hoodi 6x latency analysis |
 | Muriel | Recoder | Prof. Muriel Médard, co-founder and CEO, co-inventor of RLNC |
-| Kent | Flexnode Bank | Kent Lin, co-founder |
+| Sajida | Flexnode Bank | Sajida Zouarhi, author of the PBS hot path research, co-author of the staking revenue study |
 | Sriram | Decoder | Prof. Sriram Viswanath, advisor |
+
+Stage guides: Nicolas Nicolaou (Hoodi Testnet), Aayush Rajasekaran (Copy Storm), Onyeka Obi (Shard Threshold), Aleksandr Bezobchuk (Blob Season), Har Preet Singh (Mesh Limits), Santiago Paiva (Subsea Cable), Michael Meier (Flexnode Grid), Alejandro Bergasov (The Gateway), Moritz Grundei (Stress Test), Kent Lin (Mainnet).
 
 ## Optimum quiz
 
 Before each stage a three question briefing on that stage's topic pays starting coins. During play, every second wave a question appears while the battle slows down. Answer within 15 seconds for a reward that rotates between coins, a free Flexnode Surge, a recharged Publish Burst and extra validators; faster answers pay more and three right in a row doubles it. Every answer shows a short explanation and its source. Questions use spaced repetition (the Leitner method behind apps like Duolingo): a missed question comes back two questions later, a known one waits longer each time, so runs keep changing. The Optimum knowledge screen shows every learned answer and mastery per topic. The question bank lives in `src/quiz.js`, and every question cites one of: getoptimum.xyz, the Optimum docs, the optimum-gateway README, the OptimumP2P testnet announcement or ethereum.org, and carries the date it was last checked. Claims that can change (numbers, roles, product status) are flagged `vol: true` and re-checked first by a weekly refresh task.
 
-Each stage has its own leaderboard. Difficulty is tuned with a bot that plays the real engine on every stage without the quiz (`node src/bot.cjs [stage]`).
+Each stage has its own leaderboard. Difficulty is tuned against three simulated players on the real engine: a casual one (random pads, one purchase per wave), a smart one (pads ranked by route coverage, upgrades the busiest hero first) and the smart one answering the quiz. The target ramp: Beginner stages are cleared by everyone, Intermediate stages cost the casual player lives, Advanced stages need smart placement, Expert stages need smart placement plus quiz boosts, and Mainnet needs level 4 specializations on top (`node src/bot.cjs [stage]` for the optimized bot).
 
 ## Crew upgrades
 
@@ -54,7 +56,7 @@ Every crew member has four levels, the Kingdom Rush pattern. Levels 1 to 3 raise
 | Kishori, Encoder | Fountain Coder: every shard counts as independent | Railshard: pierces 6 enemies, ignores armor |
 | Jeff, Flood Breaker | Cluster Flood: blasts split into 4 bomblets | Firewall: leaves a burning zone on the path |
 | Nancy, Throttle | Rate Limiter: every 4th pulse freezes | Peer Scoring: marked enemies take +35% damage |
-| Gmum, Long Haul | Global Relay: map wide, 40% triple crits | Shrapnel Lance: bursts into 6 fragments |
+| Swarna, Long Haul | Global Relay: map wide, 40% triple crits | Shrapnel Lance: bursts into 6 fragments |
 | Muriel, Recoder | Mesh Amplifier: bigger aura, +85% crew speed | Chain Recoder: zap chains across 5 enemies |
 | Kent, Flexnode Bank | Validator Fund: 130 per wave, 8% interest | MEV Hunter: throws gold, +3 coins per kill nearby |
 | Sriram, Decoder | Decode Ray: the beam burns through a line | Twin Decoder: two beams, decodes below 30% |
