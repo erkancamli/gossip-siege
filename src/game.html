@@ -647,7 +647,7 @@ function applyLang() {
 function setLang(l) {
   LANG = l; try { localStorage.setItem('gs_lang', l); } catch (e) {}
   applyLang(); renderCredits(); renderCoach(); renderBoards();
-  if (G) { $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`; renderWave(); updateHud(true); if (quiz) renderQuizText(); if (!$('endScr').hidden) renderEnd(); }
+  if (G) { $('stageChip').textContent = `${G.stage.id} · ${G.stage.name}`; renderWave(); updateHud(true); if (quiz) renderQuizText(true); if (!$('endScr').hidden) renderEnd(); }
   if (!$('stagesScr').hidden) renderStages();
   if (!$('learnScr').hidden) showLearn();
 }
@@ -1961,8 +1961,10 @@ function recordAnswer(id, ok) {
 }
 function pickQuestion(briefing) {
   const srs = loadSrs(), key = G.stage.key, Q = window.TD_QUIZ.Q;
-  // due reviews first, then questions never seen, then the rest; the stage's own topic is preferred
-  const rank = (q) => { const it = srs.items[q.id]; const base = !it ? 1 : srs.turn >= it.due ? (it.box === 0 ? 0 : 0.6) : 2.5 + it.box * 0.3; return base + (q.tag === key ? (briefing ? -3 : -0.4) : 0) + Math.random() * 0.5; };
+  // order: questions missed before (due again) first, then questions never seen, then known ones that are due,
+  // then the rest. The stage's own topic moves ahead inside each group, so a fresh question of any topic still
+  // beats a repeat, and a player sees all 100 before the bank starts cycling.
+  const rank = (q) => { const it = srs.items[q.id]; const base = !it ? 1 : srs.turn >= it.due ? (it.box === 0 ? 0 : 2.3) : 3 + it.box * 0.3; return base + (q.tag === key ? (briefing ? -0.8 : -0.3) : 0) + Math.random() * 0.4; };
   const pool = Q.filter(q => !askedRun.has(q.id)).sort((a, b) => rank(a) - rank(b));
   return pool[0] || Q[Math.floor(Math.random() * Q.length)];
 }
@@ -1977,19 +1979,19 @@ function openQuiz(briefing) {
   const item = pickQuestion(briefing); askedRun.add(item.id);
   const opts = item.a.map((t, i) => ({ i, right: i === 0 })).sort(() => Math.random() - 0.5);
   quiz = { item, opts, el: 0, done: false, shown: 0, briefing: !!briefing, reward: rewardFor(briefing) };
-  renderQuizText();
+  renderQuizText(false);
   $('qWhy').hidden = true; $('qClose').hidden = true; $('qHint').hidden = false; $('qBar').style.transform = 'scaleX(1)';
   $('quiz').hidden = false; closeRing(); sfx('pulse');
 }
 // question, options and labels in the current language (options keep their shuffled order)
-function renderQuizText() {
+function renderQuizText(keep) {
   const { item, opts, briefing } = quiz, q = qT(item);
   $('qTag').textContent = briefing ? tr('STAGE BRIEFING {i} / {n} · {name}', { i: BRIEF_N - G.briefLeft + 1, n: BRIEF_N, name: G.stage.name.toUpperCase() }) + (G.stage.guide ? tr(' · WITH {g}', { g: G.stage.guide.name.toUpperCase() }) : '') : tr('OPTIMUM QUIZ');
   $('qClose').textContent = tr(briefing ? (G.briefLeft > 1 ? 'Next question' : 'Start the stage') : 'Back to the battle');
   $('qSkip').hidden = !briefing;
   $('qText').textContent = q.q; $('qReward').textContent = quiz.done ? $('qReward').textContent : rewardFor(briefing).label;
   $('qStreak').textContent = G.quiz.streak ? tr('streak {n}', { n: G.quiz.streak }) : '';
-  const box = $('qOpts'), old = [...box.children]; box.innerHTML = '';
+  const box = $('qOpts'), old = keep ? [...box.children] : []; box.innerHTML = '';
   opts.forEach((o, i) => { const b = document.createElement('button'); b.className = old[i] ? old[i].className : 'qopt'; b.disabled = quiz.done; const n = document.createElement('b'); n.textContent = i + 1; const sp = document.createElement('span'); sp.textContent = q.a[o.i]; b.append(n, sp); b.onclick = () => answerQuiz(i); box.appendChild(b); });
 }
 function answerQuiz(i) {
