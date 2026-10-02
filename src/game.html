@@ -1,7 +1,10 @@
 <title>Gossip Siege</title>
+<script>/* day or night before the first paint, so a reload never flashes the other mode */(function(){try{var m=localStorage.getItem('gs_mode');document.documentElement.dataset.mode=m?m:(matchMedia('(prefers-color-scheme: light)').matches?'day':'night');}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<!-- the web fonts load without blocking: the page renders in system fonts at once and swaps when they arrive, and the game script no longer waits for Google -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"></noscript>
 <style>
 /* Layout concept: a 16:9 battlefield framed like a broadcast. Chrome HUD chips float on the edges, the crew ring opens where you tap. Single deliberate dark look from the Optimum mascot sheet: #0E0F12, #2B2D33, #E5E7EB, #4DA3FF. */
 :root {
