@@ -37,11 +37,11 @@ The seven heroes are named after the Optimum team, and every stage has a guide f
 | Swarna | Long Haul | Swarnabha Sinha, OptimumP2P paper co-author, author of the Hoodi 6x latency analysis |
 | Muriel | Recoder | Prof. Muriel Médard, co-founder and CEO, co-inventor of RLNC |
 | Sajida | Flexnode Bank | Sajida Zouarhi, author of the PBS hot path research, co-author of the staking revenue study |
-| Sriram | Decoder | Prof. Sriram Viswanath, advisor |
+| Sriram | Decoder | Prof. Sriram Vishwanath, advisor |
 
 Community: Pegasus, the Discord mumbassador, is the in game coach and quiz host. Flash, who assigns roles in the Discord, grades the campaign and assigns the Discord roles from stars and learned answers: Optimum Newbie, Observer (3 stars and 3 answers), Refined (9 stars and 10 answers), then at 21 stars and 25 answers either Optimized (stars lead, the active players) or Chronicler (knowledge leads, the creative ones); the role goes on the share card.
 
-Stage guides: Nicolas Nicolaou (Hoodi Testnet), Aayush Rajasekaran (Copy Storm), Onyeka Obi (Shard Threshold), Aleksandr Bezobchuk (Blob Season), Har Preet Singh (Mesh Limits), Santiago Paiva (Subsea Cable), Michael Meier (Flexnode Grid), Alejandro Bergasov (The Gateway), Prof. Sriram Viswanath (Stress Test), Moritz Grundei (Mainnet).
+Stage guides: Nicolas Nicolaou (Hoodi Testnet), Aayush Rajasekaran (Copy Storm), Onyeka Obi (Shard Threshold), Aleksandr Bezobchuk (Blob Season), Har Preet Singh (Mesh Limits), Santiago Paiva (Subsea Cable), Michael Meier (Flexnode Grid), Alejandro Bergasov (The Gateway), Prof. Sriram Vishwanath (Stress Test), Moritz Grundei (Mainnet).
 
 ## Optimum quiz
 
