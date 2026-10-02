@@ -2,7 +2,7 @@
 
 A fan made tower defense game for the [Optimum](https://www.getoptimum.xyz) community. Hire the Optimum crew, crack coded armor with independent shards and take the validator mesh from Hoodi Testnet to Mainnet across ten campaign stages, learning how Optimum works along the way. Speed is money.
 
-Not an official Optimum product.
+Not an official Optimum product. Play it at [gossipsiege.xyz](https://gossipsiege.xyz).
 
 ## How the RLNC idea shows up in play
 
@@ -114,3 +114,9 @@ The game runs in English or Turkish. The first visit follows the browser languag
 
 
 A day and night switch sits in the HUD and on the title screen; the first visit follows the system setting. On phones in landscape the HUD, quiz and menus grow so they stay readable and tappable; portrait shows a rotate prompt. Android and tablets get a full screen button, and iOS can add the game to the home screen.
+
+## Bugs, ideas and license
+
+Found a bug or have an idea? Write to [@ekinoks_26](https://x.com/ekinoks_26) on X or open an issue here. A short note with the stage, the device and what you expected is enough.
+
+The game code and text are MIT licensed (see `LICENSE`). Optimum, the Optimum mark and the Optimum mascot belong to Optimum.
