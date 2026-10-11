@@ -4,6 +4,7 @@ import { cp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
 const site = (process.env.URL || '').replace(/\/+$/, '');
+const ogName = `og-${(await import('node:crypto')).createHash('sha256').update(await readFile('public/og.png')).digest('hex').slice(0, 10)}.png`; // content hashed: a new picture gets a new URL
 const [game, stages, quiz, core, logo, quizTr, contentTr] = await Promise.all(['src/game.html', 'src/stages.js', 'src/quiz.js', 'src/core.js', 'src/logo.svg', 'src/i18n-quiz-tr.js', 'src/i18n-content-tr.js'].map((f) => readFile(f, 'utf8')));
 
 const logoSvg = logo.replaceAll('#3D4047', 'currentColor');
@@ -35,12 +36,14 @@ const meta = `<meta charset="utf-8">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Gossip Siege · Speed is money">
 <meta property="og:description" content="Ten stages from Hoodi Testnet to Mainnet, each built on one Optimum idea. Hire the Optimum crew and crack coded armor with independent shards.">
-<meta property="og:image" content="${abs('/og.png')}">
+<meta property="og:image" content="${abs('/' + ogName)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="${abs('/')}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Gossip Siege · Speed is money">
 <meta name="twitter:description" content="A fan made Optimum tower defense game. Crack coded armor with independent shards.">
-<meta name="twitter:image" content="${abs('/og.png')}">
+<meta name="twitter:image" content="${abs('/' + ogName)}">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 `;
 const page = `<!doctype html>\n<html lang="en">\n<head>\n${meta}${titleLine}\n${headRest}\n</head>\n<body>${bodyPart}\n</body>\n</html>\n`;
@@ -53,6 +56,7 @@ for (const [, code] of page.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
 await rm('dist', { recursive: true, force: true });
 await mkdir('dist', { recursive: true });
 await cp('public', 'dist', { recursive: true });
+await cp('public/og.png', 'dist/' + ogName);
 for (const ph of ['__GOGGLES__', '__MARKPATH__', '__LOGOPATHALL__', '<!--MARK-->', '<!--LOGO-->', '/*__CORE__*/']) if (page.includes(ph)) { console.error('Build stopped: placeholder left in page: ' + ph); process.exit(1); }
 
 // The game code ships as one external, content hashed, immutable file: the HTML stays small (the title shows
