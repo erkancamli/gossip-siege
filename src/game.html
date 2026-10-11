@@ -1448,7 +1448,7 @@ function portrait(c, kind, size, mood) {
   drawMascot(c, size / 2, size * 1.25, size / 4.4, look, { t: 0.5, aim: Math.PI / 2 + 0.3, mood: mood || 'idle', lvl: 0, kind, seed: 1 });
   c.restore();
 }
-if (/[?&]debug\b/.test(location.search)) window.__portrait = portrait; // test hook for portrait sheets
+if (/[?&]debug\b/.test(location.search)) { window.__portrait = portrait; window.__drawMascot = drawMascot; window.__crew = T.CREW; } // test hooks for portrait sheets and the share image
 function fillPortraits() { for (const el of document.querySelectorAll('canvas[data-portrait]')) { const k = el.dataset.portrait, n = el.width; portrait(el.getContext('2d'), k, n, el.dataset.mood || 'happy'); } }
 const portraitCache = {};
 function portraitURL(kind) {
