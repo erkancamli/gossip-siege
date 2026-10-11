@@ -15,6 +15,7 @@ let body = game
   .replace('<!--MARK-->', markSvg)
   .replace('<!--LOGO-->', logoSvg.replace('<svg ', '<svg class="logo" aria-label="Optimum" role="img" '))
   .replaceAll('__MARKPATH__', paths[0])
+  .replaceAll('__GOGGLES__', 'data:image/png;base64,' + (await readFile('src/goggles.png')).toString('base64'))
   .replaceAll('__LOGOPATHALL__', paths.join(' '))
   .replace('/*__CORE__*/', () => [stages, contentTr, core].join('\n')); // stages.js defines the campaign before the engine reads it; the Turkish text rides along
 
@@ -52,7 +53,7 @@ for (const [, code] of page.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
 await rm('dist', { recursive: true, force: true });
 await mkdir('dist', { recursive: true });
 await cp('public', 'dist', { recursive: true });
-for (const ph of ['__MARKPATH__', '__LOGOPATHALL__', '<!--MARK-->', '<!--LOGO-->', '/*__CORE__*/']) if (page.includes(ph)) { console.error('Build stopped: placeholder left in page: ' + ph); process.exit(1); }
+for (const ph of ['__GOGGLES__', '__MARKPATH__', '__LOGOPATHALL__', '<!--MARK-->', '<!--LOGO-->', '/*__CORE__*/']) if (page.includes(ph)) { console.error('Build stopped: placeholder left in page: ' + ph); process.exit(1); }
 
 // The game code ships as one external, content hashed, immutable file: the HTML stays small (the title shows
 // at once) and a reload reuses the cached script instead of downloading 350 KB again. The body's inline scripts

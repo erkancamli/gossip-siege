@@ -788,6 +788,8 @@ function noise(d, peak, cutoff) {
 // mouth visible below, navy jacket with a zip and lime and cyan piping, striped joggers, chunky sneakers.
 // Unit space: feet at (0,0), helmet radius ~1.25, total height ~4.6.
 // =====================================================================
+const GOGGLES = new Image(); GOGGLES.src = '__GOGGLES__'; // the official headset artwork
+GOGGLES.onload = () => { for (const k in portraitCache) delete portraitCache[k]; if (typeof fillPortraits === 'function') fillPortraits(); };
 function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 function markAt(c, x, y, size, fill) { c.save(); c.translate(x, y); const s = size / 36.5; c.scale(s, s); c.translate(-18.23, -17.46); c.fillStyle = fill; c.fill(MARK); c.restore(); }
 function eyeLoop(c, x, y, rx, ry, lw) { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.lineWidth = lw; c.stroke(); }
@@ -931,10 +933,6 @@ function drawMascot(c, x, y, s, look, st) {
   // ring pinched in the middle, one hole, not an infinity sign; the lower face and a thin mouth stay visible.
   const OL = '#111218', SKIN = '#eff0ff', SHADE = '#747ad5', MASK = '#ced1fa';
   const lx = Math.cos(localAim) * 0.08, ly = Math.sin(localAim) * 0.04;
-  // strap side blocks, behind the head
-  c.save(); c.translate(lx * 0.5, hyH - 0.28 + ly);
-  for (const sx of [-1, 1]) { c.save(); c.translate(sx * 1.42, 0); c.rotate(sx * 0.12); c.fillStyle = '#393a47'; rr(c, -0.22, -0.36, 0.44, 0.74, 0.1); c.fill(); c.fillStyle = '#222437'; rr(c, -0.22, 0.12, 0.44, 0.26, 0.08); c.fill(); c.strokeStyle = OL; c.lineWidth = 0.07; rr(c, -0.22, -0.36, 0.44, 0.74, 0.1); c.stroke(); c.restore(); }
-  c.restore();
   // head with hard cel shadows
   c.fillStyle = SKIN; c.beginPath(); c.arc(0, hyH, 1.3, 0, 7); c.fill();
   c.save(); c.beginPath(); c.arc(0, hyH, 1.3, 0, 7); c.clip(); c.fillStyle = SHADE;
@@ -951,20 +949,16 @@ function drawMascot(c, x, y, s, look, st) {
   if (m === 'excited') { c.fillStyle = '#2a1420'; c.beginPath(); c.moveTo(mx - 0.3, my - 0.06); c.quadraticCurveTo(mx, my + 0.46, mx + 0.3, my - 0.06); c.closePath(); c.fill(); c.fillStyle = '#e8566b'; c.beginPath(); c.ellipse(mx, my + 0.16, 0.13, 0.07, 0, 0, 7); c.fill(); c.lineWidth = 0.06; c.beginPath(); c.moveTo(mx - 0.3, my - 0.06); c.quadraticCurveTo(mx, my + 0.46, mx + 0.3, my - 0.06); c.closePath(); c.stroke(); }
   else if (m === 'focus') { c.lineWidth = 0.065; c.beginPath(); c.moveTo(mx - 0.16, my + 0.05); c.lineTo(mx + 0.16, my + 0.02); c.stroke(); }
   else { c.lineWidth = 0.065; c.beginPath(); c.moveTo(mx - 0.22, my); c.quadraticCurveTo(mx, my + 0.17, mx + 0.22, my); c.stroke(); }
-  // the headset: a curved mask, top edge dipping in the middle, bottom edge lifting over the nose
-  c.save(); c.translate(lx * 0.6, hyH - 0.28 + ly); c.rotate(lx * 0.2);
-  const mask = (dy) => { c.beginPath(); c.moveTo(-1.0, -0.56 + dy); c.quadraticCurveTo(-0.5, -0.64 + dy, 0, -0.5 + dy); c.quadraticCurveTo(0.5, -0.64 + dy, 1.0, -0.56 + dy); c.bezierCurveTo(1.5, -0.5 + dy, 1.5, 0.5 + dy, 1.0, 0.56 + dy); c.quadraticCurveTo(0.5, 0.64 + dy, 0, 0.46 + dy); c.quadraticCurveTo(-0.5, 0.64 + dy, -1.0, 0.56 + dy); c.bezierCurveTo(-1.5, 0.5 + dy, -1.5, -0.5 + dy, -1.0, -0.56 + dy); c.closePath(); };
-  mask(0.12); c.fillStyle = SHADE; c.fill(); c.strokeStyle = OL; c.lineWidth = 0.09; c.stroke();
-  mask(0); c.fillStyle = MASK; c.fill(); c.stroke();
-  c.fillStyle = 'rgba(255,255,255,0.8)'; c.beginPath(); c.ellipse(-0.78, -0.4, 0.22, 0.05, -0.15, 0, 7); c.fill();
-  // the mark: one thick closed ring pinched at the middle, a single hole
-  const ring = (cx, r, pinch) => { c.beginPath(); c.moveTo(-cx, -r); c.bezierCurveTo(-cx * 0.45, -r, -cx * 0.3, -pinch, 0, -pinch); c.bezierCurveTo(cx * 0.3, -pinch, cx * 0.45, -r, cx, -r); c.arc(cx, 0, r, -Math.PI / 2, Math.PI / 2); c.bezierCurveTo(cx * 0.45, r, cx * 0.3, pinch, 0, pinch); c.bezierCurveTo(-cx * 0.3, pinch, -cx * 0.45, r, -cx, r); c.arc(-cx, 0, r, Math.PI / 2, Math.PI * 1.5); c.closePath(); };
-  c.translate(0, 0.0);
-  ring(0.36, 0.36, 0.25); c.fillStyle = OL; c.fill();
-  ring(0.36, 0.22, 0.11); c.fillStyle = MASK; c.fill();
-  if (kind === 'nova' && fa < 0.12) { mask(0); c.fillStyle = hexA(look.visor, 0.35); c.fill(); }
+  drawHair(c, look, true); // hair first: nothing may cover the headset
+  // the headset is the official artwork itself: cut out of the front facing sticker (Optimum Stickers Emotes, Light),
+  // placed by the head circle measured in that sticker (centre 160.59, 110.49, radius 103.73 px)
+  c.save(); c.translate(lx * 0.6, hyH + ly); c.rotate(lx * 0.2);
+  if (GOGGLES.complete && GOGGLES.naturalWidth) {
+    c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+    c.drawImage(GOGGLES, -1.4236, -0.6202, 2.8700, 1.2658);
+    if (kind === 'nova' && fa < 0.12) { c.globalAlpha = 0.35; c.fillStyle = look.visor; rr(c, -1.1736, -0.6002, 2.3700, 1.2058, 0.45); c.fill(); c.globalAlpha = 1; }
+  }
   c.restore();
-  drawHair(c, look, true);
   if (look.fem && look.clip) { c.fillStyle = look.clip; c.beginPath(); c.arc(0.95, -4.05, 0.2, 0, 7); c.fill(); c.beginPath(); c.arc(0.7, -4.2, 0.13, 0, 7); c.fill(); }
   // level 3 halo
   if (lvl >= 2) { c.save(); c.globalAlpha = 0.9; c.shadowColor = look.visor; c.shadowBlur = 0.8 + (lvl >= 3 ? 0.8 : 0); markAt(c, 0, hyH - 2.0 + Math.sin(t * 3 + seed) * 0.1, lvl >= 3 ? 1.25 : 0.95, lvl >= 3 ? '#ffffff' : hexA(look.visor, 1)); if (lvl >= 3) { markAt(c, -0.95, hyH - 1.75, 0.55, hexA(look.visor, 1)); markAt(c, 0.95, hyH - 1.75, 0.55, hexA(look.visor, 1)); } c.restore(); }
