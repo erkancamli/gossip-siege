@@ -401,7 +401,7 @@ body.small .coach { font-size: 20px; }
         <div class="cm"><canvas class="face" data-portrait="pegasus" width="84" height="84"></canvas><div><b>Pegasus</b><span data-t="cmPegasus">Mumbassador. Your coach, asks the questions.</span></div></div>
         <div class="cm"><canvas class="face" data-portrait="flash" data-mood="excited" width="84" height="84"></canvas><div><b>Flash</b><span data-t="cmFlash">Hands out the roles: Newbie to Chronicler.</span></div></div>
       </div>
-      <p class="fine" data-t="fine">Fan made for the Optimum community by @ekinoks_26, not an official Optimum product. Crew designed after the community's Optimum mascot. Game numbers are for fun; the RLNC rule inside is real: a coded block only opens with enough independent shards. <a href="https://www.getoptimum.xyz" target="_blank" rel="noopener">getoptimum.xyz</a></p>
+      <p class="fine" data-t="fine">Fan made for the Optimum community by @ekinoks_26, not an official Optimum product. Crew designed after the official Optimum mascot. Game numbers are for fun; the RLNC rule inside is real: a coded block only opens with enough independent shards. <a href="https://www.getoptimum.xyz" target="_blank" rel="noopener">getoptimum.xyz</a></p>
     </div>
     <aside class="board">
       <h3 data-t="boardH3">Mesh leaderboard</h3>
@@ -784,8 +784,8 @@ function noise(d, peak, cutoff) {
 
 // =====================================================================
 // MASCOT: the Optimum crew, after the community character sheet.
-// White glossy helmet head, black visor with infinity eyes, headphones,
-// black hoodie with the mark, striped joggers, chunky sneakers.
+// Pale periwinkle head, chunky pale VR headset with the infinity mark outlined on the front,
+// mouth visible below, black hoodie with lime and cyan piping, striped joggers, chunky sneakers.
 // Unit space: feet at (0,0), helmet radius ~1.25, total height ~4.6.
 // =====================================================================
 function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -872,6 +872,7 @@ function drawMascot(c, x, y, s, look, st) {
   c.strokeStyle = rim; c.lineWidth = 0.08; rr(c, -1.02, -2.5, 2.04, 1.42, 0.5); c.stroke();
   c.fillStyle = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'; rr(c, -0.96, -2.44, 0.62, 1.3, 0.34); c.fill();
   c.fillStyle = light ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.38)'; rr(c, -0.6, -1.58, 1.2, 0.42, 0.16); c.fill(); // pocket
+  if (!light) { c.lineWidth = 0.07; c.strokeStyle = '#9be35a'; c.beginPath(); c.moveTo(-0.62, -2.42); c.quadraticCurveTo(-0.8, -1.8, -0.55, -1.16); c.moveTo(0.62, -2.42); c.quadraticCurveTo(0.8, -1.8, 0.55, -1.16); c.stroke(); c.strokeStyle = '#3cc8f0'; c.beginPath(); c.moveTo(-0.95, -2.0); c.lineTo(-0.82, -1.3); c.moveTo(0.95, -2.0); c.lineTo(0.82, -1.3); c.stroke(); }
   markAt(c, 0, -2.0, 0.9, light ? '#15171b' : '#f2f4f6');
   c.strokeStyle = light ? '#6b7178' : '#d9dde2'; c.lineWidth = 0.05; c.beginPath(); c.moveTo(-0.2, -2.45); c.lineTo(-0.25, -2.08); c.moveTo(0.2, -2.45); c.lineTo(0.25, -2.08); c.stroke();
   if (lvl >= 1) { c.fillStyle = '#d7dce1'; c.beginPath(); c.ellipse(-0.98, -2.3, 0.34, 0.21, -0.3, 0, 7); c.ellipse(0.98, -2.3, 0.34, 0.21, 0.3, 0, 7); c.fill(); }
@@ -922,27 +923,41 @@ function drawMascot(c, x, y, s, look, st) {
   // head
   const hyH = -3.42;
   drawHair(c, look, false);
-  // headphones
-  for (const sx of [-1, 1]) { c.fillStyle = '#16181c'; c.beginPath(); c.ellipse(sx * 1.33, hyH + 0.05, 0.38, 0.5, 0, 0, 7); c.fill(); c.strokeStyle = '#4a5058'; c.lineWidth = 0.08; c.beginPath(); c.ellipse(sx * 1.33, hyH + 0.05, 0.25, 0.34, 0, 0, 7); c.stroke(); }
+  // Head and goggles after the official Optimum sticker sheet: pale periwinkle head with a dark outline,
+  // a chunky pale VR headset strapped over the eyes with the infinity mark outlined on the front,
+  // and the lower face (mouth) left visible. The crew colour is a thin accent on the headset.
+  const OL = '#1a1b29';
+  const lx = Math.cos(localAim) * 0.1, ly = Math.sin(localAim) * 0.05;
   const hg = c.createRadialGradient(-0.45, hyH - 0.55, 0.1, 0, hyH, 1.42);
-  hg.addColorStop(0, '#ffffff'); hg.addColorStop(0.55, '#e9ecef'); hg.addColorStop(0.85, '#b9bfc6'); hg.addColorStop(1, '#8d949c');
-  c.fillStyle = hg; c.beginPath(); c.arc(0, hyH, 1.36, 0, 7); c.fill(); c.strokeStyle = 'rgba(0,0,0,0.25)'; c.lineWidth = 0.05; c.stroke();
-  if (lvl >= 1) { c.strokeStyle = look.visor; c.lineWidth = 0.14; c.beginPath(); c.arc(0, hyH, 1.18, Math.PI * 1.18, Math.PI * 1.82); c.stroke(); }
-  // visor
-  const lx = Math.cos(localAim) * 0.12, ly = Math.sin(localAim) * 0.07;
-  c.fillStyle = '#0a0b0d'; rr(c, -0.95 + lx * 0.5, hyH - 0.48, 1.9, 1.08, 0.5); c.fill();
-  c.strokeStyle = hexA(look.visor, 0.85); c.lineWidth = 0.06; rr(c, -0.95 + lx * 0.5, hyH - 0.48, 1.9, 1.08, 0.5); c.stroke();
-  c.fillStyle = 'rgba(255,255,255,0.13)'; c.beginPath(); c.ellipse(-0.45 + lx * 0.5, hyH - 0.3, 0.42, 0.12, -0.2, 0, 7); c.fill();
-  const blink = ((t + seed * 1.7) % 3.6) < 0.12;
-  drawEyes(c, st.mood || 'idle', lx, hyH + 0.06 + ly, blink && st.mood !== 'focus', look.visor);
-  // feminine cues for the women of the crew: lashes over the infinity eyes and a hair clip
-  if (look.fem) {
-    c.save(); c.translate(lx, hyH + 0.06 + ly); c.strokeStyle = '#ffffff'; c.lineWidth = 0.07; c.lineCap = 'round';
-    for (const ex of [-0.36, 0.36]) for (const k of [-1, 0, 1]) { c.beginPath(); c.moveTo(ex + k * 0.12, -0.2); c.lineTo(ex + k * 0.17, -0.34); c.stroke(); }
-    c.restore();
-  }
-  // nova visor beam glow
-  if (kind === 'nova' && fa < 0.12) { c.fillStyle = hexA(look.visor, 0.35); rr(c, -0.95, hyH - 0.48, 1.9, 1.08, 0.5); c.fill(); }
+  hg.addColorStop(0, '#f6f6ff'); hg.addColorStop(0.55, '#e3e4fb'); hg.addColorStop(0.85, '#c3c7f2'); hg.addColorStop(1, '#a4aae6');
+  c.fillStyle = hg; c.beginPath(); c.arc(0, hyH, 1.3, 0, 7); c.fill(); c.strokeStyle = OL; c.lineWidth = 0.09; c.stroke();
+  if (lvl >= 1) { c.strokeStyle = look.visor; c.lineWidth = 0.12; c.beginPath(); c.arc(0, hyH, 1.12, Math.PI * 1.2, Math.PI * 1.8); c.stroke(); }
+  // mouth on the visible lower face
+  const m = st.mood || 'idle', mx = lx * 0.6, my = hyH + 0.86;
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  if (m === 'excited') { c.fillStyle = '#2a1420'; c.beginPath(); c.moveTo(mx - 0.34, my - 0.08); c.quadraticCurveTo(mx, my + 0.5, mx + 0.34, my - 0.08); c.closePath(); c.fill(); c.fillStyle = '#e8566b'; c.beginPath(); c.ellipse(mx, my + 0.18, 0.15, 0.08, 0, 0, 7); c.fill(); c.strokeStyle = OL; c.lineWidth = 0.07; c.beginPath(); c.moveTo(mx - 0.34, my - 0.08); c.quadraticCurveTo(mx, my + 0.5, mx + 0.34, my - 0.08); c.closePath(); c.stroke(); }
+  else if (m === 'focus') { c.strokeStyle = OL; c.lineWidth = 0.09; c.beginPath(); c.moveTo(mx - 0.2, my + 0.06); c.lineTo(mx + 0.2, my + 0.02); c.stroke(); }
+  else { c.strokeStyle = OL; c.lineWidth = 0.09; c.beginPath(); c.moveTo(mx - 0.28, my - 0.02); c.quadraticCurveTo(mx, my + 0.24, mx + 0.28, my - 0.02); c.stroke(); }
+  // strap around the head and the side clips
+  c.fillStyle = '#20212c'; rr(c, -1.38, hyH - 0.5, 2.76, 0.42, 0.18); c.fill();
+  for (const sx of [-1, 1]) { c.fillStyle = '#2b2d3b'; rr(c, sx * 1.46 - 0.2, hyH - 0.62, 0.4, 0.66, 0.12); c.fill(); c.strokeStyle = OL; c.lineWidth = 0.06; c.stroke(); }
+  // the headset body, tilted a touch with the aim
+  c.save(); c.translate(lx * 0.6, hyH - 0.3 + ly); c.rotate(-0.06 + lx * 0.25);
+  const gw = 2.5, gh = 1.12;
+  const gg = c.createLinearGradient(0, -gh / 2, 0, gh / 2); gg.addColorStop(0, '#f7f7ff'); gg.addColorStop(0.6, '#e2e4fc'); gg.addColorStop(1, '#babff0');
+  c.fillStyle = gg; rr(c, -gw / 2, -gh / 2, gw, gh, 0.38); c.fill();
+  c.fillStyle = 'rgba(120,128,210,0.35)'; rr(c, -gw / 2 + 0.06, gh / 2 - 0.26, gw - 0.12, 0.2, 0.1); c.fill();
+  c.strokeStyle = OL; c.lineWidth = 0.1; rr(c, -gw / 2, -gh / 2, gw, gh, 0.38); c.stroke();
+  c.strokeStyle = hexA(look.visor, 0.9); c.lineWidth = 0.06; c.beginPath(); c.moveTo(-gw / 2 + 0.35, gh / 2 - 0.07); c.lineTo(gw / 2 - 0.35, gh / 2 - 0.07); c.stroke();
+  c.fillStyle = 'rgba(255,255,255,0.75)'; c.beginPath(); c.ellipse(-0.62, -gh / 2 + 0.2, 0.42, 0.07, -0.08, 0, 7); c.fill();
+  // the infinity mark on the front, as an outline
+  const face = '#e9eafd';
+  c.fillStyle = OL; c.beginPath(); c.moveTo(-0.34, -0.3); c.bezierCurveTo(-0.15, -0.3, -0.1, -0.15, 0, -0.15); c.bezierCurveTo(0.1, -0.15, 0.15, -0.3, 0.34, -0.3);
+  c.arc(0.34, 0.02, 0.32, -Math.PI / 2, Math.PI / 2); c.bezierCurveTo(0.15, 0.34, 0.1, 0.19, 0, 0.19); c.bezierCurveTo(-0.1, 0.19, -0.15, 0.34, -0.34, 0.34);
+  c.arc(-0.34, 0.02, 0.32, Math.PI / 2, Math.PI * 1.5); c.closePath(); c.fill();
+  c.fillStyle = face; c.beginPath(); c.ellipse(-0.33, 0.02, 0.19, 0.16, 0, 0, 7); c.fill(); c.beginPath(); c.ellipse(0.33, 0.02, 0.19, 0.16, 0, 0, 7); c.fill();
+  if (kind === 'nova' && fa < 0.12) { c.fillStyle = hexA(look.visor, 0.35); rr(c, -gw / 2, -gh / 2, gw, gh, 0.38); c.fill(); }
+  c.restore();
   drawHair(c, look, true);
   if (look.fem && look.clip) { c.fillStyle = look.clip; c.beginPath(); c.arc(0.95, -4.05, 0.2, 0, 7); c.fill(); c.beginPath(); c.arc(0.7, -4.2, 0.13, 0, 7); c.fill(); }
   // level 3 halo
@@ -1433,6 +1448,7 @@ function portrait(c, kind, size, mood) {
   drawMascot(c, size / 2, size * 1.02, size / 4.2, look, { t: 0.5, aim: Math.PI / 2 + 0.3, mood: mood || 'idle', lvl: 0, kind, seed: 1 });
   c.restore();
 }
+if (/[?&]debug\b/.test(location.search)) window.__portrait = portrait; // test hook for portrait sheets
 function fillPortraits() { for (const el of document.querySelectorAll('canvas[data-portrait]')) { const k = el.dataset.portrait, n = el.width; portrait(el.getContext('2d'), k, n, el.dataset.mood || 'happy'); } }
 const portraitCache = {};
 function portraitURL(kind) {
