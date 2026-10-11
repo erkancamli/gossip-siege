@@ -83,7 +83,7 @@ const hashKey = (k) => crypto.createHash('sha256').update(String(k)).digest('bas
 const RESERVED = new Set(['anon', 'admin', 'optimum', 'pegasus', 'flash']);
 
 // Core handler, separated from Netlify specifics so it can be tested locally.
-export async function handle(req, { store, ip, secret, now = Date.now() }) {
+export async function handle(req, { store, ip, secret, adminToken, now = Date.now() }) {
   const url = new URL(req.url);
   const path = url.pathname.replace(/\/+$/, '');
 
@@ -93,17 +93,47 @@ export async function handle(req, { store, ip, secret, now = Date.now() }) {
     const handle = cleanHandle(body.handle);
     if (handle.length < MIN_HANDLE) return json({ error: 'Names need 3 to 15 letters, digits or underscores.' }, 400);
     if (RESERVED.has(handle.toLowerCase())) return json({ error: 'That name is reserved. Pick another.' }, 409);
+    const uKey = `user/${handle.toLowerCase()}`;
+    if (await store.get(uKey, { type: 'json' })) return json({ error: 'That name is taken. Pick another.' }, 409); // checked first so a player whose name exists is pointed to sign in right away
     const rlKey = `rl/reg/${hashIp(secret, ip)}`;
     const last = await store.get(rlKey, { type: 'json' });
     if (last && now - last.at < SUBMIT_GAP_MS) return json({ error: 'Slow down a little, then try again.' }, 429);
     await store.setJSON(rlKey, { at: now });
-    const uKey = `user/${handle.toLowerCase()}`;
-    if (await store.get(uKey, { type: 'json' })) return json({ error: 'That name is taken. Pick another.' }, 409);
     const key = crypto.randomBytes(24).toString('base64url');
     await store.setJSON(uKey, { handle, keyHash: hashKey(key), at: now });
     const again = await store.get(uKey, { type: 'json' }); // two players claiming the same name at once: only the write that landed wins
     if (!again || !safeEqual(again.keyHash, hashKey(key))) return json({ error: 'That name is taken. Pick another.' }, 409);
     return json({ ok: true, handle, key });
+  }
+
+  // a name claimed on another device: the device code (the key handed out at registration) proves it is yours
+  if (path.endsWith('/api/login')) {
+    if (req.method !== 'POST') return json({ error: 'Use POST.' }, 405);
+    let body; try { body = await req.json(); } catch { return json({ error: 'Bad request.' }, 400); }
+    const rlKey = `rl/login/${hashIp(secret, ip)}`;
+    const last = await store.get(rlKey, { type: 'json' });
+    if (last && now - last.at < 2500) return json({ error: 'Slow down a little, then try again.' }, 429);
+    await store.setJSON(rlKey, { at: now });
+    const h = cleanHandle(body.handle), key = String(body.key || '').trim();
+    const user = h.length >= MIN_HANDLE ? await store.get(`user/${h.toLowerCase()}`, { type: 'json' }) : null;
+    if (!user || !key || !safeEqual(user.keyHash, hashKey(key))) return json({ error: 'That name and device code do not match.' }, 403);
+    return json({ ok: true, handle: user.handle, key });
+  }
+  // owner only: a fresh device code for a name whose code was lost; needs ADMIN_TOKEN in the site's environment
+  if (path.endsWith('/api/admin/rekey')) {
+    const token = adminToken || '', given = url.searchParams.get('token') || '';
+    if (token.length < 16) return json({ error: 'Not found.' }, 404);
+    const rlKey = `rl/admin/${hashIp(secret, ip)}`;
+    const last = await store.get(rlKey, { type: 'json' });
+    if (last && now - last.at < 5000) return json({ error: 'Slow down a little, then try again.' }, 429);
+    await store.setJSON(rlKey, { at: now });
+    if (!safeEqual(token, given)) return json({ error: 'Not allowed.' }, 403);
+    const h = cleanHandle(url.searchParams.get('handle')), uKey = `user/${h.toLowerCase()}`;
+    const user = h ? await store.get(uKey, { type: 'json' }) : null;
+    if (!user) return json({ error: 'Unknown name.' }, 404);
+    const key = crypto.randomBytes(24).toString('base64url');
+    user.keyHash = hashKey(key); user.rekeyedAt = now; await store.setJSON(uKey, user);
+    return json({ ok: true, handle: user.handle, key, next: 'Open Gossip Siege, type the name, choose "I already have this name" and paste this device code.' });
   }
 
   if (path.endsWith('/api/run')) {
@@ -210,11 +240,11 @@ export default async (req, context) => {
   try {
     const env = (k) => (globalThis.Netlify && Netlify.env.get(k)) || process.env[k];
     const secret = await resolveSecret(store, env('RUN_SECRET'));
-    return await handle(req, { store, ip: context.ip, secret });
+    return await handle(req, { store, ip: context.ip, secret, adminToken: env('ADMIN_TOKEN') });
   } catch (e) {
     console.error(e);
     return json({ error: 'The board hit an error. Try again in a moment.' }, 500);
   }
 };
 
-export const config = { path: ['/api/run', '/api/scores', '/api/register'] };
+export const config = { path: ['/api/run', '/api/scores', '/api/register', '/api/login', '/api/admin/rekey'] };

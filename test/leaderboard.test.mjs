@@ -154,3 +154,18 @@ test('daily challenge board and the weekly board', async () => {
   const next = await (await handle(req('GET', '/api/scores?stage=week'), { ...env, now: Date.UTC(2026, 9, 5, 1) })).json();
   assert.equal(next.week, '2026-10-05'); assert.equal(next.rows.length, 0);
 });
+
+test('same name on a second device with the device code, and the owner rekey', async () => {
+  const { handle: h } = await import('../netlify/functions/leaderboard.mjs');
+  const m = new Map(); const store = { async get(k) { return m.has(k) ? JSON.parse(m.get(k)) : null; }, async setJSON(k, v) { m.set(k, JSON.stringify(v)); } };
+  const call = async (path, body, now, extra = {}) => { const r = await h(new Request('http://x' + path, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {}), { store, ip: '1.2.3.4', secret: 'a-secret-of-some-length', now, ...extra }); return { status: r.status, body: await r.json() }; };
+  let now = Date.parse('2026-10-11T18:00:00Z');
+  const key = (await call('/api/register', { handle: '_Zk_' }, now)).body.key;
+  let r = await call('/api/login', { handle: '_zk_', key: 'wrong' }, now + 3000); assert.equal(r.status, 403);
+  r = await call('/api/login', { handle: '_zk_', key }, now + 6000); assert.equal(r.status, 200); assert.equal(r.body.handle, '_Zk_');
+  assert.equal((await call('/api/admin/rekey?handle=_Zk_&token=x', null, now + 9000)).status, 404);
+  r = await call('/api/admin/rekey?handle=_Zk_&token=a-long-admin-token-123', null, now + 15000, { adminToken: 'a-long-admin-token-123' });
+  assert.equal(r.status, 200);
+  assert.equal((await call('/api/login', { handle: '_Zk_', key }, now + 20000)).status, 403);
+  assert.equal((await call('/api/login', { handle: '_Zk_', key: r.body.key }, now + 25000)).status, 200);
+});

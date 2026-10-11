@@ -239,6 +239,11 @@ body.small .face { width: 52px; height: 52px; }
 .tot .badge { margin-left: 8px; vertical-align: middle; }
 .tot .nextb { margin-left: 10px; font: 500 11px var(--mono); color: var(--dim); }
 .xwho .xout { font-family: var(--mono); font-size: 11px; color: var(--dim); text-decoration: underline; }
+.xauth .haveName { display: block; margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--dim); text-decoration: underline; background: none; border: 0; padding: 0; cursor: pointer; }
+.xauth .namein { flex-wrap: wrap; }
+.xauth .namein .nameIn { flex: 1 1 140px; }
+.xauth .namein .codeIn { flex: 1 1 100%; order: 3; }
+.xauth .codeShow { font-family: var(--mono); font-size: 12px; word-break: break-all; user-select: all; }
 /* portrait: 720x1280 frame. Info on top, actions in the bottom thumb zone, menus as bottom sheets. */
 body.portrait .hud { flex-wrap: wrap; gap: 6px; }
 body.portrait .hud .chips { flex-wrap: wrap; gap: 6px; }
@@ -408,7 +413,7 @@ body.small .coach { font-size: 20px; }
       <div class="tabs"></div>
       <div class="lb" id="lbTitle"></div>
       <div class="lbnote" id="lbNoteTitle"></div>
-      <div class="xauth" id="nameTitle"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="save" data-t="nameSave">Save name</button></div><div class="xwho" hidden><span class="xh"></span><span class="badgeSlot"></span><button class="xout" data-n="change" data-t="nameChange">change name</button></div><div class="msg" id="nameMsgTitle"></div></div>
+      <div class="xauth" id="nameTitle"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><input class="codeIn" maxlength="64" placeholder="Device code" aria-label="Device code" hidden><button class="btn xbtn" data-n="save" data-t="nameSave">Save name</button></div><button class="xout haveName" data-n="mode" data-t="nameHave">I already have this name</button><div class="xwho" hidden><span class="xh"></span><span class="badgeSlot"></span><button class="xout" data-n="code" data-t="nameCode">device code</button><button class="xout" data-n="change" data-t="nameChange">change name</button></div><div class="msg" id="nameMsgTitle"></div></div>
     </aside>
     <footer class="foot">
       <div class="lgroup"><span class="label">Optimum</span><a href="https://www.getoptimum.xyz" target="_blank" rel="noopener" data-t="lkSite">Website</a><a href="https://docs.getoptimum.xyz" target="_blank" rel="noopener" data-t="lkDocs">Docs</a><a href="https://www.getoptimum.xyz/blog" target="_blank" rel="noopener">Blog</a><a href="https://x.com/get_optimum" target="_blank" rel="noopener">X</a><a href="https://discord.gg/getoptimum" target="_blank" rel="noopener">Discord</a><a href="https://t.me/+I1fmgPCPO5IxNzZl" target="_blank" rel="noopener">Telegram</a><a href="https://github.com/getoptimum" target="_blank" rel="noopener">GitHub</a><a href="https://arxiv.org/abs/2508.04833" target="_blank" rel="noopener" data-t="lkPaper">OptimumP2P paper</a></div>
@@ -521,7 +526,7 @@ body.small .coach { font-size: 20px; }
           <h3 data-t="boardH3">Mesh leaderboard</h3>
           <div class="tabs"></div>
           <div class="handle" id="handleRow" hidden><input id="handleIn" maxlength="24" placeholder="Your handle" aria-label="Your handle"><button class="btn" id="submitBtn" data-t="submitBtn">Submit</button></div>
-          <div class="xauth" id="nameEnd"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><button class="btn xbtn" data-n="savepost" data-t="nameSavePost">Save and post score</button></div><div class="xwho" hidden><span class="xh"></span><span class="badgeSlot"></span><button class="btn xbtn" data-n="submit" data-t="namePost">Post score</button><button class="xout" data-n="change" data-t="nameChange">change name</button></div></div>
+          <div class="xauth" id="nameEnd"><div class="handle namein"><input class="nameIn" maxlength="15" placeholder="Pick a player name" aria-label="Player name"><input class="codeIn" maxlength="64" placeholder="Device code" aria-label="Device code" hidden><button class="btn xbtn" data-n="savepost" data-t="nameSavePost">Save and post score</button></div><button class="xout haveName" data-n="mode" data-t="nameHave">I already have this name</button><div class="xwho" hidden><span class="xh"></span><span class="badgeSlot"></span><button class="btn xbtn" data-n="submit" data-t="namePost">Post score</button><button class="xout" data-n="code" data-t="nameCode">device code</button><button class="xout" data-n="change" data-t="nameChange">change name</button></div></div>
           <div class="msg" id="lbMsg"></div>
           <div class="lb" id="lbEnd"></div>
         </aside>
@@ -567,7 +572,7 @@ const UI_TR = {
   'Heavy traffic': 'Yoğun trafik', 'Half again as many enemies, each a little lighter. Splash wins.': 'Yüzde elli daha fazla düşman, her biri biraz daha hafif. Alan hasarı kazanır.',
   lkSite: 'Web sitesi', lkDocs: 'Dokümanlar', lkPaper: 'OptimumP2P makalesi', lkMaker: '@ekinoks_26 yaptı', lkSource: 'Kaynak kodu',
   nameSave: 'Adı kaydet',
-  nameChange: 'adı değiştir',
+  nameChange: 'adı değiştir', nameHave: 'Bu ad zaten benim', nameCode: 'cihaz kodu',
   nameSavePost: 'Kaydet ve skoru gönder',
   namePost: 'Skoru gönder',
   // campaign and knowledge screens
@@ -657,7 +662,7 @@ const UI_TR = {
   'Your best on this device: {s}': 'Bu cihazdaki en iyi skorun: {s}', 'Overall': 'Genel', 'Every stage added up': 'Tüm bölümlerin toplamı', 'Your total on this device: {s} across {n} stages': 'Bu cihazdaki toplamın: {n} bölümde {s}',
   'Every stage added up. Save a name and your runs are posted automatically.': 'Tüm bölümlerin toplamı. Bir ad kaydet, oyunların otomatik olarak tabloya girsin.', 'No scores yet. Save a name and finish a stage.': 'Henüz skor yok. Bir ad kaydet ve bir bölüm bitir.',
   'Names need 3 to 15 letters, digits or underscores.': 'Ad 3 ile 15 karakter arasında olmalı; harf, rakam ve alt çizgi kullanabilirsin.', 'Saving...': 'Kaydediliyor...', 'Saved. You post scores as @{h}.': 'Kaydedildi. Skorların tabloya @{h} adıyla girecek.',
-  'That name is taken. Pick another.': 'Bu ad alınmış. Başka bir ad dene.', 'That name is reserved. Pick another.': 'Bu ad kullanılamaz. Başka bir ad dene.', 'Could not reach the board. Try again in a moment.': 'Tabloya ulaşılamadı. Biraz sonra tekrar dene.',
+  'That name is taken. Pick another.': 'Bu ad alınmış. Başka bir ad dene.', 'That name and device code do not match.': 'Bu ad ve cihaz kodu eşleşmiyor.', 'Sign in': 'Giriş yap', 'New name instead': 'Yeni ad seçeceğim', 'Device code': 'Cihaz kodu', 'If this name is yours, paste its device code below and sign in.': 'Bu ad seninse cihaz kodunu aşağıya yapıştırıp giriş yap.', 'Signed in as @{h}.': '@{h} olarak giriş yaptın.', 'Your device code (keep it private, it works like a password). Use it with "I already have this name" on another device:': 'Cihaz kodun (kimseyle paylaşma, şifre gibi çalışır). Başka bir cihazda "Bu ad zaten benim" ile bu kodu kullan:', 'Copied.': 'Kopyalandı.', 'That name is reserved. Pick another.': 'Bu ad kullanılamaz. Başka bir ad dene.', 'Could not reach the board. Try again in a moment.': 'Tabloya ulaşılamadı. Biraz sonra tekrar dene.',
   'Change name? Your scores stay on the board under @{h}; the new name starts fresh.': 'Adını değiştirmek istiyor musun? Eski skorların tabloda @{h} adıyla kalır, yeni ad sıfırdan başlar.',
   'This run was not registered with the board (offline at start). Play another run to post.': 'Bu oyun tabloya kaydedilemedi (başlarken bağlantı yoktu). Göndermek için yeni bir oyun oyna.',
   'Pick a player name first.': 'Önce bir oyuncu adı seç.', 'The board refused this run.': 'Tablo bu skoru kabul etmedi.',
@@ -2075,9 +2080,28 @@ function renderName() {
   const p = loadPlayer(); myId = p ? 'h:' + p.handle.toLowerCase() : null;
   for (const box of document.querySelectorAll('.xauth')) {
     const row = box.querySelector('.namein'), who = box.querySelector('.xwho'), xh = box.querySelector('.xh');
-    row.hidden = !!p; who.hidden = !p; if (p) xh.textContent = '@' + p.handle;
+    row.hidden = !!p; who.hidden = !p; if (p) xh.textContent = '@' + p.handle; const hv = box.querySelector('.haveName'); if (hv) hv.hidden = !!p;
   }
   renderBadges();
+}
+// sign in mode: the same name on another device, proven by the device code
+function setSignin(box, on) {
+  box.dataset.signin = on ? '1' : ''; const ci = box.querySelector('.codeIn'); ci.hidden = !on; ci.placeholder = tr('Device code');
+  const b = box.querySelector('.namein [data-n]'), hv = box.querySelector('.haveName');
+  if (on && !b.dataset.orig) { b.dataset.orig = b.textContent; hv.dataset.orig = hv.textContent; }
+  if (on) { b.textContent = tr('Sign in'); hv.textContent = tr('New name instead'); } else if (b.dataset.orig) { b.textContent = b.dataset.orig; hv.textContent = hv.dataset.orig; delete b.dataset.orig; delete hv.dataset.orig; }
+}
+async function signIn(h, code, lm) {
+  h = cleanHandle(h); lm.className = 'msg'; lm.textContent = tr('Saving...');
+  try {
+    const r = await fetch(API + '/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handle: h, key: String(code || '').trim() }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { lm.textContent = tr(j.error || 'The board refused this run.'); return null; }
+    const p = { handle: j.handle, key: j.key }; savePlayer(p); try { localStorage.setItem('gs_handle', j.handle); } catch (e) {}
+    for (const box of document.querySelectorAll('.xauth')) setSignin(box, false);
+    renderName(); lm.className = 'msg ok'; lm.textContent = tr('Signed in as @{h}.', { h: j.handle }); renderBoards();
+    return p;
+  } catch (e) { lm.textContent = tr('Could not reach the board. Try again in a moment.'); return null; }
 }
 async function registerName(h, lm) {
   h = cleanHandle(h);
@@ -2086,7 +2110,7 @@ async function registerName(h, lm) {
   try {
     const r = await fetch(API + '/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handle: h }) });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) { lm.textContent = tr(j.error || 'The board refused this run.'); return null; }
+    if (!r.ok) { lm.textContent = tr(j.error || 'The board refused this run.') + (r.status === 409 && /taken/.test(j.error || '') ? ' ' + tr('If this name is yours, paste its device code below and sign in.') : ''); if (r.status === 409 && /taken/.test(j.error || '')) for (const box of document.querySelectorAll('.xauth')) setSignin(box, true); return null; }
     const p = { handle: j.handle, key: j.key }; savePlayer(p); try { localStorage.setItem('gs_handle', j.handle); } catch (e) {}
     renderName(); lm.className = 'msg ok'; lm.textContent = tr('Saved. You post scores as @{h}.', { h: j.handle }); renderBoards();
     return p;
@@ -2131,11 +2155,14 @@ async function postPending() {
 }
 document.querySelectorAll('[data-n]').forEach(b => { b.onclick = async () => {
   const k = b.dataset.n, box = b.closest('.xauth'), fromEnd = box.id === 'nameEnd', lm = fromEnd ? $('lbMsg') : $('nameMsgTitle');
+  if (k === 'mode') { setSignin(box, !box.dataset.signin); (box.dataset.signin ? box.querySelector('.codeIn') : box.querySelector('.nameIn')).focus(); return; }
+  if (k === 'code') { const p = loadPlayer(); if (!p) return; lm.className = 'msg ok'; lm.innerHTML = ''; const t = document.createElement('div'); t.textContent = tr('Your device code (keep it private, it works like a password). Use it with "I already have this name" on another device:'); const c = document.createElement('div'); c.className = 'codeShow'; c.textContent = p.key; lm.append(t, c); try { await navigator.clipboard.writeText(p.key); const d = document.createElement('div'); d.textContent = tr('Copied.'); lm.append(d); } catch (e) {} return; }
+  if ((k === 'save' || k === 'savepost') && box.dataset.signin) { const p = await signIn(box.querySelector('.nameIn').value, box.querySelector('.codeIn').value, lm); if (!p) return; if (k === 'savepost') postCurrent().then(() => postPending()); else postPending(); return; }
   if (k === 'save' || k === 'savepost') { const p = await registerName(box.querySelector('.nameIn').value, lm); if (!p) return; if (k === 'savepost') postCurrent().then(() => postPending()); else postPending(); return; }
   if (k === 'submit') return postCurrent();
   if (k === 'change') { const p = loadPlayer(); if (p && !confirm(tr('Change name? Your scores stay on the board under @{h}; the new name starts fresh.', { h: p.handle }))) return; savePlayer(null); renderName(); renderBoards(); for (const el of document.querySelectorAll('.nameIn')) el.value = ''; lm.textContent = ''; }
 }; });
-for (const el of document.querySelectorAll('.nameIn')) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const b = el.parentElement.querySelector('[data-n]'); b && b.click(); } });
+for (const el of document.querySelectorAll('.nameIn, .codeIn')) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const b = el.parentElement.querySelector('[data-n]'); b && b.click(); } });
 // claude.ai artifact view keeps the typed handle path
 $('submitBtn').onclick = async () => {
   if (submitting || !G) return;
