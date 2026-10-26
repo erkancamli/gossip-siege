@@ -98,7 +98,7 @@
       pads: null,
     },
     {
-      id: 9, key: 'stress', name: 'Stress Test', guide: { name: 'Prof. Sriram Vishwanath', note: "Optimum advisor and co-author of the OptimumP2P paper, working on information theory and network science" }, sub: 'High traffic, no excuses', tier: 'Expert', theme: 'stress',
+      id: 9, key: 'stress', name: 'Stress Test', guide: { name: 'Prof. Sriram Viswanath', note: "Optimum advisor and co-author of the OptimumP2P paper, working on information theory and network science" }, sub: 'High traffic, no excuses', tier: 'Expert', theme: 'stress',
       hint: 'Twice the enemies with half the health: splash and chain hits win here.',
       blurb: 'The route is the Optimum mark itself: one full infinity loop, crossing the center twice.',
       waves: 22, hp: 1.25, speed: 1.08, coins: 290, lives: 20, scoreMult: 1.85, codedBonus: 1, countX: 2, bountyX: 0.5,

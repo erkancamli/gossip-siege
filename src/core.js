@@ -49,7 +49,7 @@
     silk: 'Named after Swarnabha Sinha of the Optimum team, co-author of the OptimumP2P paper, who wrote the Hoodi 6x latency analysis and is one of the most active contributors to Optimum\'s public Gateway and docs repos.',
     cyan: 'Named after Prof. Muriel Médard, Optimum co-founder and CEO, NEC Chair at MIT EECS and co-inventor of RLNC. Recoding is her idea in action.',
     sunny: 'Named after Kent Lin, Optimum co-founder for business development, tokenomics and fundraising, formerly a Partner at GSRV and president of the Harvard Blockchain Club.',
-    nova: 'Named after Sajida Zouarhi, who wrote Optimum\'s research on the cost of uncertainty in Ethereum\'s PBS hot path and co-authored its study of latency and ETH staking revenue. She decodes what speed is worth.',
+    nova: 'Named after Sajida Zouarhi, Optimum\'s CPO, who wrote Optimum\'s research on the cost of uncertainty in Ethereum\'s PBS hot path and co-authored its study of latency and ETH staking revenue. She decodes what speed is worth.',
   };
   const CREW = {
     spike: { name: 'Kishori', role: 'Encoder', unlock: 1, look: { visor: '#9b7bff', hair: 'spiky', hairColor: '#f4f6f8', jacket: '#101216' },

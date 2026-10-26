@@ -150,7 +150,7 @@
         role: 'Çözücü',
         short: "Adını Sajida Zouarhi'den alıyor.",
         blurb: "Tek hedefe kilitlenip ısınan bir vizör ışını. Canı azıcık kalmış her şeyi anında çözer, çözülmüş zırha da iki kat sert vurur.",
-        tribute: "Adını Sajida Zouarhi'den alıyor. Optimum'un Ethereum PBS sıcak yolundaki belirsizliğin maliyeti üzerine araştırmasını o yazdı; gecikme ile ETH staking geliri çalışmasının da ortak yazarı. Hızın kaç para ettiğini o çözüyor.",
+        tribute: "Adını Optimum'un CPO'su Sajida Zouarhi'den alıyor. Optimum'un Ethereum PBS sıcak yolundaki belirsizliğin maliyeti üzerine araştırmasını o yazdı; gecikme ile ETH staking geliri çalışmasının da ortak yazarı. Hızın kaç para ettiğini o çözüyor.",
         specs: {
           a: { name: 'Decode Ray', blurb: "Işın artık tek hedefte durmuyor: düz bir çizgi üzerindeki her şeyi yakıp geçiyor." },
           b: { name: 'Twin Decoder', blurb: "İki hedefe iki ışın, iki kat hızlı ısınır. Canı %30'un altına inen her şeyi çözer." },
