@@ -108,7 +108,7 @@ ${body}
       body: `<nav class="crumbs"><a href="/">${esc(T.crumbs[0])}</a> › ${esc(T.crumbs[1])}</nav>\n<h1>${esc(T.idxH1)}</h1>\n<p class="lede">${esc(T.idxLede)}</p>\n<a class="cta" href="/">${esc(T.playShort)}</a>\n<ul class="grid">${cards}</ul>`,
       jsonld: { '@context': 'https://schema.org', '@graph': [{ '@type': 'CollectionPage', name: T.idxTitle, description: T.idxDesc, url: abs(idxPath), inLanguage: lang, isPartOf: { '@type': 'WebSite', name: 'Gossip Siege', url: abs('/') }, about: { '@type': 'Thing', name: 'Optimum mump2p' }, hasPart: byStage.map(({ s }) => ({ '@type': 'WebPage', name: stageText(s, lang).name, url: abs(urlOf(lang, s.key)) })) }, crumbLd(lang, [[T.crumbs[0], '/'], [T.crumbs[1], idxPath]])] },
     }));
-    sitemap.push({ en: urlOf('en'), tr: urlOf('tr'), pri: '0.8' });
+    if (lang === 'en') sitemap.push({ en: urlOf('en'), tr: urlOf('tr'), pri: '0.8' });
     // one page per stage
     for (const { s, qs } of byStage) {
       const st = stageText(s, lang), path = urlOf(lang, s.key), alt = urlOf(T.other, s.key);
