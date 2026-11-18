@@ -14,7 +14,7 @@ http.createServer(async (req, res) => {
     const r = await handle(new Request('http://localhost' + req.url, { method: req.method, headers: req.headers, body: req.method === 'POST' ? body : undefined }), { store, ip: req.socket.remoteAddress, secret: 'dev-secret-0123456789abcdef', now: Date.now() + offset.ms });
     res.writeHead(r.status, Object.fromEntries(r.headers)); res.end(await r.text()); return;
   }
-  const file = url.pathname === '/' ? 'dist/index.html' : 'dist' + url.pathname;
+  const file = url.pathname.endsWith('/') ? 'dist' + url.pathname + 'index.html' : 'dist' + url.pathname; // folder pages like Netlify
   try {
     let data = await readFile(file);
     if (debug && file.endsWith('.js')) data = Buffer.from(data.toString().replace('fit(); toTitle();', 'window.__dbg = { get G() { return G; }, T, finish, newRun, showStages, get modalOpen(){return modalOpen;}, pickQuestion, recordAnswer, get askedRun(){return askedRun;}, get quiz(){return quiz;}, toScreen, get checkpoints(){return checkpoints;} }; window.__draw = { drawMascot, markAt }; fit(); toTitle();'));

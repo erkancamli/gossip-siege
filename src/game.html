@@ -228,6 +228,8 @@ body.small .face { width: 52px; height: 52px; }
 .msg { font-size: 12.5px; color: var(--dim); min-height: 18px; }
 .msg.ok { color: var(--green); }
 .xauth { display: grid; gap: 8px; }
+.learnline { margin: 6px 0 12px; font-size: 14px; }
+.learnline a { color: var(--cyan, #3cc8f0); }
 .xbtn { background: var(--paper); color: var(--ink); border-color: var(--paper); font-weight: 700; white-space: nowrap; }
 .namein input { font-size: 14px; }
 .xbtn:hover { background: var(--paper); opacity: 0.9; }
@@ -399,6 +401,7 @@ body.small .coach { font-size: 20px; }
       <span class="slogan">SPEED IS MONEY</span>
       <h1 class="big">Gossip<br>Siege</h1>
       <p class="lede" data-t="lede">The Gossip Blob and its swarm of duplicates are marching on your validators. Hire the <b>Optimum crew</b>, crack coded armor with <b>independent shards</b>, and take the mesh from <b>Hoodi Testnet to Mainnet</b> across ten stages. Every second wave asks an <b>Optimum question</b>: learn the tech, earn boosts.</p>
+      <p class="learnline"><a href="/learn/" data-href-tr="/tr/learn/" data-t="learnLine">New to Optimum? Read the study guide: every quiz question with its answer and source</a></p>
       <div class="tcta"><button class="chrome" id="playBtn" data-t="playBtn">Defend the mesh</button><button class="ghost" id="howBtn" data-t="howBtn">How it plays</button><button class="ghost" id="modeBtn2" title="Day or night mode">☀ Day</button><button class="ghost" id="langBtn" title="Language">TR</button><button class="ghost" id="fsBtn2" data-t="fsBtn" hidden>Full screen</button></div>
       <div class="daily" id="dailyCard"><div class="dtop"><span class="label" data-t="dailyLabel">Daily challenge</span><span class="dreset" id="dailyReset"></span></div><div class="dmain"><div><b id="dailyStage"></b><span id="dailyMod"></span><span class="dbest" id="dailyBest"></span></div><button class="chrome" id="dailyBtn" data-t="dailyBtn">Play today's challenge</button></div></div>
       <canvas id="crewcv" width="1400" height="360" aria-label="The Optimum crew"></canvas>
@@ -417,7 +420,7 @@ body.small .coach { font-size: 20px; }
     </aside>
     <footer class="foot">
       <div class="lgroup"><span class="label">Optimum</span><a href="https://www.getoptimum.xyz" target="_blank" rel="noopener" data-t="lkSite">Website</a><a href="https://docs.getoptimum.xyz" target="_blank" rel="noopener" data-t="lkDocs">Docs</a><a href="https://www.getoptimum.xyz/blog" target="_blank" rel="noopener">Blog</a><a href="https://x.com/get_optimum" target="_blank" rel="noopener">X</a><a href="https://discord.gg/getoptimum" target="_blank" rel="noopener">Discord</a><a href="https://t.me/+I1fmgPCPO5IxNzZl" target="_blank" rel="noopener">Telegram</a><a href="https://github.com/getoptimum" target="_blank" rel="noopener">GitHub</a><a href="https://arxiv.org/abs/2508.04833" target="_blank" rel="noopener" data-t="lkPaper">OptimumP2P paper</a></div>
-      <div class="lgroup"><span class="label">Gossip Siege</span><a href="https://x.com/ekinoks_26" target="_blank" rel="noopener" data-t="lkMaker">Made by @ekinoks_26</a><a href="https://github.com/erkancamli/gossip-siege" target="_blank" rel="noopener" data-t="lkSource">Source code</a></div>
+      <div class="lgroup"><span class="label">Gossip Siege</span><a href="https://x.com/ekinoks_26" target="_blank" rel="noopener" data-t="lkMaker">Made by @ekinoks_26</a><a href="https://github.com/erkancamli/gossip-siege" target="_blank" rel="noopener" data-t="lkSource">Source code</a><a href="/learn/" data-href-tr="/tr/learn/" data-t="lkLearn">Study guide</a></div>
     </footer>
   </div>
 </section>
@@ -570,6 +573,7 @@ const UI_TR = {
   'Thin wallet': 'İnce cüzdan', 'Starting coins cut to 60%. Call waves early for the speed bonus.': "Başlangıç coin'i %60'a indi. Hız bonusu için dalgaları erken çağır.", 'Fast lane': 'Hızlı şerit', 'Every enemy moves 12% faster. Slows and stuns earn their keep.': 'Her düşman %12 daha hızlı. Yavaşlatma ve dondurma burada değerini gösterir.',
   'Ten validators': 'On validator', 'Only ten validators to lose. Nothing leaks.': "Kaybedecek sadece on validator var. Hiçbir şey kaçmasın.", 'All coded': 'Hepsi kodlu', 'From wave 3 every enemy wears a 3 shard shield. Three different crew members on every stretch.': "3. dalgadan itibaren her düşmanda 3 shard'lık kalkan var. Her hatta üç farklı ekip üyesi.",
   'Heavy traffic': 'Yoğun trafik', 'Half again as many enemies, each a little lighter. Splash wins.': 'Yüzde elli daha fazla düşman, her biri biraz daha hafif. Alan hasarı kazanır.',
+  lkLearn: 'Çalışma rehberi', learnLine: "Optimum'da yeni misin? Çalışma rehberini oku: her quiz sorusu cevabı ve kaynağıyla",
   lkSite: 'Web sitesi', lkDocs: 'Dokümanlar', lkPaper: 'OptimumP2P makalesi', lkMaker: '@ekinoks_26 yaptı', lkSource: 'Kaynak kodu',
   nameSave: 'Adı kaydet',
   nameChange: 'adı değiştir', nameHave: 'Bu ad zaten benim', nameCode: 'cihaz kodu',
@@ -707,6 +711,7 @@ function qT(q) { const t = LANG === 'tr' && window.TD_QUIZ_TR && window.TD_QUIZ_
 function applyLang() {
   document.documentElement.lang = LANG;
   for (const el of document.querySelectorAll('[data-t]')) { if (el.dataset.en == null) el.dataset.en = el.innerHTML; el.innerHTML = LANG === 'tr' ? (UI_TR[el.dataset.t] ?? el.dataset.en) : el.dataset.en; }
+  for (const el of document.querySelectorAll('[data-href-tr]')) { if (el.dataset.hrefEn == null) el.dataset.hrefEn = el.getAttribute('href'); el.setAttribute('href', LANG === 'tr' ? el.dataset.hrefTr : el.dataset.hrefEn); }
   for (const el of document.querySelectorAll('[title]')) { if (el.dataset.ent == null) el.dataset.ent = el.title; el.title = tr(el.dataset.ent); }
   for (const el of document.querySelectorAll('[placeholder]')) { if (el.dataset.enp == null) el.dataset.enp = el.placeholder; el.placeholder = tr(el.dataset.enp); }
   for (const id of ['langBtn', 'langBtn2']) { const b = $(id); if (b) b.textContent = LANG === 'tr' ? 'EN' : 'TR'; }

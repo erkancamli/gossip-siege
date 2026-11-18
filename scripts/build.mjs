@@ -2,8 +2,10 @@
 // adds the head (meta, social preview tags) and copies the static files from public/.
 import { cp, readFile, writeFile, rm, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { buildLearn } from './learn.mjs';
 
 const site = (process.env.URL || '').replace(/\/+$/, '');
+const SITE = site || 'https://gossipsiege.xyz'; // sitemaps and canonical links need absolute URLs even in a local build
 const ogName = `og-${(await import('node:crypto')).createHash('sha256').update(await readFile('public/og.png')).digest('hex').slice(0, 10)}.png`; // content hashed: a new picture gets a new URL
 const [game, stages, quiz, core, logo, quizTr, contentTr] = await Promise.all(['src/game.html', 'src/stages.js', 'src/quiz.js', 'src/core.js', 'src/logo.svg', 'src/i18n-quiz-tr.js', 'src/i18n-content-tr.js'].map((f) => readFile(f, 'utf8')));
 
@@ -45,6 +47,12 @@ const meta = `<meta charset="utf-8">
 <meta name="twitter:description" content="A fan made Optimum tower defense game. Crack coded armor with independent shards.">
 <meta name="twitter:image" content="${abs('/' + ogName)}">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="canonical" href="${SITE}/">
+<link rel="sitemap" type="application/xml" href="/sitemap.xml">
+<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': [
+  { '@type': 'VideoGame', name: 'Gossip Siege', url: SITE + '/', description: 'A fan made browser tower defense game about Optimum and mump2p: hire the Optimum crew, crack coded armor with independent shards and hold the validator mesh across ten stages from Hoodi Testnet to Mainnet, with quiz questions checked against public sources.', image: SITE + '/' + ogName, genre: ['Tower defense', 'Strategy', 'Educational'], gamePlatform: 'Web browser', applicationCategory: 'Game', operatingSystem: 'Any', inLanguage: ['en', 'tr'], isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, author: { '@type': 'Person', name: 'ecamli', url: 'https://x.com/ekinoks_26' }, about: [{ '@type': 'Thing', name: 'Optimum' }, { '@type': 'Thing', name: 'mump2p' }, { '@type': 'Thing', name: 'Random Linear Network Coding' }], sameAs: ['https://github.com/erkancamli/gossip-siege'] },
+  { '@type': 'WebSite', name: 'Gossip Siege', url: SITE + '/', inLanguage: ['en', 'tr'] },
+] }).replace(/</g, '\\u003c')}</script>
 `;
 const page = `<!doctype html>\n<html lang="en">\n<head>\n${meta}${titleLine}\n${headRest}\n</head>\n<body>${bodyPart}\n</body>\n</html>\n`;
 
@@ -76,4 +84,9 @@ shipped = shipped.replace(`<script src="/${jsName}" defer></script>`, `<script s
 await writeFile('dist/' + jsName, js);
 await writeFile('dist/' + quizName, quizJs);
 await writeFile('dist/index.html', shipped);
+const learn = await buildLearn({ site: SITE, ogUrl: SITE + '/' + ogName });
+console.log(`study guide: ${learn.pages} pages, sitemap ${learn.urls} urls`);
+// IndexNow ownership key (Bing, Yandex, Seznam, Naver): the file proves the site owns the key used by scripts/indexnow.mjs
+const INDEXNOW_KEY = '3e5089a8e78d70460806ea0ec0b449d1';
+await writeFile(`dist/${INDEXNOW_KEY}.txt`, INDEXNOW_KEY);
 console.log(`built dist/index.html (${(shipped.length / 1024).toFixed(0)} KB) + ${jsName} (${(js.length / 1024).toFixed(0)} KB) + ${quizName} (${(quizJs.length / 1024).toFixed(0)} KB) for ${site || 'relative URLs'}`);
