@@ -42,7 +42,7 @@
         blurb: "Bir peer grafiğinin içinden geçen sütun sütun bir rota. Mesh dediğin, senin ekibin.",
         optimum: "mump2p de Gossipsub gibi bir peer mesh'i tutar: hedef 6 peer. Sayı 4'ün altına inerse yeni peer ekler, 12'yi aşarsa budar.",
         rule: { name: 'Mesh derecesi', text: "En fazla 12 ekip üyesi kurabilirsin (mesh üst sınırı). 6 kişiyi tamamladığında (mesh hedefi) bütün ekip %15 daha hızlı ateş eder. Spam yapma, geliştir." },
-        guide: "OptimumP2P ile Gossipsub karşılaştırmasının ve OptimumP2P makalesinin ortak yazarı; mump2p geliştirici kurulum rehberine de katkı verdi",
+        guide: "OptimumP2P ile Gossipsub karşılaştırmasının ve OptimumP2P makalesinin ortak yazarı; Optimum Gateway'e de katkı verdi",
       },
       subsea: {
         hint: "Denizaltı hattı düz atışların %30'unu yutar. Muriel'in yakınındaki atışlar kodludur, kodlu atış kaybolmaz.",

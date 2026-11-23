@@ -54,7 +54,7 @@
       pads: null,
     },
     {
-      id: 5, key: 'mesh', name: 'Mesh Limits', guide: { name: 'Har Preet Singh', note: "co-author of the OptimumP2P versus Gossipsub comparison and of the OptimumP2P paper, and a contributor to the mump2p dev setup guide" }, sub: 'Six peers is the sweet spot', tier: 'Intermediate', theme: 'mesh',
+      id: 5, key: 'mesh', name: 'Mesh Limits', guide: { name: 'Har Preet Singh', note: "co-author of the OptimumP2P versus Gossipsub comparison and of the OptimumP2P paper, and a contributor to Optimum Gateway" }, sub: 'Six peers is the sweet spot', tier: 'Intermediate', theme: 'mesh',
       hint: 'Six crew members is the sweet spot: the whole crew fires 15% faster. Upgrade instead of spamming.',
       blurb: 'A column route through a peer graph. Your crew is the mesh.',
       waves: 17, hp: 2.4, speed: 1.04, coins: 250, lives: 20, scoreMult: 1.4, codedBonus: 0, crewCap: 12, meshTarget: 6, meshBonus: 0.15,
